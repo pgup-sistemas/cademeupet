@@ -10,7 +10,7 @@ include __DIR__ . '/../../includes/header.php';
 
         <!-- Sidebar -->
         <div class="col-lg-3">
-            <div class="card border-0 shadow-sm sticky-top" style="top:80px;">
+            <div class="card border-0 shadow-sm legal-sidebar">
                 <div class="card-header bg-transparent border-0 pt-3 pb-1">
                     <span class="small fw-bold text-muted text-uppercase">Páginas legais</span>
                 </div>

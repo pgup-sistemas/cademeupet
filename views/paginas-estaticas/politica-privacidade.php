@@ -10,7 +10,7 @@ include __DIR__ . '/../../includes/header.php';
 
         <!-- Sidebar de navegação legal -->
         <div class="col-lg-3">
-            <div class="card border-0 shadow-sm sticky-top" style="top:80px;">
+            <div class="card border-0 shadow-sm legal-sidebar">
                 <div class="card-header bg-transparent border-0 pt-3 pb-1">
                     <span class="small fw-bold text-muted text-uppercase">Páginas legais</span>
                 </div>
@@ -64,7 +64,6 @@ include __DIR__ . '/../../includes/header.php';
                         <strong>Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD)</strong>.
                     </div>
 
-                    <!-- 1. Controlador -->
                     <h2 class="h5 fw-bold mt-4 mb-3">
                         <span class="badge bg-primary me-2">1</span>Controlador dos Dados
                     </h2>
@@ -77,7 +76,6 @@ include __DIR__ . '/../../includes/header.php';
                         </table>
                     </div>
 
-                    <!-- 2. Dados coletados -->
                     <h2 class="h5 fw-bold mt-5 mb-3">
                         <span class="badge bg-primary me-2">2</span>Quais Dados Coletamos
                     </h2>
@@ -136,17 +134,13 @@ include __DIR__ . '/../../includes/header.php';
                         </div>
                     </div>
 
-                    <!-- 3. Base legal -->
                     <h2 class="h5 fw-bold mt-5 mb-3">
                         <span class="badge bg-primary me-2">3</span>Base Legal para o Tratamento (LGPD, art. 7º)
                     </h2>
                     <div class="table-responsive">
                         <table class="table table-striped table-sm align-middle">
                             <thead class="table-dark">
-                                <tr>
-                                    <th>Finalidade</th>
-                                    <th>Base Legal</th>
-                                </tr>
+                                <tr><th>Finalidade</th><th>Base Legal</th></tr>
                             </thead>
                             <tbody>
                                 <tr><td>Criação e gerenciamento de conta</td><td>Execução de contrato (art. 7º, V)</td></tr>
@@ -160,7 +154,6 @@ include __DIR__ . '/../../includes/header.php';
                         </table>
                     </div>
 
-                    <!-- 4. Compartilhamento -->
                     <h2 class="h5 fw-bold mt-5 mb-3">
                         <span class="badge bg-primary me-2">4</span>Compartilhamento de Dados
                     </h2>
@@ -169,10 +162,9 @@ include __DIR__ . '/../../includes/header.php';
                         <li><strong>Operadores de pagamento:</strong> Efí Bank (Gerencianet) para processar doações.</li>
                         <li><strong>Infraestrutura de hospedagem:</strong> servidor onde o site está hospedado, com cláusulas de confidencialidade.</li>
                         <li><strong>Obrigação legal:</strong> quando exigido por lei, mandado judicial ou autoridade competente.</li>
-                        <li><strong>Proteção de direitos:</strong> para prevenir fraudes, violações de segurança ou proteger a segurança de usuários.</li>
+                        <li><strong>Proteção de direitos:</strong> para prevenir fraudes ou proteger a segurança de usuários.</li>
                     </ul>
 
-                    <!-- 5. Retenção -->
                     <h2 class="h5 fw-bold mt-5 mb-3">
                         <span class="badge bg-primary me-2">5</span>Período de Retenção dos Dados
                     </h2>
@@ -191,59 +183,51 @@ include __DIR__ . '/../../includes/header.php';
                         </table>
                     </div>
 
-                    <!-- 6. Segurança -->
                     <h2 class="h5 fw-bold mt-5 mb-3">
                         <span class="badge bg-primary me-2">6</span>Segurança dos Dados
                     </h2>
-                    <p>Adotamos as seguintes medidas técnicas e organizacionais:</p>
                     <ul>
                         <li>Senhas armazenadas com algoritmo <strong>bcrypt</strong> (custo 12)</li>
                         <li>Comunicação criptografada via <strong>HTTPS/TLS</strong></li>
                         <li>Proteção contra CSRF em todos os formulários</li>
                         <li>Sanitização de saída para prevenir XSS</li>
                         <li>Consultas parametrizadas (PDO) para prevenir SQL injection</li>
-                        <li>Acesso ao painel administrativo restrito por autenticação</li>
                         <li>Backup periódico do banco de dados</li>
                     </ul>
 
-                    <!-- 7. Transferência internacional -->
                     <h2 class="h5 fw-bold mt-5 mb-3">
                         <span class="badge bg-primary me-2">7</span>Transferência Internacional de Dados
                     </h2>
                     <p>
                         O Cadê Meu Pet? é hospedado em servidores localizados no <strong>Brasil</strong>.
-                        Eventualmente, serviços de terceiros que utilizamos (como CDN para fontes e ícones)
-                        podem processar dados fora do Brasil. Nesses casos, adotamos cláusulas contratuais padrão
-                        ou verificamos se o país de destino oferece grau adequado de proteção, conforme art. 33 da LGPD.
+                        Serviços de CDN externos (Bootstrap, Font Awesome) podem processar dados fora do Brasil.
+                        Nesses casos, adotamos cláusulas contratuais padrão conforme art. 33 da LGPD.
                     </p>
 
-                    <!-- 8. Menores -->
                     <h2 class="h5 fw-bold mt-5 mb-3">
                         <span class="badge bg-primary me-2">8</span>Menores de Idade
                     </h2>
                     <p>
                         Nossos serviços são destinados a pessoas com <strong>18 anos ou mais</strong>.
-                        Não coletamos intencionalmente dados de menores de idade. Se tomarmos conhecimento de que
-                        dados de um menor foram coletados sem o consentimento dos responsáveis legais,
+                        Não coletamos intencionalmente dados de menores. Se tomarmos conhecimento disso,
                         eliminaremos essas informações imediatamente.
                     </p>
 
-                    <!-- 9. Direitos -->
                     <h2 class="h5 fw-bold mt-5 mb-3">
                         <span class="badge bg-primary me-2">9</span>Seus Direitos como Titular
                     </h2>
-                    <p>Nos termos da LGPD (art. 18), você pode, a qualquer momento, solicitar:</p>
+                    <p>Nos termos da LGPD (art. 18), você pode a qualquer momento solicitar:</p>
                     <div class="row g-2 mb-3">
                         <?php
                         $direitos = [
-                            ['fa-eye',           'Acesso',           'Confirmar se tratamos seus dados e receber cópia deles.'],
-                            ['fa-pen-to-square', 'Correção',         'Corrigir dados incompletos, inexatos ou desatualizados.'],
-                            ['fa-trash-can',     'Eliminação',       'Apagar dados desnecessários ou tratados com consentimento.'],
-                            ['fa-ban',           'Bloqueio',         'Suspender temporariamente o tratamento de dados.'],
-                            ['fa-file-export',   'Portabilidade',    'Receber seus dados em formato legível por máquina.'],
-                            ['fa-hand',          'Revogação',        'Revogar o consentimento a qualquer momento.'],
-                            ['fa-circle-info',   'Informação',       'Saber com quem seus dados foram compartilhados.'],
-                            ['fa-robot',         'Revisão automatiz.','Questionar decisões tomadas exclusivamente por algoritmos.'],
+                            ['fa-eye',           'Acesso',             'Confirmar se tratamos seus dados e receber cópia deles.'],
+                            ['fa-pen-to-square', 'Correção',           'Corrigir dados incompletos ou desatualizados.'],
+                            ['fa-trash-can',     'Eliminação',         'Apagar dados desnecessários ou tratados com consentimento.'],
+                            ['fa-ban',           'Bloqueio',           'Suspender temporariamente o tratamento.'],
+                            ['fa-file-export',   'Portabilidade',      'Receber seus dados em formato legível por máquina.'],
+                            ['fa-hand',          'Revogação',          'Revogar o consentimento a qualquer momento.'],
+                            ['fa-circle-info',   'Informação',         'Saber com quem seus dados foram compartilhados.'],
+                            ['fa-robot',         'Revisão automatiz.', 'Questionar decisões tomadas exclusivamente por algoritmos.'],
                         ];
                         foreach ($direitos as $d):
                         ?>
@@ -262,35 +246,27 @@ include __DIR__ . '/../../includes/header.php';
                         Respondemos em até <strong>15 dias úteis</strong>.
                     </p>
 
-                    <!-- 10. Cookies -->
                     <h2 class="h5 fw-bold mt-5 mb-3">
                         <span class="badge bg-primary me-2">10</span>Cookies
                     </h2>
                     <p>
-                        Utilizamos cookies para manter sua sessão, lembrar preferências e melhorar o serviço.
-                        Veja nossa <a href="<?php echo BASE_URL; ?>/politica-cookies">Política de Cookies</a> para detalhes completos.
+                        Utilizamos cookies para manter sua sessão e melhorar o serviço.
+                        Veja nossa <a href="<?php echo BASE_URL; ?>/politica-cookies">Política de Cookies</a> para detalhes.
                     </p>
 
-                    <!-- 11. Alterações -->
                     <h2 class="h5 fw-bold mt-5 mb-3">
                         <span class="badge bg-primary me-2">11</span>Alterações nesta Política
                     </h2>
                     <p>
                         Podemos atualizar esta Política periodicamente. Quando houver alterações relevantes,
-                        notificaremos você por e-mail ou por aviso destacado no site. O uso continuado
-                        do serviço após a publicação da nova versão implica aceitação das mudanças.
+                        notificaremos você por e-mail ou aviso no site.
                     </p>
 
-                    <!-- 12. Contato -->
                     <h2 class="h5 fw-bold mt-5 mb-3">
                         <span class="badge bg-primary me-2">12</span>Contato e DPO
                     </h2>
-                    <p>
-                        Para dúvidas, solicitações ou reclamações sobre privacidade e proteção de dados,
-                        entre em contato com nosso Encarregado de Proteção de Dados (DPO):
-                    </p>
-                    <a href="<?php echo BASE_URL; ?>/contato-dpo"
-                       class="btn btn-primary">
+                    <p>Para dúvidas, solicitações ou reclamações sobre privacidade:</p>
+                    <a href="<?php echo BASE_URL; ?>/contato-dpo" class="btn btn-primary">
                         <i class="fa-solid fa-envelope-circle-check me-2"></i>Falar com o DPO
                     </a>
                     <p class="text-muted small mt-3 mb-0">
