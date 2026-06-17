@@ -252,6 +252,32 @@ include __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
+<!-- Pet Love CTA -->
+<div class="py-5" style="background:linear-gradient(135deg,#fff0f5,#ffe8f5);">
+    <div class="container">
+        <div class="row align-items-center g-4">
+            <div class="col-md-7">
+                <h2 class="fw-bold mb-2">
+                    <i class="fa-solid fa-heart me-2" style="color:#e5499a;"></i>Encontre um par para o seu pet
+                </h2>
+                <p class="mb-0 text-muted">
+                    No <strong>Pet Love</strong> você encontra pets compatíveis para cruzamento — filtrados por espécie, raça, porte e proximidade.
+                    Criação responsável e com acompanhamento veterinário.
+                </p>
+            </div>
+            <div class="col-md-5 text-md-end">
+                <a href="<?php echo BASE_URL; ?>/petlove" class="btn btn-lg fw-semibold me-2"
+                   style="background:#e5499a;color:#fff;border-color:#e5499a;">
+                    <i class="fa-solid fa-heart me-2"></i>Explorar Pet Love
+                </a>
+                <a href="<?php echo BASE_URL; ?>/petlove/novo" class="btn btn-outline-secondary btn-lg">
+                    <i class="fa-solid fa-plus me-1"></i>Cadastrar pet
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Doações CTA -->
 <div class="cta-section">
     <div class="container">

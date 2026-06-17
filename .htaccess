@@ -12,6 +12,9 @@
     # RewriteCond %{HTTP_HOST} ^petfinder\.pageup\.net\.br$ [NC]
     # RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [L,R=301]
 
+    # Include local env file (uncomment if you will upload `.htaccess.env` to the server and your host allows Include)
+    # Include .htaccess.env
+
     # Ignorar arquivos e diretórios reais
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
@@ -28,13 +31,30 @@
     RewriteRule ^admin/parceiros/?$ views/admin-parceiros.php [L,QSA]
 
     # Rotas de parceiros (ordem importa!)
-    RewriteRule ^parceiros/inscricao/?$ views/parceiros-inscricao.php [L,QSA]
+    RewriteRule ^parceiros/inscricao/?$ parceiros-inscricao.php [L,QSA]
     RewriteRule ^parceiros/?$ views/parceiros.php [L,QSA]
-    RewriteRule ^parceiro/painel/?$ views/parceiro-painel.php [L,QSA]
-    RewriteRule ^parceiro/perfil/?$ views/parceiro-perfil.php [L,QSA]
-    RewriteRule ^parceiro/pagamento/?$ views/parceiro-pagamento.php [L,QSA]
-    RewriteRule ^parceiro/pix/?$ views/parceiro-pix.php [L,QSA]
-    RewriteRule ^parceiro/([^/]+)/?$ views/parceiro-publico.php?slug=$1 [L,QSA]
+    RewriteRule ^parceiro/painel/?$ parceiro-painel.php [L,QSA]
+    RewriteRule ^parceiro/perfil/?$ parceiro-perfil.php [L,QSA]
+    RewriteRule ^parceiro/pagamento/?$ parceiro-pagamento.php [L,QSA]
+    RewriteRule ^parceiro/abrir-pagamento/?$ parceiro-abrir-pagamento.php [L,QSA]
+    RewriteRule ^parceiro/pix/?$ parceiro-pix.php [L,QSA]
+
+    # URL amigável para anúncios
+    RewriteRule ^anuncio/(\d+)/?$ anuncio.php?id=$1 [L,QSA]
+    # URL amigável para editar anúncio
+    RewriteRule ^editar-anuncio/(\d+)/?$ editar-anuncio.php?id=$1 [L,QSA]
+    RewriteRule ^sitemap\.xml$ sitemap.php [L,QSA]
+    RewriteRule ^parceiro/cancelar/?$ parceiro-cancelar.php [L,QSA]
+    RewriteRule ^parceiro/([^/]+)/?$ parceiro-publico.php?slug=$1 [L,QSA]
+
+    # ─── Pet Love ───────────────────────────────────────────────────
+    RewriteRule ^petlove/novo/?$                      views/petlove-novo.php [L,QSA]
+    RewriteRule ^petlove/interesse/?$                 petlove-interesse.php [L,QSA]
+    RewriteRule ^petlove/status/(\d+)/([a-z]+)/?$    petlove-status.php?id=$1&status=$2 [L,QSA]
+    RewriteRule ^minha-conta/petlove/?$               views/minha-conta-petlove.php [L,QSA]
+    RewriteRule ^petlove/(\d+)/?$                     views/petlove-detalhe.php?id=$1 [L,QSA]
+    RewriteRule ^petlove/?$                           views/petlove.php [L,QSA]
+    # ────────────────────────────────────────────────────────────────
 
     # Rotas principais do sistema
     RewriteRule ^cadastro/?$ views/cadastro.php [L,QSA]
@@ -52,6 +72,7 @@
     # Rotas de ação
     RewriteRule ^excluir-anuncio/?$ views/excluir-anuncio.php [L,QSA]
     RewriteRule ^marcar-resolvido/?$ views/marcar-resolvido.php [L,QSA]
+    RewriteRule ^marcar-ativo/?$ marcar-ativo.php [L,QSA]
     RewriteRule ^favorito/toggle/?$ views/favorito_toggle.php [L,QSA]
 
     # Rotas de autenticação e email
@@ -61,8 +82,9 @@
     RewriteRule ^resetar-senha/?$ views/resetar-senha.php [L,QSA]
 
     # Rotas de doação
-    RewriteRule ^doar/?$ views/doar.php [L,QSA]
-    RewriteRule ^doacao-pix/?$ views/doacao-pix.php [L,QSA]
+    RewriteRule ^doar/?$ doar.php [L,QSA]
+    RewriteRule ^doacao-pix/?$ doacao-pix.php [L,QSA]
+    RewriteRule ^doacao-cancelar/?$ doacao-cancelar.php [L,QSA]
     RewriteRule ^transparencia/?$ views/transparencia.php [L,QSA]
 
     # Páginas institucionais
@@ -79,15 +101,34 @@
 # Bloquear listagem de diretórios
 Options -Indexes
 
-# Proteger arquivos sensíveis
-<FilesMatch "^(config\.php|\.env|\.git.*|\.htaccess|\.htpasswd)$">
-    Require all denied
-</FilesMatch>
+# Proteger arquivos sensíveis (compatibilidade Apache 2.2/2.4)
+<IfModule mod_authz_core.c>
+    <FilesMatch "^(config\.php|\.env|\.git.*|\.htaccess|\.htpasswd)$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+<IfModule !mod_authz_core.c>
+    <FilesMatch "^(config\.php|\.env|\.git.*|\.htaccess|\.htpasswd)$">
+        Deny from all
+    </FilesMatch>
+</IfModule>
+
+# Proteger certificados e chaves (PEM/P12/KEY)
+<IfModule mod_authz_core.c>
+    <FilesMatch "\.(pem|p12|key)$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+<IfModule !mod_authz_core.c>
+    <FilesMatch "\.(pem|p12|key)$">
+        Deny from all
+    </FilesMatch>
+</IfModule> 
 
 # Proteger diretórios sensíveis
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteRule ^(includes|config|vendor|\.git)/.*$ - [F,L]
+    RewriteRule ^(includes|config|vendor|\.git|secrets)/.*$ - [F,L]
 </IfModule>
 
 # Cache de assets
