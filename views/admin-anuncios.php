@@ -101,6 +101,11 @@ $contagens = $db->fetchOne("
     FROM anuncios
 ") ?: [];
 
+$breadcrumbs = [
+    ['label' => 'Início',   'url' => BASE_URL],
+    ['label' => 'Admin',    'url' => BASE_URL . '/admin'],
+    ['label' => 'Anúncios'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

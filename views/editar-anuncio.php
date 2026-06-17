@@ -48,17 +48,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $includeMapAssets = true;
 
+$_petLabel = $anuncio['nome_pet'] ?: ('Pet ' . ucfirst($anuncio['especie']));
+$breadcrumbs = [
+    ['label' => 'Início',                                      'url' => BASE_URL],
+    ['label' => 'Meus Anúncios',                               'url' => BASE_URL . '/meus-anuncios'],
+    ['label' => sanitize($_petLabel),                          'url' => BASE_URL . '/anuncio/' . $id . '/'],
+    ['label' => 'Editar'],
+];
+
 include __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="container py-5">
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>">Início</a></li>
-            <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>/anuncio/<?php echo $id; ?>/">Detalhes</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Editar anúncio</li>
-        </ol>
-    </nav>
 
     <div class="row justify-content-center">
         <div class="col-lg-8">

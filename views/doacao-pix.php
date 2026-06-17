@@ -171,6 +171,11 @@ if (!empty($pix) && trim((string)$pix_qr_text) === '') {
     error_log('[doacao-pix DEBUG missing_copia] id=' . (int)$id . ' wrote ' . $dbgFile);
 }
 
+$breadcrumbs = [
+    ['label' => 'Início',        'url' => BASE_URL],
+    ['label' => 'Fazer Doação',  'url' => BASE_URL . '/doar'],
+    ['label' => 'Pagar via PIX'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

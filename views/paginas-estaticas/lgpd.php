@@ -2,6 +2,10 @@
 $pageTitle       = 'LGPD — Lei Geral de Proteção de Dados — Cadê Meu Pet?';
 $dataAtualizacao = '17 de junho de 2026';
 require_once __DIR__ . '/../../config.php';
+$breadcrumbs = [
+    ['label' => 'Início', 'url' => BASE_URL],
+    ['label' => 'LGPD'],
+];
 include __DIR__ . '/../../includes/header.php';
 ?>
 

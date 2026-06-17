@@ -106,6 +106,11 @@ function cfg(array $config, string $key): string {
     return htmlspecialchars($config[$key] ?? '', ENT_QUOTES, 'UTF-8');
 }
 
+$breadcrumbs = [
+    ['label' => 'Início',        'url' => BASE_URL],
+    ['label' => 'Admin',         'url' => BASE_URL . '/admin'],
+    ['label' => 'Configurações'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

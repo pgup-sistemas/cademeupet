@@ -223,6 +223,11 @@ $total = $usuarioModel->countAll($search);
 $usuarios = $usuarioModel->findAll($limite, $offset, $search);
 $totalPaginas = (int)ceil($total / $limite);
 
+$breadcrumbs = [
+    ['label' => 'Início',   'url' => BASE_URL],
+    ['label' => 'Admin',    'url' => BASE_URL . '/admin'],
+    ['label' => 'Usuários'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

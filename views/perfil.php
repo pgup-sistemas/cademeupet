@@ -48,6 +48,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $usuario = $usuarioModel->findById($usuarioId) ?: $usuario;
 
+$breadcrumbs = [
+    ['label' => 'Início',    'url' => BASE_URL],
+    ['label' => 'Meu Perfil'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

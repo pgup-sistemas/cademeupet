@@ -1,5 +1,9 @@
 <?php
 $pageTitle = 'Contato do Encarregado de Proteção de Dados (DPO)';
+$breadcrumbs = [
+    ['label' => 'Início',        'url' => BASE_URL],
+    ['label' => 'Falar com DPO'],
+];
 include __DIR__ . '/../../includes/header.php';
 
 // Processamento do formulário

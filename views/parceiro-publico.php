@@ -10,6 +10,11 @@ $perfil = $slug !== '' ? $perfilModel->findBySlug($slug) : null;
 if (!$perfil) {
     http_response_code(404);
     $pageTitle = 'Parceiro não encontrado | Cadê Meu Pet?';
+    $breadcrumbs = [
+        ['label' => 'Início',    'url' => BASE_URL],
+        ['label' => 'Parceiros', 'url' => BASE_URL . '/parceiros'],
+        ['label' => 'Não encontrado'],
+    ];
     include __DIR__ . '/../includes/header.php';
     ?>
     <div class="container py-5">
@@ -25,6 +30,12 @@ $pageTitle = sanitize($perfil['nome_fantasia']) . ' | Parceiros Cadê Meu Pet?';
 $metaOgTitle = $perfil['nome_fantasia'];
 $metaOgDescription = $perfil['descricao'] ? truncate($perfil['descricao'], 160) : 'Serviços pet confiáveis na sua região.';
 $metaOgUrl = BASE_URL . '/parceiro/' . $perfil['slug'];
+
+$breadcrumbs = [
+    ['label' => 'Início',    'url' => BASE_URL],
+    ['label' => 'Parceiros', 'url' => BASE_URL . '/parceiros'],
+    ['label' => sanitize($perfil['nome_fantasia'])],
+];
 
 include __DIR__ . '/../includes/header.php';
 ?>

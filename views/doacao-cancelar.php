@@ -52,6 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$breadcrumbs = [
+    ['label' => 'Início',          'url' => BASE_URL],
+    ['label' => 'Fazer Doação',    'url' => BASE_URL . '/doar'],
+    ['label' => 'Cancelar Doação'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

@@ -30,6 +30,10 @@ foreach ($anuncios as $anuncio) {
     }
 }
 
+$breadcrumbs = [
+    ['label' => 'Início', 'url' => BASE_URL],
+    ['label' => 'Buscar Pets'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

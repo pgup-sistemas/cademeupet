@@ -59,6 +59,11 @@ $offset = ($pagina - 1) * $limite;
 $cancelamentos = $cancelamentoController->listarLogsCancelamento($limite, $offset);
 $estatisticas = $cancelamentoController->getEstatisticasCancelamento();
 
+$breadcrumbs = [
+    ['label' => 'Início',        'url' => BASE_URL],
+    ['label' => 'Admin',         'url' => BASE_URL . '/admin'],
+    ['label' => 'Cancelamentos'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

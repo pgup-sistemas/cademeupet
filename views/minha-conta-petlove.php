@@ -17,6 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao'])) {
     redirect('/minha-conta/petlove');
 }
 
+$breadcrumbs = [
+    ['label' => 'Início',        'url' => BASE_URL],
+    ['label' => 'Pet Love',      'url' => BASE_URL . '/petlove'],
+    ['label' => 'Minha Conta'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

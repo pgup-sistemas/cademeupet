@@ -52,6 +52,11 @@ $ultimasDoacoes = $db->fetchAll("
     ORDER BY d.data_doacao DESC LIMIT 5
 ");
 
+$breadcrumbs = [
+    ['label' => 'Início', 'url' => BASE_URL],
+    ['label' => 'Admin',  'url' => BASE_URL . '/admin'],
+    ['label' => 'Dashboard'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

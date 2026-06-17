@@ -14,6 +14,10 @@ $statusSelecionado = in_array($statusFiltro, $statusPermitidos, true) ? $statusF
 
 $anuncios = $anuncioModel->findByUser($usuarioId, 100, 0, $statusSelecionado);
 
+$breadcrumbs = [
+    ['label' => 'Início',        'url' => BASE_URL],
+    ['label' => 'Meus Anúncios'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

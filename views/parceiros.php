@@ -76,6 +76,10 @@ $cards = [
     ],
 ];
 
+$breadcrumbs = [
+    ['label' => 'Início',    'url' => BASE_URL],
+    ['label' => 'Parceiros'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

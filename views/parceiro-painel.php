@@ -20,6 +20,11 @@ $etapaInscricaoOk = $inscricao && $inscricao['status'] === 'aprovada';
 $etapaPerfilOk = $perfil && !empty($perfil['nome_fantasia']) && !empty($perfil['categoria']) && !empty($perfil['cidade']) && !empty($perfil['estado']);
 $etapaPagamentoOk = $assinatura && ($assinatura['status'] ?? '') === 'ativa';
 
+$breadcrumbs = [
+    ['label' => 'Início',    'url' => BASE_URL],
+    ['label' => 'Parceiros', 'url' => BASE_URL . '/parceiros'],
+    ['label' => 'Painel'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

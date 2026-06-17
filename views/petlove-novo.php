@@ -18,6 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $erros = $res['erros'] ?? [];
 }
 
+$breadcrumbs = [
+    ['label' => 'Início',        'url' => BASE_URL],
+    ['label' => 'Pet Love',      'url' => BASE_URL . '/petlove'],
+    ['label' => 'Cadastrar Pet'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

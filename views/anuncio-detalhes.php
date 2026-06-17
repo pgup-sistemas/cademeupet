@@ -66,17 +66,16 @@ $pageJsonLd = [
 
 $includeMapAssets = true;
 
+$breadcrumbs = [
+    ['label' => 'Início',       'url' => BASE_URL],
+    ['label' => 'Buscar Pets',  'url' => BASE_URL . '/busca'],
+    ['label' => $shareTitle],
+];
+
 include __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="container py-5">
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>">Início</a></li>
-            <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>/busca.php">Busca</a></li>
-            <li class="breadcrumb-item active" aria-current="page"><?php echo sanitize($anuncio['nome_pet'] ?: 'Pet ' . ucfirst($anuncio['especie'])); ?></li>
-        </ol>
-    </nav>
 
     <div class="row g-4">
         <div class="col-lg-7">

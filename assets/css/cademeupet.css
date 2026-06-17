@@ -195,6 +195,26 @@ footer .logo-text {
   z-index: 1;
 }
 
+/* ---- Breadcrumb bar ---- */
+.breadcrumb-bar {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+.breadcrumb-bar .breadcrumb-item a {
+  color: var(--cmp-primary);
+  text-decoration: none;
+}
+.breadcrumb-bar .breadcrumb-item a:hover {
+  color: #c55a28;
+  text-decoration: underline;
+}
+.breadcrumb-bar .breadcrumb-item + .breadcrumb-item::before {
+  color: #adb5bd;
+}
+.breadcrumb-bar .breadcrumb-item.active {
+  color: #6c757d;
+}
+
 /* ---- Sidebar sticky das páginas legais ---- */
 /* Não usar sticky-top (z-index 1020) — usar esta classe */
 .legal-sidebar {

@@ -23,6 +23,12 @@ $sexoIcon  = $pet['sexo'] === 'macho' ? 'fa-mars' : 'fa-venus';
 $sexoLabel = $pet['sexo'] === 'macho' ? 'Macho' : 'Fêmea';
 $sexoClass = $pet['sexo'] === 'macho' ? 'badge-sexo-macho' : 'badge-sexo-femea';
 
+$breadcrumbs = [
+    ['label' => 'Início',    'url' => BASE_URL],
+    ['label' => 'Pet Love',  'url' => BASE_URL . '/petlove'],
+    ['label' => sanitize($pet['nome'])],
+];
+
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -37,13 +43,6 @@ include __DIR__ . '/../includes/header.php';
 </div>
 
 <div class="container py-5">
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>">Início</a></li>
-            <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>/petlove">Pet Love</a></li>
-            <li class="breadcrumb-item active"><?php echo sanitize($pet['nome']); ?></li>
-        </ol>
-    </nav>
 
     <div class="row g-4">
         <!-- Coluna esquerda: fotos + info -->

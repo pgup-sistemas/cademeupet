@@ -208,6 +208,11 @@ $inscricoesPendentes = $inscricaoModel->listByStatus('pendente');
 $inscricoesAprovadas = $inscricaoModel->listByStatus('aprovada');
 $pagamentosPendentes = $pagamentoModel->listByStatus('pendente');
 
+$breadcrumbs = [
+    ['label' => 'Início',    'url' => BASE_URL],
+    ['label' => 'Admin',     'url' => BASE_URL . '/admin'],
+    ['label' => 'Parceiros'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

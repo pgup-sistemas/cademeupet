@@ -3,6 +3,10 @@ require_once __DIR__ . '/../config.php';
 
 $pageTitle = 'Ajuda - Cadê Meu Pet?';
 
+$breadcrumbs = [
+    ['label' => 'Início', 'url' => BASE_URL],
+    ['label' => 'Ajuda'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

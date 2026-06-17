@@ -71,6 +71,10 @@ $alertas      = $alertaController->listarPorUsuario($usuarioId);
 $totalAtivos    = count(array_filter($meusAnuncios, fn($a) => ($a['status'] ?? '') === STATUS_ATIVO));
 $totalResolvidos = count(array_filter($meusAnuncios, fn($a) => ($a['status'] ?? '') === STATUS_RESOLVIDO));
 
+$breadcrumbs = [
+    ['label' => 'Início',      'url' => BASE_URL],
+    ['label' => 'Minha Conta'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

@@ -8,6 +8,10 @@ $controller = new PetLoveController();
 $resultado  = $controller->vitrine();
 $pets       = $resultado['pets'];
 
+$breadcrumbs = [
+    ['label' => 'Início',   'url' => BASE_URL],
+    ['label' => 'Pet Love'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

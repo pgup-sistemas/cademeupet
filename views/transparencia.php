@@ -20,6 +20,10 @@ $totalPublicas = $doacaoModel->countApprovedDonationsPublic();
 $doacoesPublicas = $doacaoModel->getApprovedDonationsPublic($limite, $offset);
 $totalPaginas = (int)ceil($totalPublicas / $limite);
 
+$breadcrumbs = [
+    ['label' => 'Início',       'url' => BASE_URL],
+    ['label' => 'Transparência'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

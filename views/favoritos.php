@@ -8,6 +8,10 @@ $pageTitle = 'Meus Favoritos - Cadê Meu Pet?';
 $favoritoController = new FavoritoController();
 $favoritos = $favoritoController->listarDoUsuario();
 
+$breadcrumbs = [
+    ['label' => 'Início',         'url' => BASE_URL],
+    ['label' => 'Meus Favoritos'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

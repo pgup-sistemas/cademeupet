@@ -106,6 +106,11 @@ $assinaturasExpirando = $parceiroAssinaturaModel->listExpiringSoon(7, 10);
 
 $totalGeralMesAtual = (float)($doacaoResumo['mes_atual'] ?? 0) + (float)($parceiroResumo['mes_atual'] ?? 0);
 
+$breadcrumbs = [
+    ['label' => 'Início',     'url' => BASE_URL],
+    ['label' => 'Admin',      'url' => BASE_URL . '/admin'],
+    ['label' => 'Financeiro'],
+];
 include __DIR__ . '/../includes/header.php';
 
 // Verificar disponibilidade da integração com EFI (para pagamentos por cartão)

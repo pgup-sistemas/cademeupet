@@ -28,6 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$breadcrumbs = [
+    ['label' => 'Início',          'url' => BASE_URL],
+    ['label' => 'Recuperar Senha'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 

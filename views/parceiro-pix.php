@@ -88,6 +88,11 @@ if (empty($pix) && $txid !== '') {
     }
 }
 
+$breadcrumbs = [
+    ['label' => 'Início',        'url' => BASE_URL],
+    ['label' => 'Parceiros',     'url' => BASE_URL . '/parceiros'],
+    ['label' => 'Pagar via PIX'],
+];
 include __DIR__ . '/../includes/header.php';
 ?>
 
