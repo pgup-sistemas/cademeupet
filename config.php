@@ -26,8 +26,11 @@ date_default_timezone_set('America/Porto_Velho');
 // BANCO DE DADOS
 // ═══════════════════════════════════════════════
 // Detecção de ambiente local (XAMPP)
-$_isLocal = (php_sapi_name() === 'cli')
-    || (isset($_SERVER['HTTP_HOST']) && in_array($_SERVER['HTTP_HOST'], ['localhost', '127.0.0.1', '::1', 'localhost:8080']))
+$_httpHost = $_SERVER['HTTP_HOST'] ?? '';
+$_isLocal  = (php_sapi_name() === 'cli')
+    || in_array($_httpHost, ['localhost', '127.0.0.1', '::1',
+                              'localhost:8080', 'localhost:8083',
+                              '127.0.0.1:8083', 'cademeupet.local'])
     || (isset($_SERVER['SERVER_ADDR']) && in_array($_SERVER['SERVER_ADDR'], ['127.0.0.1', '::1']));
 
 define('DB_HOST',    $_isLocal ? 'localhost'                    : 'petfinder.mysql.dbaas.com.br');
@@ -36,7 +39,7 @@ define('DB_USER',    $_isLocal ? 'root'                         : 'petfinder');
 define('DB_PASS',    $_isLocal ? ''                             : 'Petfinder#2026');
 define('DB_CHARSET', 'utf8mb4');
 define('IS_LOCAL',   $_isLocal);
-unset($_isLocal);
+unset($_isLocal, $_httpHost);
 
 // ═══════════════════════════════════════════════
 // MODO SANDBOX vs PRODUÇÃO
@@ -47,7 +50,7 @@ define('EFI_SANDBOX', false); // true = Testes (Homologação), false = Produç�
 // CAMINHOS DO SISTEMA
 // ═══════════════════════════════════════════════
 define('BASE_PATH', __DIR__);
-define('BASE_URL', 'https://petfinder.pageup.net.br'); // Subdomínio correto
+define('BASE_URL', IS_LOCAL ? 'http://localhost:8083' : 'https://petfinder.pageup.net.br');
 
 // Informações de SEO do site
 define('SITE_NAME', 'Cadê Meu Pet?');
