@@ -3,10 +3,21 @@
 .env.*
 !.env.example
 
+# Config com credenciais de produção (use config.example.php como base)
+# ATENÇÃO: se config.php já está no histórico do git, rotacione as credenciais de produção
+config.php
+
 # Certificates / keys
 *.p12
 *.pem
 *.key
+
+# Local secrets folder (contains backups/PEM files) - DO NOT commit
+secrets/
+
+# Local .htaccess env file (if you use SetEnv locally) - DO NOT commit
+.htaccess.env
+
 
 # Composer
 /vendor/

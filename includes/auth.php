@@ -6,9 +6,9 @@
 
 class Auth {
     private $db;
-    
-    public function __construct() {
-        $this->db = getDB();
+
+    public function __construct($db = null) {
+        $this->db = $db ?: getDB();
     }
     
     /**

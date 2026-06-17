@@ -9,15 +9,27 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Debug temporário: Mostrar erros na tela para diagnosticar o problema (REMOVA após resolver).
-// NOTA: isso deve ficar ativado apenas por curto período em produção.
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// ═══════════════════════════════════════════════
+// DETECÇÃO DE AMBIENTE (deve vir primeiro)
+// ═══════════════════════════════════════════════
+$_httpHost = $_SERVER['HTTP_HOST'] ?? '';
+$_isLocal  = (php_sapi_name() === 'cli')
+    || in_array($_httpHost, ['localhost', '127.0.0.1', '::1',
+                              'localhost:8080', 'localhost:8083',
+                              '127.0.0.1:8083', 'cademeupet.local'])
+    || (isset($_SERVER['SERVER_ADDR']) && in_array($_SERVER['SERVER_ADDR'], ['127.0.0.1', '::1']));
+define('IS_LOCAL', $_isLocal);
 
-// Configurações de Erro (PRODUÇÃO)
-// error_reporting(E_ALL & ~E_NOTICE);
-// ini_set('display_errors', 0);
+// Configurações de erro por ambiente
+if ($_isLocal) {
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
+} else {
+    ini_set('display_errors', 0);
+    ini_set('display_startup_errors', 0);
+    error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
+}
 
 // Timezone
 date_default_timezone_set('America/Porto_Velho');
@@ -25,20 +37,11 @@ date_default_timezone_set('America/Porto_Velho');
 // ═══════════════════════════════════════════════
 // BANCO DE DADOS
 // ═══════════════════════════════════════════════
-// Detecção de ambiente local (XAMPP)
-$_httpHost = $_SERVER['HTTP_HOST'] ?? '';
-$_isLocal  = (php_sapi_name() === 'cli')
-    || in_array($_httpHost, ['localhost', '127.0.0.1', '::1',
-                              'localhost:8080', 'localhost:8083',
-                              '127.0.0.1:8083', 'cademeupet.local'])
-    || (isset($_SERVER['SERVER_ADDR']) && in_array($_SERVER['SERVER_ADDR'], ['127.0.0.1', '::1']));
-
 define('DB_HOST',    $_isLocal ? 'localhost'                    : 'petfinder.mysql.dbaas.com.br');
 define('DB_NAME',    'cademeupet');
 define('DB_USER',    $_isLocal ? 'root'                         : 'petfinder');
 define('DB_PASS',    $_isLocal ? ''                             : 'Petfinder#2026');
 define('DB_CHARSET', 'utf8mb4');
-define('IS_LOCAL',   $_isLocal);
 unset($_isLocal, $_httpHost);
 
 // ═══════════════════════════════════════════════
@@ -50,7 +53,7 @@ define('EFI_SANDBOX', false); // true = Testes (Homologação), false = Produç�
 // CAMINHOS DO SISTEMA
 // ═══════════════════════════════════════════════
 define('BASE_PATH', __DIR__);
-define('BASE_URL', IS_LOCAL ? 'http://localhost:8083' : 'https://petfinder.pageup.net.br');
+define('BASE_URL', IS_LOCAL ? 'http://localhost/cademeupet' : 'https://petfinder.pageup.net.br');
 
 // Informações de SEO do site
 define('SITE_NAME', 'Cadê Meu Pet?');
