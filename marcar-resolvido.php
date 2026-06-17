@@ -24,13 +24,15 @@ if (!is_string($returnTo) || $returnTo === '' || strpos($returnTo, '://') !== fa
     $returnTo = '/meus-anuncios.php';
 }
 
+$historia = trim((string)($_POST['historia_reuniao'] ?? ''));
+
 $controller = new AnuncioController();
-$result = $controller->marcarComoResolvido($anuncioId, (int)getUserId());
+$result = $controller->marcarComoResolvido($anuncioId, (int)getUserId(), $historia);
 
 if (!empty($result['success'])) {
-    setFlashMessage('Anúncio marcado como resolvido.', MSG_SUCCESS);
+    setFlashMessage('Parabens! Anuncio marcado como resolvido. Que historia bonita!', MSG_SUCCESS);
 } else {
-    setFlashMessage($result['error'] ?? 'Não foi possível marcar como resolvido.', MSG_ERROR);
+    setFlashMessage($result['error'] ?? 'Nao foi possivel marcar como resolvido.', MSG_ERROR);
 }
 
 redirect($returnTo);

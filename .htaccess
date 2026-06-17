@@ -4,8 +4,9 @@
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    # Como é um subdomínio, a base é a raiz
-    RewriteBase /
+    # LOCAL (subdiretório): RewriteBase /cademeupet/
+    # PRODUÇÃO (raiz do domínio): RewriteBase /
+    RewriteBase /cademeupet/
 
     # Força HTTPS (DESCOMENTE após confirmar que está tudo funcionando)
     # RewriteCond %{HTTPS} off
@@ -29,6 +30,8 @@
     RewriteRule ^admin/financeiro/export/?$ views/admin-financeiro-export.php [L,QSA]
     RewriteRule ^admin/financeiro/?$ views/admin-financeiro.php [L,QSA]
     RewriteRule ^admin/parceiros/?$ views/admin-parceiros.php [L,QSA]
+    RewriteRule ^admin/moderacao/?$ views/admin-moderacao.php [L,QSA]
+    RewriteRule ^minha-conta/?$ views/minha-conta.php [L,QSA]
 
     # Rotas de parceiros (ordem importa!)
     RewriteRule ^parceiros/inscricao/?$ parceiros-inscricao.php [L,QSA]

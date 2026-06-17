@@ -105,14 +105,19 @@ class Anuncio
     }
 
     /**
-     * Marcar como resolvido.
+     * Marcar como resolvido, com data de reunião e história opcional.
      */
-    public function markAsResolved(int $id)
+    public function markAsResolved(int $id, string $historia = '')
     {
-        return $this->update($id, [
-            'status' => STATUS_RESOLVIDO,
+        $data = [
+            'status'       => STATUS_RESOLVIDO,
+            'resolvido_em' => date('Y-m-d H:i:s'),
             'data_atualizacao' => date('Y-m-d H:i:s')
-        ]);
+        ];
+        if ($historia !== '') {
+            $data['historia_reuniao'] = $historia;
+        }
+        return $this->update($id, $data);
     }
 
     /**

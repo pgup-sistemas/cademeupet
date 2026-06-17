@@ -147,15 +147,28 @@ include __DIR__ . '/../includes/header.php';
                         </div>
                     </div>
 
+                    <?php if (($anuncio['status'] ?? '') === STATUS_RESOLVIDO): ?>
+                        <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
+                            <i class="fa-solid fa-heart-circle-check fa-lg"></i>
+                            <div>
+                                <strong>Reunido!</strong> Este pet foi reencontrado.
+                                <?php if (!empty($anuncio['resolvido_em'])): ?>
+                                    <span class="text-muted small ms-1">em <?php echo date('d/m/Y', strtotime($anuncio['resolvido_em'])); ?></span>
+                                <?php endif; ?>
+                                <?php if (!empty($anuncio['historia_reuniao'])): ?>
+                                    <br><em class="small">"<?php echo sanitize($anuncio['historia_reuniao']); ?>"</em>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if ($isOwner && ($anuncio['status'] ?? '') !== STATUS_RESOLVIDO && ($anuncio['status'] ?? '') !== STATUS_INATIVO): ?>
-                        <form method="POST" action="<?php echo BASE_URL; ?>/marcar-resolvido.php" class="mb-4" onsubmit="return confirm('Marcar este anúncio como resolvido?');">
-                            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
-                            <input type="hidden" name="anuncio_id" value="<?php echo (int)$anuncio['id']; ?>">
-                            <input type="hidden" name="return_to" value="<?php echo '/anuncio/' . (int)$anuncio['id'] . '/'; ?>">
-                            <button type="submit" class="btn btn-outline-success">
-                                <i class="fa-solid fa-circle-check me-1"></i> Marcar como resolvido
-                            </button>
-                        </form>
+                        <button type="button" class="btn btn-outline-success mb-4"
+                                data-bs-toggle="modal" data-bs-target="#modalResolvidoDetalhe"
+                                data-anuncio-id="<?php echo (int)$anuncio['id']; ?>"
+                                data-nome-pet="<?php echo sanitize($anuncio['nome_pet'] ?: ucfirst($anuncio['especie'])); ?>">
+                            <i class="fa-solid fa-heart-circle-check me-1"></i>Marcar como Reunido!
+                        </button>
                     <?php endif; ?>
 
                     <h5 class="fw-bold">Descrição</h5>
@@ -465,6 +478,46 @@ document.addEventListener('DOMContentLoaded', function () {
         { closeButton: false }
     ).openPopup();
 });
+</script>
+
+<!-- Modal: Marcar como Reunido -->
+<div class="modal fade" id="modalResolvidoDetalhe" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="<?php echo BASE_URL; ?>/marcar-resolvido.php">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                <input type="hidden" name="anuncio_id" id="rdAnuncioId" value="">
+                <input type="hidden" name="return_to" value="<?php echo '/anuncio/' . (int)($anuncio['id'] ?? 0) . '/'; ?>">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fa-solid fa-heart-circle-check text-success me-2"></i>Pet reencontrado!
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3">Que alegria! Conte brevemente como foi o reencontro de <strong id="rdNomePet"></strong>.</p>
+                    <textarea class="form-control" name="historia_reuniao" rows="3" maxlength="500"
+                              placeholder="Ex: Encontramos o Rex a dois quarteiroes de casa..."></textarea>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-heart-circle-check me-1"></i>Confirmar reencontro
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+const mrd = document.getElementById('modalResolvidoDetalhe');
+if (mrd) {
+    mrd.addEventListener('show.bs.modal', function(e) {
+        const btn = e.relatedTarget;
+        document.getElementById('rdAnuncioId').value = btn.dataset.anuncioId || '';
+        document.getElementById('rdNomePet').textContent = btn.dataset.nomePet || 'o pet';
+    });
+}
 </script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

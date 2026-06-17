@@ -122,8 +122,9 @@ class AnuncioController
 
     /**
      * Marca anúncio como resolvido (somente dono ou admin).
+     * Aceita historia_reuniao opcional e envia email de parabéns ao tutor.
      */
-    public function marcarComoResolvido(int $id, int $usuarioId)
+    public function marcarComoResolvido(int $id, int $usuarioId, string $historia = '')
     {
         $anuncio = $this->anuncioModel->findByIdAnyStatus($id);
 
@@ -136,7 +137,28 @@ class AnuncioController
             return ['success' => false, 'error' => 'Você não tem permissão para alterar este anúncio.'];
         }
 
-        $this->anuncioModel->markAsResolved($id);
+        $this->anuncioModel->markAsResolved($id, $historia);
+
+        // Email de parabéns ao tutor
+        $db = getDB();
+        $usuario = $db->fetchOne('SELECT nome, email FROM usuarios WHERE id = ?', [$anuncio['usuario_id']]);
+        if ($usuario && !empty($usuario['email'])) {
+            $nomePet = sanitize($anuncio['nome_pet'] ?: ucfirst($anuncio['especie']));
+            $nomeUsuario = sanitize($usuario['nome']);
+            $urlAnuncio = BASE_URL . '/anuncio/' . $id . '/';
+            $assunto = "Que alegria! {$nomePet} foi reencontrado(a)!";
+            $corpo = "
+<p>Ola, {$nomeUsuario}!</p>
+<p>Parabens! Voce marcou o anuncio <strong>{$nomePet}</strong> como resolvido.</p>
+<p>Obrigado por usar o Cade Meu Pet? e por compartilhar essa historia de reencontro com a comunidade.</p>
+" . ($historia ? "<p><em>Sua historia: " . htmlspecialchars($historia, ENT_QUOTES, 'UTF-8') . "</em></p>" : '') . "
+<p>O anuncio ficara visivel por mais 30 dias inspirando outras pessoas.</p>
+<p><a href='{$urlAnuncio}'>Ver anuncio</a></p>
+<p>Equipe Cade Meu Pet?</p>
+";
+            sendEmail($usuario['email'], $assunto, $corpo);
+        }
+
         return ['success' => true, 'showDonation' => true];
     }
 
