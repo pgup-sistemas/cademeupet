@@ -614,8 +614,21 @@ include __DIR__ . '/../includes/header.php';
                                 
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Marque no mapa</label>
+
+                                    <!-- Busca por endereço (geocoding via Nominatim) -->
+                                    <div class="input-group mb-2">
+                                        <span class="input-group-text"><i class="fa-solid fa-map-location-dot"></i></span>
+                                        <input type="text"
+                                               id="buscaEndereco"
+                                               class="form-control"
+                                               placeholder="Digite endereço ou ponto de referência para centralizar o mapa">
+                                        <button class="btn btn-outline-primary" type="button" id="btn-geocode" onclick="buscarEnderecoNoMapa()">
+                                            Buscar
+                                        </button>
+                                    </div>
+
                                     <div id="mapPicker" class="cmp-map"></div>
-                                    <small class="text-muted">Clique no mapa para ajustar a posição (ou arraste o marcador).</small>
+                                    <small class="text-muted">Clique no mapa ou arraste o marcador para ajustar a posição exata.</small>
                                 </div>
                                 
                                 <!-- Ponto de Referência -->
@@ -946,8 +959,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    if (document.getElementById('mapPicker') && window.Cadê Meu Pet?Map) {
-        window.__petfinderMapPicker = window.Cadê Meu Pet?Map.init({
+    if (document.getElementById('mapPicker') && window.CadeMeuPetMap) {
+        window.__petfinderMapPicker = window.CadeMeuPetMap.init({
             containerId: 'mapPicker',
             latInputId: 'latitude',
             lngInputId: 'longitude'
@@ -1208,6 +1221,66 @@ function formatarCEP(cep) {
         return cep;
     }
     return `${apenasNumeros.substring(0, 5)}-${apenasNumeros.substring(5)}`;
+}
+
+// Geocoding por endereço via Nominatim
+async function buscarEnderecoNoMapa() {
+    const input = document.getElementById('buscaEndereco');
+    const btn   = document.getElementById('btn-geocode');
+    if (!input) return;
+
+    const query = (input.value || '').trim();
+    if (!query) {
+        alert('Digite um endereço ou ponto de referência.');
+        input.focus();
+        return;
+    }
+
+    const originalLabel = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Buscando';
+
+    try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ', Brasil')}&format=json&limit=1&addressdetails=1`;
+        const res = await fetch(url, {
+            headers: { 'Accept': 'application/json', 'Accept-Language': 'pt-BR,pt;q=0.9' }
+        });
+        const data = await res.json();
+
+        if (!data || data.length === 0) {
+            alert('Endereço não encontrado. Tente com mais detalhes (cidade, bairro...).');
+            return;
+        }
+
+        const item = data[0];
+        const lat  = parseFloat(item.lat);
+        const lng  = parseFloat(item.lon);
+        const addr = item.address || {};
+
+        if (window.__petfinderMapPicker && window.__petfinderMapPicker.setPoint) {
+            window.__petfinderMapPicker.setPoint(lat, lng);
+        }
+
+        const cidade = addr.city || addr.town || addr.village || addr.municipality || '';
+        const bairro = addr.neighbourhood || addr.suburb || addr.quarter || '';
+        const estado = addr.ISO3166_2_lvl4
+            ? addr.ISO3166_2_lvl4.replace('BR-', '')
+            : '';
+
+        preencherCamposEndereco({
+            logradouro: addr.road || addr.pedestrian || '',
+            bairro,
+            cidade,
+            estado,
+            latitude: lat,
+            longitude: lng
+        }, {});
+    } catch (e) {
+        alert('Erro ao buscar endereço. Verifique sua conexão e tente novamente.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalLabel;
+    }
 }
 </script>
 

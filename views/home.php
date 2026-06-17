@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/../config.php';
 
+$includeMapAssets = true;
+
 // Buscar últimos anúncios
 $db = getDB();
 $anunciosRecentes = $db->fetchAll("
@@ -199,6 +201,24 @@ include __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
+<!-- Mapa Geral -->
+<div class="py-5 bg-white border-top border-bottom">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+                <h2 class="h3 fw-bold mb-1"><i class="fa-solid fa-map-location-dot"></i> Mapa de Ocorrências</h2>
+                <p class="text-muted mb-0">Pets perdidos e encontrados na sua região</p>
+            </div>
+            <div class="d-none d-md-flex gap-3 align-items-center small">
+                <span><span class="badge" style="background:#e74c3c;">&nbsp;</span> Perdido</span>
+                <span><span class="badge" style="background:#27ae60;">&nbsp;</span> Encontrado</span>
+                <span><span class="badge" style="background:#3498db;">&nbsp;</span> Adoção</span>
+            </div>
+        </div>
+        <div id="mapaGeral" style="height:420px;border-radius:16px;overflow:hidden;border:1px solid rgba(0,0,0,.08);"></div>
+    </div>
+</div>
+
 <!-- Como Funciona -->
 <div class="how-it-works-section py-5 bg-light">
     <div class="container">
@@ -325,6 +345,94 @@ if (searchInput) {
         }, 300);
     });
 }
+</script>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<script>
+// Mapa geral carregado após todos os scripts (Leaflet incluído via footer)
+window.addEventListener('load', function () {
+    const mapEl = document.getElementById('mapaGeral');
+    if (!mapEl || typeof L === 'undefined') return;
+
+    // Carrega plugin markercluster dinamicamente se não disponível
+    function initMapaGeral() {
+        const map = L.map('mapaGeral', {
+            scrollWheelZoom: false,
+            center: [-10.9472, -61.9327],
+            zoom: 5
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        const corTipo = { perdido: '#e74c3c', encontrado: '#27ae60', doacao: '#3498db' };
+
+        function criarIcone(tipo) {
+            const cor = corTipo[tipo] || '#888';
+            return L.divIcon({
+                className: '',
+                html: `<div style="
+                    width:16px;height:16px;border-radius:50%;
+                    background:${cor};border:2px solid #fff;
+                    box-shadow:0 1px 3px rgba(0,0,0,.4);"></div>`,
+                iconSize: [16, 16],
+                iconAnchor: [8, 8],
+                popupAnchor: [0, -10]
+            });
+        }
+
+        const grupo = (typeof L.markerClusterGroup === 'function')
+            ? L.markerClusterGroup({ maxClusterRadius: 60 })
+            : L.layerGroup();
+
+        const bounds = [];
+
+        fetch(<?php echo json_encode(BASE_URL . '/api/mapa-pins.php'); ?>)
+            .then(r => r.json())
+            .then(pins => {
+                if (!Array.isArray(pins) || pins.length === 0) return;
+                const tipoLabel = { perdido: 'Perdido', encontrado: 'Encontrado', doacao: 'Adoção' };
+
+                pins.forEach(pin => {
+                    const marker = L.marker([pin.lat, pin.lng], { icon: criarIcone(pin.tipo) });
+                    const foto = pin.foto_thumb
+                        ? `<img src="${pin.foto_thumb}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;float:left;margin-right:8px;" loading="lazy">`
+                        : '';
+                    marker.bindPopup(`
+                        <div style="min-width:180px;overflow:hidden;">
+                            ${foto}
+                            <strong>${pin.nome_pet}</strong><br>
+                            <span style="background:${corTipo[pin.tipo]||'#888'};color:#fff;font-size:.75rem;padding:1px 6px;border-radius:4px;">${tipoLabel[pin.tipo] || ''}</span>
+                            <br><small>${pin.bairro ? pin.bairro + ' · ' : ''}${pin.cidade}</small><br>
+                            <a href="${pin.url}" style="font-size:.82rem;">Ver anúncio &rarr;</a>
+                        </div>
+                    `, { maxWidth: 240 });
+                    grupo.addLayer(marker);
+                    bounds.push([pin.lat, pin.lng]);
+                });
+
+                map.addLayer(grupo);
+
+                if (bounds.length > 0) {
+                    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
+                }
+            })
+            .catch(() => {});
+    }
+
+    // Carrega markercluster se ainda não disponível
+    if (typeof L.markerClusterGroup === 'undefined') {
+        const s = document.createElement('script');
+        s.src = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js';
+        s.onload = initMapaGeral;
+        document.head.appendChild(s);
+    } else {
+        initMapaGeral();
+    }
+});
 </script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

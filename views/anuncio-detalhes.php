@@ -251,7 +251,16 @@ include __DIR__ . '/../includes/header.php';
                     <div id="mapDetalhe"
                          class="cmp-map"
                          data-lat="<?php echo sanitize($anuncio['latitude']); ?>"
-                         data-lng="<?php echo sanitize($anuncio['longitude']); ?>"></div>
+                         data-lng="<?php echo sanitize($anuncio['longitude']); ?>"
+                         data-nome="<?php echo sanitize($anuncio['nome_pet'] ?: 'Pet'); ?>"
+                         data-data="<?php echo sanitize(date('d/m/Y', strtotime($anuncio['data_publicacao']))); ?>"></div>
+                    <div class="card-footer bg-transparent pt-2 pb-3 px-4">
+                        <a href="https://maps.google.com/?q=<?php echo (float)$anuncio['latitude']; ?>,<?php echo (float)$anuncio['longitude']; ?>"
+                           target="_blank" rel="noopener"
+                           class="btn btn-sm btn-outline-secondary w-100">
+                            <i class="fa-solid fa-map-location-dot me-1"></i> Abrir no Google Maps
+                        </a>
+                    </div>
                 <?php endif; ?>
             </div>
 
@@ -424,15 +433,16 @@ document.getElementById('btnCopyEmail')?.addEventListener('click', async functio
     }
 });
 
-let __petfinderDetalheMapInitialized = false;
 document.addEventListener('DOMContentLoaded', function () {
     const mapEl = document.getElementById('mapDetalhe');
     if (!mapEl || !window.L) {
         return;
     }
 
-    const lat = Number(mapEl.dataset.lat);
-    const lng = Number(mapEl.dataset.lng);
+    const lat  = Number(mapEl.dataset.lat);
+    const lng  = Number(mapEl.dataset.lng);
+    const nome = mapEl.dataset.nome || 'Pet';
+    const data = mapEl.dataset.data || '';
 
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
         return;
@@ -449,7 +459,11 @@ document.addEventListener('DOMContentLoaded', function () {
         attribution: '&copy; OpenStreetMap'
     }).addTo(map);
 
-    L.marker([lat, lng]).addTo(map);
+    const marker = L.marker([lat, lng]).addTo(map);
+    marker.bindPopup(
+        `<strong>${nome}</strong><br><small>${data}</small>`,
+        { closeButton: false }
+    ).openPopup();
 });
 </script>
 
