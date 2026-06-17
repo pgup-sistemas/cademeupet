@@ -217,7 +217,7 @@ include __DIR__ . '/../includes/header.php';
             <div class="col-md-4">
                 <div class="step <?php echo $step >= 1 ? 'active' : ''; ?> <?php echo $step > 1 ? 'completed' : ''; ?>">
                     <div class="step-icon">
-                        <?php echo $step > 1 ? '<i class="bi bi-check-lg"></i>' : '1'; ?>
+                        <?php echo $step > 1 ? '<i class="fa-solid fa-check"></i>' : '1'; ?>
                     </div>
                     <div class="step-label">O que aconteceu?</div>
                 </div>
@@ -225,7 +225,7 @@ include __DIR__ . '/../includes/header.php';
             <div class="col-md-4">
                 <div class="step <?php echo $step >= 2 ? 'active' : ''; ?> <?php echo $step > 2 ? 'completed' : ''; ?>">
                     <div class="step-icon">
-                        <?php echo $step > 2 ? '<i class="bi bi-check-lg"></i>' : '2'; ?>
+                        <?php echo $step > 2 ? '<i class="fa-solid fa-check"></i>' : '2'; ?>
                     </div>
                     <div class="step-label">Fotos e Detalhes</div>
                 </div>
@@ -316,7 +316,7 @@ include __DIR__ . '/../includes/header.php';
                                 
                                 <div class="text-end mt-4">
                                     <button type="submit" name="next_step" value="2" class="btn btn-primary btn-lg">
-                                        Próximo <i class="bi bi-arrow-right"></i>
+                                        Próximo <i class="fa-solid fa-arrow-right"></i>
                                     </button>
                                 </div>
                             </div>
@@ -363,7 +363,7 @@ include __DIR__ . '/../includes/header.php';
                                                style="display: none;">
                                         
                                         <div class="upload-placeholder" onclick="document.getElementById('fotos').click()">
-                                            <i class="bi bi-camera-fill"></i>
+                                            <i class="fa-solid fa-camera"></i>
                                             <p>Clique para adicionar fotos</p>
                                             <small class="text-muted">Máximo 2 fotos, 2MB cada</small>
                                         </div>
@@ -515,10 +515,10 @@ include __DIR__ . '/../includes/header.php';
                                 
                                 <div class="d-flex justify-content-between">
                                     <button type="submit" name="next_step" value="1" class="btn btn-secondary">
-                                        <i class="bi bi-arrow-left"></i> Voltar
+                                        <i class="fa-solid fa-arrow-left"></i> Voltar
                                     </button>
                                     <button type="submit" name="next_step" value="3" class="btn btn-primary btn-lg">
-                                        Próximo <i class="bi bi-arrow-right"></i>
+                                        Próximo <i class="fa-solid fa-arrow-right"></i>
                                     </button>
                                 </div>
                             </div>
@@ -562,7 +562,7 @@ include __DIR__ . '/../includes/header.php';
                                             Buscar
                                         </button>
                                         <button class="btn btn-outline-secondary" type="button" id="btn-gps" onclick="usarGPS()">
-                                            <i class="bi bi-geo-alt"></i> Usar GPS
+                                            <i class="fa-solid fa-location-dot"></i> Usar GPS
                                         </button>
                                     </div>
                                 </div>
@@ -679,10 +679,10 @@ include __DIR__ . '/../includes/header.php';
                                 
                                 <div class="mt-4 d-flex justify-content-between align-items-center">
                                     <button type="submit" name="next_step" value="2" class="btn btn-secondary">
-                                        <i class="bi bi-arrow-left"></i> Voltar
+                                        <i class="fa-solid fa-arrow-left"></i> Voltar
                                     </button>
                                     <button type="submit" name="finalizar" value="1" class="btn btn-success btn-lg">
-                                        <i class="bi bi-check-circle"></i> Publicar Anúncio
+                                        <i class="fa-solid fa-circle-check"></i> Publicar Anúncio
                                     </button>
                                 </div>
                             </div>

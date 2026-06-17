@@ -88,118 +88,110 @@ include __DIR__ . '/../includes/header.php';
 </div>
 
 <!-- Estatísticas -->
-<div class="stats-section py-4 bg-light">
+<div class="stats-bar">
     <div class="container">
         <div class="row text-center">
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-card">
-                    <div class="stat-number text-primary">
-                        <?php echo number_format($stats['usuarios_ativos'] ?? 0); ?>
-                    </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <div class="stat-number"><?php echo number_format($stats['usuarios_ativos'] ?? 0); ?></div>
                     <div class="stat-label">Usuários Ativos</div>
                 </div>
             </div>
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-card">
-                    <div class="stat-number text-danger">
-                        <?php echo number_format($stats['perdidos_ativos'] ?? 0); ?>
-                    </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <div class="stat-number"><?php echo number_format($stats['perdidos_ativos'] ?? 0); ?></div>
                     <div class="stat-label">Pets Perdidos</div>
                 </div>
             </div>
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-card">
-                    <div class="stat-number text-success">
-                        <?php echo number_format($stats['encontrados_ativos'] ?? 0); ?>
-                    </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <div class="stat-number"><?php echo number_format($stats['encontrados_ativos'] ?? 0); ?></div>
                     <div class="stat-label">Pets Encontrados</div>
                 </div>
             </div>
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-card">
-                    <div class="stat-number text-info">
-                        <?php echo number_format($stats['casos_resolvidos'] ?? 0); ?>
-                    </div>
+            <div class="col-md-3 col-6">
+                <div class="stat-item">
+                    <div class="stat-number"><?php echo number_format($stats['casos_resolvidos'] ?? 0); ?></div>
                     <div class="stat-label">Casos Resolvidos</div>
                 </div>
             </div>
-            <?php if (!empty($stats['doacoes_ativas']) || (isset($stats['doacoes_ativas']) && (int)$stats['doacoes_ativas'] === 0)): ?>
-                <div class="col-md-3 col-6 mb-3">
-                    <div class="stat-card">
-                        <div class="stat-number text-primary">
-                            <?php echo number_format($stats['doacoes_ativas'] ?? 0); ?>
-                        </div>
-                        <div class="stat-label">Pets para Adoção</div>
-                    </div>
-                </div>
-            <?php endif; ?>
         </div>
     </div>
 </div>
 
 <!-- Anúncios Recentes -->
-<div class="anuncios-section py-5">
+<div class="py-5">
     <div class="container">
-        <div class="section-header mb-4">
-            <h2 class="h3 fw-bold"><i class="fa-solid fa-bolt"></i> Publicados Hoje</h2>
-            <p class="text-muted">Anúncios mais recentes na sua região</p>
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h2 class="h3 fw-bold mb-1"><i class="fa-solid fa-bolt"></i> Publicados Hoje</h2>
+                <p class="text-muted mb-0">Anúncios mais recentes na sua região</p>
+            </div>
+            <a href="<?php echo BASE_URL; ?>/busca" class="btn btn-outline-primary d-none d-md-inline-flex">
+                Ver todos →
+            </a>
         </div>
-        
+
         <div class="row g-4">
             <?php foreach ($anunciosRecentes as $anuncio): ?>
                 <div class="col-lg-3 col-md-4 col-sm-6">
-                    <div class="anuncio-card" onclick="window.location='<?php echo BASE_URL; ?>/anuncio/<?php echo $anuncio['id']; ?>/'">
-                        <div class="anuncio-image">
-                            <?php if ($anuncio['foto']): ?>
-                                <img src="<?php echo BASE_URL; ?>/uploads/anuncios/<?php echo $anuncio['foto']; ?>" 
-                                     alt="<?php echo sanitize($anuncio['nome_pet']); ?>">
-                            <?php else: ?>
-                                <div class="no-image">
-                                    <span><i class="fa-solid fa-camera"></i></span>
-                                    <p>Sem foto</p>
+                    <div class="card pet-card h-100">
+                        <a href="<?php echo BASE_URL; ?>/anuncio/<?php echo (int)$anuncio['id']; ?>/" class="text-decoration-none text-dark">
+                            <div class="position-relative">
+                                <?php if ($anuncio['foto']): ?>
+                                    <img class="card-img-top"
+                                         src="<?php echo BASE_URL; ?>/uploads/anuncios/<?php echo sanitize($anuncio['foto']); ?>"
+                                         alt="<?php echo sanitize($anuncio['nome_pet']); ?>"
+                                         loading="lazy">
+                                <?php else: ?>
+                                    <div class="card-img-top d-flex align-items-center justify-content-center bg-light text-muted"
+                                         style="aspect-ratio:16/9;">
+                                        <i class="fa-solid fa-camera fa-2x"></i>
+                                    </div>
+                                <?php endif; ?>
+                                <span class="badge badge-tipo badge-<?php echo $anuncio['tipo']; ?>">
+                                    <?php
+                                        if ($anuncio['tipo'] === 'perdido') echo 'Perdido';
+                                        elseif ($anuncio['tipo'] === 'doacao') echo 'Adoção';
+                                        else echo 'Encontrado';
+                                    ?>
+                                </span>
+                            </div>
+                            <div class="card-body pb-2">
+                                <h5 class="card-title fs-6 fw-semibold mb-1">
+                                    <?php echo sanitize($anuncio['nome_pet'] ?: 'Pet ' . ucfirst($anuncio['especie'])); ?>
+                                </h5>
+                                <div class="mb-2">
+                                    <span class="badge bg-secondary me-1"><?php echo ucfirst($anuncio['especie']); ?></span>
+                                    <span class="badge bg-light text-dark"><?php echo ucfirst($anuncio['tamanho']); ?></span>
                                 </div>
-                            <?php endif; ?>
-                            
-                            <div class="anuncio-badge badge-<?php echo $anuncio['tipo']; ?>">
-                                <?php echo $anuncio['tipo'] == 'perdido' ? '<i class="fa-solid fa-circle text-danger"></i> Perdido' : ($anuncio['tipo'] == 'doacao' ? '<i class="fa-solid fa-circle text-primary"></i> Adoção' : '<i class="fa-solid fa-circle text-success"></i> Encontrado'); ?>
+                                <p class="text-muted small mb-1">
+                                    <i class="fa-solid fa-location-dot me-1"></i><?php echo sanitize($anuncio['bairro']); ?>, <?php echo sanitize($anuncio['cidade']); ?>
+                                </p>
+                                <p class="text-muted small mb-0">
+                                    <i class="fa-regular fa-clock me-1"></i><?php echo timeAgo($anuncio['data_publicacao']); ?>
+                                </p>
                             </div>
-                        </div>
-                        
-                        <div class="anuncio-body">
-                            <h5 class="anuncio-title">
-                                <?php echo sanitize($anuncio['nome_pet'] ?: 'Pet ' . ucfirst($anuncio['especie'])); ?>
-                            </h5>
-                            
-                            <div class="anuncio-info">
-                                <span class="badge bg-secondary me-1">
-                                    <?php echo ucfirst($anuncio['especie']); ?>
-                                </span>
-                                <span class="badge bg-light text-dark">
-                                    <?php echo ucfirst($anuncio['tamanho']); ?>
-                                </span>
-                            </div>
-                            
-                            <p class="anuncio-location text-muted small mb-2">
-                                <i class="fa-solid fa-location-dot"></i> <?php echo sanitize($anuncio['bairro']); ?>, 
-                                <?php echo sanitize($anuncio['cidade']); ?>
-                            </p>
-                            
-                            <p class="anuncio-time text-muted small">
-                                <i class="fa-regular fa-clock"></i> <?php echo timeAgo($anuncio['data_publicacao']); ?>
-                            </p>
-                        </div>
-                        
-                        <div class="anuncio-footer">
-                            <button class="btn btn-sm btn-outline-primary w-100">
+                        </a>
+                        <div class="card-footer bg-transparent border-0 pt-0 pb-3 px-3 d-flex gap-2">
+                            <a href="<?php echo BASE_URL; ?>/anuncio/<?php echo (int)$anuncio['id']; ?>/"
+                               class="btn btn-sm btn-cmp-primary flex-grow-1">
                                 Ver Detalhes
-                            </button>
+                            </a>
+                            <?php if (isLoggedIn()): ?>
+                                <button class="btn btn-sm btn-outline-danger btn-favoritar"
+                                        data-id="<?php echo (int)$anuncio['id']; ?>"
+                                        title="Favoritar">
+                                    <i class="fa-solid fa-heart"></i>
+                                </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
             <?php endforeach; ?>
         </div>
-        
-        <div class="text-center mt-4">
+
+        <div class="text-center mt-4 d-md-none">
             <a href="<?php echo BASE_URL; ?>/busca" class="btn btn-primary btn-lg">
                 Ver Todos os Anúncios →
             </a>
@@ -261,19 +253,19 @@ include __DIR__ . '/../includes/header.php';
 </div>
 
 <!-- Doações CTA -->
-<div class="donation-cta py-5">
+<div class="cta-section">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h3 class="fw-bold mb-3"><i class="fa-solid fa-heart text-success"></i> Ajude a Manter o Cadê Meu Pet? Gratuito</h3>
-                <p class="mb-0">
-                    Com sua doação, mantemos o sistema funcionando e ajudamos 
+                <h2 class="fw-bold mb-3"><i class="fa-solid fa-heart me-2"></i>Ajude a Manter o Cadê Meu Pet? Gratuito</h2>
+                <p class="mb-0 opacity-90">
+                    Com sua doação, mantemos o sistema funcionando e ajudamos
                     mais pets a reencontrar suas famílias. Qualquer valor ajuda!
                 </p>
             </div>
-            <div class="col-md-4 text-md-end">
-                <a href="<?php echo BASE_URL; ?>/doar" class="btn btn-success btn-lg">
-                    <i class="fa-solid fa-heart text-success"></i> Doar Agora
+            <div class="col-md-4 text-md-end mt-4 mt-md-0">
+                <a href="<?php echo BASE_URL; ?>/doar" class="btn btn-light btn-lg fw-semibold" style="color:var(--cmp-secondary);">
+                    <i class="fa-solid fa-heart me-2"></i>Doar Agora
                 </a>
             </div>
         </div>

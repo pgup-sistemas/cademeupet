@@ -93,7 +93,7 @@ include __DIR__ . '/../includes/header.php';
                         <div class="carousel-item active">
                             <div class="d-flex align-items-center justify-content-center bg-light" style="height: 360px;">
                                 <div class="text-center text-muted">
-                                    <i class="bi bi-camera" style="font-size: 3rem;"></i>
+                                    <i class="fa-solid fa-camera fa-3x"></i>
                                     <p class="mt-3 mb-0">Este anúncio não possui fotos.</p>
                                 </div>
                             </div>
@@ -119,14 +119,14 @@ include __DIR__ . '/../includes/header.php';
                         <span class="badge bg-<?php echo $anuncio['tipo'] === 'perdido' ? 'danger' : ($anuncio['tipo'] === 'doacao' ? 'primary' : 'success'); ?>">
                             <?php echo $anuncio['tipo'] === 'perdido' ? '<i class="fa-solid fa-circle text-danger"></i> Perdido' : ($anuncio['tipo'] === 'doacao' ? '<i class="fa-solid fa-circle text-primary"></i> Adoção' : '<i class="fa-solid fa-circle text-success"></i> Encontrado'); ?>
                         </span>
-                        <span class="badge bg-light text-dark"><i class="bi bi-geo-alt me-1"></i><?php echo sanitize($anuncio['bairro']); ?> - <?php echo sanitize($anuncio['cidade']); ?></span>
+                        <span class="badge bg-light text-dark"><i class="fa-solid fa-location-dot me-1"></i><?php echo sanitize($anuncio['bairro']); ?> - <?php echo sanitize($anuncio['cidade']); ?></span>
                         <span class="badge bg-light text-dark"><?php echo ucfirst($anuncio['especie']); ?></span>
                         <span class="badge bg-light text-dark"><?php echo ucfirst($anuncio['tamanho']); ?></span>
                     </div>
 
                     <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
                         <p class="text-muted mb-0">
-                            <i class="bi bi-clock me-2"></i>Publicado <?php echo timeAgo($anuncio['data_publicacao']); ?> • Visualizações: <?php echo (int)$anuncio['visualizacoes']; ?>
+                            <i class="fa-regular fa-clock me-2"></i>Publicado <?php echo timeAgo($anuncio['data_publicacao']); ?> • Visualizações: <?php echo (int)$anuncio['visualizacoes']; ?>
                         </p>
                         <div>
                             <?php if (isLoggedIn()): ?>
@@ -134,14 +134,14 @@ include __DIR__ . '/../includes/header.php';
                                     <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                                     <input type="hidden" name="anuncio_id" value="<?php echo $anuncio['id']; ?>">
                                     <input type="hidden" name="return_to" value="<?php echo '/anuncio/' . (int)$anuncio['id'] . '/'; ?>">
-                                    <button type="submit" class="btn btn-sm <?php echo $isFavorited ? 'btn-warning' : 'btn-outline-warning'; ?>">
-                                        <i class="bi <?php echo $isFavorited ? 'bi-star-fill' : 'bi-star'; ?> me-1"></i>
+                                    <button type="submit" class="btn btn-sm <?php echo $isFavorited ? 'btn-danger' : 'btn-outline-danger'; ?>">
+                                        <i class="fa-<?php echo $isFavorited ? 'solid' : 'regular'; ?> fa-heart me-1"></i>
                                         <?php echo $isFavorited ? 'Remover dos Favoritos' : 'Salvar nos Favoritos'; ?>
                                     </button>
                                 </form>
                             <?php else: ?>
-                                <a href="<?php echo BASE_URL; ?>/login/?redirect=/anuncio/<?php echo $anuncio['id']; ?>/" class="btn btn-sm btn-outline-warning">
-                                    <i class="bi bi-star me-1"></i>Entre para favoritar
+                                <a href="<?php echo BASE_URL; ?>/login/?redirect=/anuncio/<?php echo $anuncio['id']; ?>/" class="btn btn-sm btn-outline-danger">
+                                    <i class="fa-regular fa-heart me-1"></i>Entre para favoritar
                                 </a>
                             <?php endif; ?>
                         </div>
@@ -153,7 +153,7 @@ include __DIR__ . '/../includes/header.php';
                             <input type="hidden" name="anuncio_id" value="<?php echo (int)$anuncio['id']; ?>">
                             <input type="hidden" name="return_to" value="<?php echo '/anuncio/' . (int)$anuncio['id'] . '/'; ?>">
                             <button type="submit" class="btn btn-outline-success">
-                                <i class="bi bi-check2-circle me-1"></i> Marcar como resolvido
+                                <i class="fa-solid fa-circle-check me-1"></i> Marcar como resolvido
                             </button>
                         </form>
                     <?php endif; ?>
@@ -240,10 +240,11 @@ include __DIR__ . '/../includes/header.php';
         </div>
 
         <div class="col-lg-5">
+            <div class="sticky-top" style="top: 80px;">
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-body p-4">
                     <h5 class="fw-bold mb-3">Localização</h5>
-                    <p class="mb-2"><i class="bi bi-geo me-2"></i><?php echo sanitize($anuncio['endereco_completo']); ?></p>
+                    <p class="mb-2"><i class="fa-solid fa-location-dot me-2"></i><?php echo sanitize($anuncio['endereco_completo']); ?></p>
                     <p class="text-muted mb-0">Bairro <?php echo sanitize($anuncio['bairro']); ?> • <?php echo sanitize($anuncio['cidade']); ?> - <?php echo sanitize($anuncio['estado']); ?></p>
                 </div>
                 <?php if (!empty($anuncio['latitude']) && !empty($anuncio['longitude'])): ?>
@@ -259,17 +260,17 @@ include __DIR__ . '/../includes/header.php';
                     <h5 class="fw-bold mb-3">Entre em contato</h5>
 
                     <div class="d-flex flex-wrap gap-2 mb-3">
-                        <a class="btn btn-outline-primary btn-sm" href="https://wa.me/?text=<?php echo rawurlencode($shareTitle . ' - ' . $shareUrl); ?>" target="_blank" rel="noopener">
-                            <i class="bi bi-whatsapp me-1"></i> Compartilhar
+                        <a class="btn btn-outline-success btn-sm" href="https://wa.me/?text=<?php echo rawurlencode($shareTitle . ' - ' . $shareUrl); ?>" target="_blank" rel="noopener">
+                            <i class="fa-brands fa-whatsapp me-1"></i> Compartilhar
                         </a>
                         <a class="btn btn-outline-primary btn-sm" href="https://www.facebook.com/sharer/sharer.php?u=<?php echo rawurlencode($shareUrl); ?>" target="_blank" rel="noopener">
-                            <i class="bi bi-facebook me-1"></i> Facebook
+                            <i class="fa-brands fa-facebook me-1"></i> Facebook
                         </a>
-                        <a class="btn btn-outline-primary btn-sm" href="https://twitter.com/intent/tweet?url=<?php echo rawurlencode($shareUrl); ?>&text=<?php echo rawurlencode($shareTitle); ?>" target="_blank" rel="noopener">
-                            <i class="bi bi-twitter-x me-1"></i> X
+                        <a class="btn btn-outline-dark btn-sm" href="https://twitter.com/intent/tweet?url=<?php echo rawurlencode($shareUrl); ?>&text=<?php echo rawurlencode($shareTitle); ?>" target="_blank" rel="noopener">
+                            <i class="fa-brands fa-x-twitter me-1"></i> X
                         </a>
                         <button type="button" class="btn btn-outline-secondary btn-sm" id="btnCopyLink">
-                            <i class="bi bi-link-45deg me-1"></i> Copiar link
+                            <i class="fa-solid fa-link me-1"></i> Copiar link
                         </button>
                     </div>
 
@@ -279,7 +280,7 @@ include __DIR__ . '/../includes/header.php';
                                 <strong>WhatsApp</strong>
                                 <p class="mb-0 text-muted"><?php echo formatPhone($anuncio['whatsapp']); ?></p>
                             </div>
-                            <a class="btn btn-success" href="https://wa.me/55<?php echo preg_replace('/[^0-9]/', '', $anuncio['whatsapp']); ?>" target="_blank"><i class="bi bi-whatsapp"></i></a>
+                            <a class="btn btn-success" href="https://wa.me/55<?php echo preg_replace('/[^0-9]/', '', $anuncio['whatsapp']); ?>" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
                         </div>
                         <?php if (!empty($anuncio['telefone_contato'])): ?>
                             <div class="list-group-item px-0">
@@ -315,7 +316,7 @@ include __DIR__ . '/../includes/header.php';
                     <?php if ($isOwner): ?>
                         <hr>
                         <div class="d-grid gap-2">
-                            <a href="<?php echo BASE_URL; ?>/editar-anuncio/<?php echo $anuncio['id']; ?>/" class="btn btn-outline-primary"><i class="bi bi-pencil me-1"></i>Editar anúncio</a>
+                            <a href="<?php echo BASE_URL; ?>/editar-anuncio/<?php echo $anuncio['id']; ?>/" class="btn btn-outline-primary"><i class="fa-solid fa-pencil me-1"></i>Editar anúncio</a>
                         </div>
                     <?php endif; ?>
 
@@ -325,12 +326,13 @@ include __DIR__ . '/../includes/header.php';
                                 <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                                 <input type="hidden" name="anuncio_id" value="<?php echo (int)$anuncio['id']; ?>">
                                 <input type="hidden" name="return_to" value="<?php echo '/anuncio/' . (int)$anuncio['id'] . '/'; ?>">
-                                <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise me-1"></i> Reativar</button>
+                                <button type="submit" class="btn btn-outline-secondary"><i class="fa-solid fa-rotate-left me-1"></i> Reativar</button>
                             </form>
                         </div>
                     <?php endif; ?>
                 </div>
             </div>
+            </div><!-- /.sticky-top -->
         </div>
     </div>
 </div>

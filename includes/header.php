@@ -116,76 +116,86 @@ $includeMapAssets = $includeMapAssets ?? false;
     <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/cademeupet.css">
 </head>
 <body>
-    <header class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <header class="navbar navbar-expand-lg sticky-top shadow-sm" style="background-color:var(--cmp-primary);">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="<?php echo BASE_URL; ?>">
-                <i class="fa-solid fa-paw logo-icon"></i> <span class="logo-text">Cadê Meu Pet?</span>
+            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="<?php echo BASE_URL; ?>">
+                <i class="fa-solid fa-paw fa-lg text-white"></i>
+                <span class="text-white fw-bold fs-5">Cadê Meu Pet?</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Menu">
+                <i class="fa-solid fa-bars text-white fa-lg"></i>
             </button>
             <nav class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-lg-center">
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
                     <li class="nav-item">
-                        <a class="nav-link" href="<?php echo BASE_URL; ?>/">Início</a>
+                        <a class="nav-link text-white" href="<?php echo BASE_URL; ?>/busca">
+                            <i class="fa-solid fa-magnifying-glass me-1"></i>Buscar
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?php echo BASE_URL; ?>/busca">Buscar Pets</a>
+                        <a class="nav-link text-white" href="<?php echo BASE_URL; ?>/busca?tipo=perdido">
+                            <i class="fa-solid fa-circle-exclamation me-1"></i>Perdidos
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?php echo BASE_URL; ?>/novo-anuncio">Publicar</a>
+                        <a class="nav-link text-white" href="<?php echo BASE_URL; ?>/busca?tipo=encontrado">
+                            <i class="fa-solid fa-circle-check me-1"></i>Encontrados
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?php echo BASE_URL; ?>/doar">Doar</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?php echo BASE_URL; ?>/parceiros">Parceiros</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?php echo BASE_URL; ?>/ajuda">Ajuda</a>
+                        <a class="nav-link text-white" href="<?php echo BASE_URL; ?>/petlove">
+                            <i class="fa-solid fa-heart me-1"></i>Pet Love
+                        </a>
                     </li>
                     <?php if (isLoggedIn()): ?>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link text-white dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                 <?php
                                     $userFullName = (string)($_SESSION['user_name'] ?? 'Usuário');
                                     $userFirstName = trim(strtok($userFullName, ' '));
-                                    if ($userFirstName === '') {
-                                        $userFirstName = 'Usuário';
-                                    }
+                                    if ($userFirstName === '') { $userFirstName = 'Usuário'; }
                                 ?>
-                                <i class="bi bi-person-circle"></i>
-                                <span class="d-lg-none">Conta</span>
+                                <i class="fa-solid fa-user me-1"></i>
                                 <span class="d-none d-lg-inline">Olá, <?php echo sanitize($userFirstName); ?></span>
+                                <span class="d-lg-none">Conta</span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/perfil">
+                                    <i class="fa-solid fa-user me-2 text-secondary"></i>Meu Perfil</a>
+                                </li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/meus-anuncios">
+                                    <i class="fa-solid fa-list me-2 text-secondary"></i>Meus Anúncios</a>
+                                </li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/favoritos">
+                                    <i class="fa-solid fa-heart me-2 text-secondary"></i>Meus Favoritos</a>
+                                </li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/alertas">
+                                    <i class="fa-solid fa-bell me-2 text-secondary"></i>Meus Alertas</a>
+                                </li>
                                 <?php if (isAdmin()): ?>
-                                    <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/admin">Painel Admin</a></li>
-                                    <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/admin/parceiros">Admin Parceiros</a></li>
-                                    <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/admin/usuarios">Admin Usuários</a></li>
-                                    <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/admin/financeiro">Admin Financeiro</a></li>
                                     <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/admin">
+                                        <i class="fa-solid fa-shield-halved me-2 text-secondary"></i>Painel Admin</a>
+                                    </li>
                                 <?php endif; ?>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/parceiros">Ver Parceiros</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/parceiro/painel">Painel do Parceiro</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/parceiros/inscricao">Inscrição de Parceiro</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/perfil">Meu Perfil</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/alertas">Meus Alertas</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/meus-anuncios">Meus Anúncios</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/favoritos">Favoritos</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="<?php echo BASE_URL; ?>/logout">Sair</a></li>
+                                <li><a class="dropdown-item text-danger" href="<?php echo BASE_URL; ?>/logout">
+                                    <i class="fa-solid fa-right-from-bracket me-2"></i>Sair</a>
+                                </li>
                             </ul>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
-                            <a class="btn btn-outline-primary ms-lg-3" href="<?php echo BASE_URL; ?>/login">Entrar</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="btn btn-success ms-lg-2 mt-2 mt-lg-0" href="<?php echo BASE_URL; ?>/cadastro">Criar Conta</a>
+                            <a class="nav-link text-white" href="<?php echo BASE_URL; ?>/login">
+                                <i class="fa-solid fa-right-to-bracket me-1"></i>Entrar
+                            </a>
                         </li>
                     <?php endif; ?>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-light fw-semibold px-3" href="<?php echo BASE_URL; ?>/novo-anuncio" style="color:var(--cmp-primary);">
+                            <i class="fa-solid fa-plus me-1"></i>Publicar Anúncio
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </div>
