@@ -174,11 +174,55 @@
         </div>
     </div>
 
+    <!-- Banner de Consentimento de Cookies (LGPD) -->
+    <div id="cookie-banner"
+         class="position-fixed bottom-0 start-0 end-0 bg-dark text-white shadow-lg"
+         style="z-index:1055;display:none;">
+        <div class="container py-3">
+            <div class="row align-items-center g-3">
+                <div class="col-lg-8">
+                    <p class="mb-0 small">
+                        <i class="fa-solid fa-cookie-bite text-warning me-2"></i>
+                        Utilizamos cookies essenciais para o funcionamento do site e, com seu consentimento,
+                        cookies de preferência para melhorar sua experiência.
+                        Leia nossa <a href="<?php echo BASE_URL; ?>/politica-cookies" class="text-warning">Política de Cookies</a>
+                        e nossa <a href="<?php echo BASE_URL; ?>/politica-privacidade" class="text-warning">Política de Privacidade</a>.
+                    </p>
+                </div>
+                <div class="col-lg-4 d-flex gap-2 justify-content-lg-end">
+                    <button id="btn-cookie-recusar" class="btn btn-outline-light btn-sm">
+                        Somente essenciais
+                    </button>
+                    <button id="btn-cookie-aceitar" class="btn btn-warning btn-sm fw-semibold text-dark">
+                        <i class="fa-solid fa-check me-1"></i>Aceitar todos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="<?php echo ASSETS_URL; ?>/js/main.js"></script>
     <?php if (!empty($includeMapAssets)): ?>
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
         <script src="<?php echo ASSETS_URL; ?>/js/map.js"></script>
     <?php endif; ?>
+    <script>
+    (function () {
+        var banner = document.getElementById('cookie-banner');
+        if (!banner) return;
+        if (!localStorage.getItem('cookie_consent')) {
+            banner.style.display = 'block';
+        }
+        document.getElementById('btn-cookie-aceitar').addEventListener('click', function () {
+            localStorage.setItem('cookie_consent', 'all');
+            banner.style.display = 'none';
+        });
+        document.getElementById('btn-cookie-recusar').addEventListener('click', function () {
+            localStorage.setItem('cookie_consent', 'essential');
+            banner.style.display = 'none';
+        });
+    })();
+    </script>
 </body>
 </html>
