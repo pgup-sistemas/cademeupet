@@ -30,6 +30,8 @@
     RewriteRule ^admin/financeiro/export/?$ views/admin-financeiro-export.php [L,QSA]
     RewriteRule ^admin/financeiro/?$ views/admin-financeiro.php [L,QSA]
     RewriteRule ^admin/parceiros/?$ views/admin-parceiros.php [L,QSA]
+    RewriteRule ^admin/anuncios/?$ views/admin-anuncios.php [L,QSA]
+    RewriteRule ^admin/config/?$ views/admin-config.php [L,QSA]
     RewriteRule ^admin/moderacao/?$ views/admin-moderacao.php [L,QSA]
     RewriteRule ^minha-conta/?$ views/minha-conta.php [L,QSA]
 
