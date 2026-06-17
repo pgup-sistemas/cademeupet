@@ -37,7 +37,7 @@ include __DIR__ . '/../includes/header.php';
             <div class="card shadow-lg border-0">
                 <div class="card-body p-5">
                     <div class="text-center mb-4">
-                        <div class="logo-icon-large mb-3">🔑</div>
+                        <div class="logo-icon-large mb-3"><i class="fa-solid fa-key"></i></div>
                         <h2 class="fw-bold mb-2">Recuperar Senha</h2>
                         <p class="text-muted">Enviaremos um link para redefinir sua senha</p>
                     </div>

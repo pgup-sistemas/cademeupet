@@ -117,7 +117,7 @@ include __DIR__ . '/../includes/header.php';
                     <h2 class="h4 fw-bold mb-3"><?php echo sanitize($anuncio['nome_pet'] ?: 'Pet ' . ucfirst($anuncio['especie'])); ?></h2>
                     <div class="d-flex flex-wrap gap-2 mb-3">
                         <span class="badge bg-<?php echo $anuncio['tipo'] === 'perdido' ? 'danger' : ($anuncio['tipo'] === 'doacao' ? 'primary' : 'success'); ?>">
-                            <?php echo $anuncio['tipo'] === 'perdido' ? '🔴 Perdido' : ($anuncio['tipo'] === 'doacao' ? '💙 Adoção' : '🟢 Encontrado'); ?>
+                            <?php echo $anuncio['tipo'] === 'perdido' ? '<i class="fa-solid fa-circle text-danger"></i> Perdido' : ($anuncio['tipo'] === 'doacao' ? '<i class="fa-solid fa-circle text-primary"></i> Adoção' : '<i class="fa-solid fa-circle text-success"></i> Encontrado'); ?>
                         </span>
                         <span class="badge bg-light text-dark"><i class="bi bi-geo-alt me-1"></i><?php echo sanitize($anuncio['bairro']); ?> - <?php echo sanitize($anuncio['cidade']); ?></span>
                         <span class="badge bg-light text-dark"><?php echo ucfirst($anuncio['especie']); ?></span>

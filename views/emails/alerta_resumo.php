@@ -40,7 +40,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Novidades sobre seu alerta 🎯</h1>
+            <h1>Novidades sobre seu alerta <i class="fa-solid fa-bullseye"></i></h1>
             <p style="margin: 8px 0 0; font-size: 15px; opacity: 0.85;">
                 Encontramos anúncios que combinam com as preferências do seu alerta.
             </p>
@@ -69,7 +69,7 @@
                         <?php if (!empty($anuncio['foto'])): ?>
                             <img src="<?php echo $baseUrl . '/uploads/anuncios/' . sanitize($anuncio['foto']); ?>" alt="Foto do pet" style="width: 100%; height: 100%; border-radius: 10px; object-fit: cover;">
                         <?php else: ?>
-                            <span>🐾</span>
+                            <span><i class="fa-solid fa-paw"></i></span>
                         <?php endif; ?>
                     </div>
                     <div class="pet-info">
@@ -106,7 +106,7 @@
             Você está recebendo este e-mail porque solicitou alertas de busca no Cadê Meu Pet?.<br>
             Para alterar suas preferências, <a href="<?php echo $baseUrl . '/perfil.php'; ?>" style="color: #667eea; text-decoration: none;">acesse seu perfil</a>.
             <br><br>
-            <strong>Cadê Meu Pet?</strong> · reunindo pets às suas famílias desde 2025 🐾
+            <strong>Cadê Meu Pet?</strong> · reunindo pets às suas famílias desde 2025 <i class="fa-solid fa-paw"></i>
         </div>
     </div>
 </body>

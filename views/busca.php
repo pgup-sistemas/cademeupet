@@ -49,9 +49,9 @@ include __DIR__ . '/../includes/header.php';
                             <label class="form-label">Tipo</label>
                             <select name="tipo" class="form-select">
                                 <option value="">Todos</option>
-                                <option value="perdido" <?php echo (($filters['tipo'] ?? '') === 'perdido') ? 'selected' : ''; ?>>🔴 Perdidos</option>
-                                <option value="encontrado" <?php echo (($filters['tipo'] ?? '') === 'encontrado') ? 'selected' : ''; ?>>🟢 Encontrados</option>
-                                <option value="doacao" <?php echo (($filters['tipo'] ?? '') === 'doacao') ? 'selected' : ''; ?>>💙 Adoção</option>
+                                <option value="perdido" <?php echo (($filters['tipo'] ?? '') === 'perdido') ? 'selected' : ''; ?>><i class="fa-solid fa-circle text-danger"></i> Perdidos</option>
+                                <option value="encontrado" <?php echo (($filters['tipo'] ?? '') === 'encontrado') ? 'selected' : ''; ?>><i class="fa-solid fa-circle text-success"></i> Encontrados</option>
+                                <option value="doacao" <?php echo (($filters['tipo'] ?? '') === 'doacao') ? 'selected' : ''; ?>><i class="fa-solid fa-circle text-primary"></i> Adoção</option>
                             </select>
                         </div>
 
@@ -59,10 +59,10 @@ include __DIR__ . '/../includes/header.php';
                             <label class="form-label">Espécie</label>
                             <select name="especie" class="form-select">
                                 <option value="">Todas</option>
-                                <option value="cachorro" <?php echo (($filters['especie'] ?? '') === 'cachorro') ? 'selected' : ''; ?>>🐕 Cachorro</option>
-                                <option value="gato" <?php echo (($filters['especie'] ?? '') === 'gato') ? 'selected' : ''; ?>>🐈 Gato</option>
-                                <option value="ave" <?php echo (($filters['especie'] ?? '') === 'ave') ? 'selected' : ''; ?>>🦜 Ave</option>
-                                <option value="outro" <?php echo (($filters['especie'] ?? '') === 'outro') ? 'selected' : ''; ?>>🐾 Outro</option>
+                                <option value="cachorro" <?php echo (($filters['especie'] ?? '') === 'cachorro') ? 'selected' : ''; ?>>Cachorro</option>
+                                <option value="gato" <?php echo (($filters['especie'] ?? '') === 'gato') ? 'selected' : ''; ?>>Gato</option>
+                                <option value="ave" <?php echo (($filters['especie'] ?? '') === 'ave') ? 'selected' : ''; ?>>Ave</option>
+                                <option value="outro" <?php echo (($filters['especie'] ?? '') === 'outro') ? 'selected' : ''; ?>>Outro</option>
                             </select>
                         </div>
 

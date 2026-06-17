@@ -35,7 +35,7 @@ include __DIR__ . '/../includes/header.php';
             <div class="card shadow-lg border-0">
                 <div class="card-body p-5">
                     <div class="text-center mb-4">
-                        <div class="logo-icon-large mb-3">🐾</div>
+                        <div class="logo-icon-large mb-3"><i class="fa-solid fa-paw"></i></div>
                         <h2 class="fw-bold mb-2">Crie sua conta</h2>
                         <p class="text-muted">Leva menos de 2 minutos para começar a ajudar pets perdidos</p>
                     </div>

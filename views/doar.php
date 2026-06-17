@@ -37,7 +37,7 @@ include __DIR__ . '/../includes/header.php';
             <div class="card shadow-lg border-0">
                 <div class="card-body p-4 p-md-5">
                     <div class="d-flex align-items-center gap-3 mb-4">
-                        <div class="display-4">💚</div>
+                        <div class="display-4"><i class="fa-solid fa-heart text-success"></i></div>
                         <div>
                             <h1 class="h3 fw-bold mb-1">Ajude a Manter o Cadê Meu Pet? Gratuito</h1>
                             <p class="text-muted mb-0">Sua contribuição mantém o site online, gratuito e sem anúncios.</p>
@@ -154,7 +154,7 @@ include __DIR__ . '/../includes/header.php';
                         <div class="form-check mt-3">
                             <input class="form-check-input" type="checkbox" value="1" id="exibirMural" name="exibir_mural" checked>
                             <label class="form-check-label" for="exibirMural">
-                                Quero aparecer no mural de doadores ❤️
+                                Quero aparecer no mural de doadores <i class="fa-solid fa-heart text-danger"></i>
                             </label>
                         </div>
 
@@ -194,7 +194,7 @@ include __DIR__ . '/../includes/header.php';
                 <div class="card-body p-4">
                     <h5 class="fw-bold mb-3">Mural de Doadores</h5>
                     <?php if (empty($mural)): ?>
-                        <p class="text-muted">Seja o primeiro a aparecer por aqui! 💚</p>
+                        <p class="text-muted">Seja o primeiro a aparecer por aqui! <i class="fa-solid fa-heart text-success"></i></p>
                     <?php else: ?>
                         <div class="row g-3">
                             <?php $first = true; foreach ($mural as $doacao):
@@ -206,7 +206,7 @@ include __DIR__ . '/../includes/header.php';
                                     $parts = preg_split('/\s+/', $nameRaw);
                                     $initials = strtoupper(substr($parts[0], 0, 1) . (isset($parts[1]) ? substr($parts[1], 0, 1) : ''));
                                 } else {
-                                    $initials = '💚';
+                                    $initials = '<i class="fa-solid fa-heart text-success"></i>';
                                 }
                             ?>
                                 <div class="col-12 <?php echo $first ? 'col-md-12' : 'col-md-6'; ?>">

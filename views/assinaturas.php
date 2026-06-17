@@ -54,20 +54,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Cancelar assinatura
                 $update = ['status' => 'cancelada', 'cancelada_em' => date('Y-m-d H:i:s')];
                 $doacaoModel->update($assinaturaId, $update);
-                $mensagem = '✅ Assinatura cancelada com sucesso!';
+                $mensagem = '<i class="fa-solid fa-circle-check text-success"></i> Assinatura cancelada com sucesso!';
                 $tipoMensagem = 'success';
                 // Log
                 error_log("[assinaturas] Usuário $usuarioId cancelou assinatura $assinaturaId");
             } elseif ($acao === 'pausar' && $assinatura['status'] === 'ativa') {
                 $update = ['status' => 'pausada', 'pausada_em' => date('Y-m-d H:i:s')];
                 $doacaoModel->update($assinaturaId, $update);
-                $mensagem = '✅ Assinatura pausada com sucesso!';
+                $mensagem = '<i class="fa-solid fa-circle-check text-success"></i> Assinatura pausada com sucesso!';
                 $tipoMensagem = 'success';
                 error_log("[assinaturas] Usuário $usuarioId pausou assinatura $assinaturaId");
             } elseif ($acao === 'reativar' && $assinatura['status'] === 'pausada') {
                 $update = ['status' => 'ativa', 'pausada_em' => NULL];
                 $doacaoModel->update($assinaturaId, $update);
-                $mensagem = '✅ Assinatura reativada com sucesso!';
+                $mensagem = '<i class="fa-solid fa-circle-check text-success"></i> Assinatura reativada com sucesso!';
                 $tipoMensagem = 'success';
                 error_log("[assinaturas] Usuário $usuarioId reativou assinatura $assinaturaId");
             }
@@ -421,10 +421,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <?php 
                                     $metodo = $assinatura['metodo_pagamento'] ?? 'Não especificado';
                                     $metodoLabel = [
-                                        'pix' => '💳 PIX',
-                                        'cartao' => '💳 Cartão',
-                                        'gateway' => '💳 Cartão Recorrente',
-                                        'boleto' => '📄 Boleto'
+                                        'pix' => '<i class="fa-solid fa-credit-card"></i> PIX',
+                                        'cartao' => '<i class="fa-solid fa-credit-card"></i> Cartão',
+                                        'gateway' => '<i class="fa-solid fa-credit-card"></i> Cartão Recorrente',
+                                        'boleto' => '<i class="fa-solid fa-file"></i> Boleto'
                                     ];
                                     echo $metodoLabel[$metodo] ?? ucfirst($metodo);
                                 ?>
@@ -466,7 +466,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <input type="hidden" name="acao" value="pausar">
                                 <input type="hidden" name="assinatura_id" value="<?php echo $assinatura['id']; ?>">
                                 <button type="submit" class="btn-acao btn-pausar" onclick="return confirm('Tem certeza que deseja pausar esta assinatura?');">
-                                    ⏸️ Pausar Assinatura
+                                    <i class="fa-solid fa-pause"></i> Pausar Assinatura
                                 </button>
                             </form>
                         <?php } ?>
@@ -476,7 +476,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <input type="hidden" name="acao" value="reativar">
                                 <input type="hidden" name="assinatura_id" value="<?php echo $assinatura['id']; ?>">
                                 <button type="submit" class="btn-acao btn-reativar">
-                                    ✅ Reativar Assinatura
+                                    <i class="fa-solid fa-circle-check text-success"></i> Reativar Assinatura
                                 </button>
                             </form>
                         <?php } ?>
@@ -485,7 +485,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <form method="POST" style="display: inline;">
                                 <input type="hidden" name="acao" value="cancelar">
                                 <input type="hidden" name="assinatura_id" value="<?php echo $assinatura['id']; ?>">
-                                <button type="submit" class="btn-acao btn-cancelar" onclick="return confirm('Tem certeza que deseja cancelar esta assinatura? Esta ação não pode ser desfeita.');"><strong>❌ Cancelar</strong></button>
+                                <button type="submit" class="btn-acao btn-cancelar" onclick="return confirm('Tem certeza que deseja cancelar esta assinatura? Esta ação não pode ser desfeita.');"><strong><i class="fa-solid fa-circle-xmark text-danger"></i> Cancelar</strong></button>
                             </form>
                         <?php } ?>
                     </div>

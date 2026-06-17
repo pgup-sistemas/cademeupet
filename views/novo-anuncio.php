@@ -207,7 +207,7 @@ include __DIR__ . '/../includes/header.php';
     
     <!-- Título -->
     <div class="text-center mb-5">
-        <h1 class="display-5 fw-bold mb-3">📢 Publicar Anúncio</h1>
+        <h1 class="display-5 fw-bold mb-3"><i class="fa-solid fa-bullhorn"></i> Publicar Anúncio</h1>
         <p class="lead text-muted">Preencha os dados em 3 passos simples</p>
     </div>
     
@@ -277,7 +277,7 @@ include __DIR__ . '/../includes/header.php';
                                                <?php echo ($formData['tipo'] ?? '') === 'perdido' ? 'checked' : ''; ?>
                                                required>
                                         <label class="btn btn-tipo btn-outline-danger w-100 p-4" for="tipo_perdido">
-                                            <div class="tipo-icon">🔴</div>
+                                            <div class="tipo-icon"><i class="fa-solid fa-triangle-exclamation text-danger"></i></div>
                                             <h4>PERDI MEU PET</h4>
                                             <p class="mb-0 small">Meu animal de estimação está perdido</p>
                                         </label>
@@ -292,7 +292,7 @@ include __DIR__ . '/../includes/header.php';
                                                <?php echo ($formData['tipo'] ?? '') === 'encontrado' ? 'checked' : ''; ?>
                                                required>
                                         <label class="btn btn-tipo btn-outline-success w-100 p-4" for="tipo_encontrado">
-                                            <div class="tipo-icon">🟢</div>
+                                            <div class="tipo-icon"><i class="fa-solid fa-circle-check text-success"></i></div>
                                             <h4>ENCONTREI UM PET</h4>
                                             <p class="mb-0 small">Encontrei um animal perdido</p>
                                         </label>
@@ -307,7 +307,7 @@ include __DIR__ . '/../includes/header.php';
                                                <?php echo ($formData['tipo'] ?? '') === 'doacao' ? 'checked' : ''; ?>
                                                required>
                                         <label class="btn btn-tipo btn-outline-primary w-100 p-4" for="tipo_doacao">
-                                            <div class="tipo-icon">💙</div>
+                                            <div class="tipo-icon"><i class="fa-solid fa-hand-holding-heart text-primary"></i></div>
                                             <h4>PET PARA ADOÇÃO</h4>
                                             <p class="mb-0 small">Estou disponibilizando um pet para adoção e procuro um lar responsável</p>
                                         </label>
@@ -329,7 +329,7 @@ include __DIR__ . '/../includes/header.php';
                                 <!-- Upload de Fotos -->
                                 <div class="mb-4">
                                     <label class="form-label fw-bold">
-                                        📸 Adicione até 2 fotos
+                                        <i class="fa-solid fa-camera"></i> Adicione até 2 fotos
                                     </label>
 
                                     <?php if (!empty($_SESSION['anuncio_temp_fotos'])): ?>
@@ -380,22 +380,22 @@ include __DIR__ . '/../includes/header.php';
                                     <div class="btn-group-especies">
                                         <input type="radio" class="btn-check" name="especie" id="esp_cachorro" value="cachorro" <?php echo (($formData['especie'] ?? '') === 'cachorro') ? 'checked' : ''; ?> required>
                                         <label class="btn btn-outline-primary" for="esp_cachorro">
-                                            🐕 Cachorro
+                                            Cachorro
                                         </label>
                                         
                                         <input type="radio" class="btn-check" name="especie" id="esp_gato" value="gato" <?php echo (($formData['especie'] ?? '') === 'gato') ? 'checked' : ''; ?> required>
                                         <label class="btn btn-outline-primary" for="esp_gato">
-                                            🐈 Gato
+                                            Gato
                                         </label>
                                         
                                         <input type="radio" class="btn-check" name="especie" id="esp_ave" value="ave" <?php echo (($formData['especie'] ?? '') === 'ave') ? 'checked' : ''; ?> required>
                                         <label class="btn btn-outline-primary" for="esp_ave">
-                                            🦜 Ave
+                                            Ave
                                         </label>
                                         
                                         <input type="radio" class="btn-check" name="especie" id="esp_outro" value="outro" <?php echo (($formData['especie'] ?? '') === 'outro') ? 'checked' : ''; ?> required>
                                         <label class="btn btn-outline-primary" for="esp_outro">
-                                            🐾 Outro
+                                            Outro
                                         </label>
                                     </div>
                                 </div>

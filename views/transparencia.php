@@ -28,17 +28,17 @@ include __DIR__ . '/../includes/header.php';
         <div class="col-lg-10">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
                 <div>
-                    <h1 class="h3 fw-bold mb-1">📊 Transparência</h1>
+                    <h1 class="h3 fw-bold mb-1"><i class="fa-solid fa-chart-bar"></i> Transparência</h1>
                     <p class="text-muted mb-0">Relatório público de custos, metas e andamento do Cadê Meu Pet?.</p>
                 </div>
                 <a href="<?php echo BASE_URL; ?>/doar/" class="btn btn-success">
-                    💚 Fazer uma doação
+                    <i class="fa-solid fa-heart text-success"></i> Fazer uma doação
                 </a>
             </div>
 
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-body">
-                    <h2 class="h5 fw-bold mb-3">✅ O que já temos</h2>
+                    <h2 class="h5 fw-bold mb-3"><i class="fa-solid fa-circle-check text-success"></i> O que já temos</h2>
                     <ul class="mb-0">
                         <li>Plataforma web funcionando (cadastro, login, anúncios, busca, favoritos)</li>
                         <li>Envio de e-mails via SMTP (PHPMailer)</li>
@@ -51,7 +51,7 @@ include __DIR__ . '/../includes/header.php';
 
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-body">
-                    <h2 class="h5 fw-bold mb-3">🗺️ Próximos passos</h2>
+                    <h2 class="h5 fw-bold mb-3"><i class="fa-solid fa-map"></i> Próximos passos</h2>
                     <ul class="mb-0">
                         <li>Melhorar a busca por proximidade com geolocalização/mapas</li>
                         <li>Implementar pagamento via cartão de crédito</li>
@@ -62,7 +62,7 @@ include __DIR__ . '/../includes/header.php';
 
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-body">
-                    <h2 class="h5 fw-bold mb-3">📌 Como você pode ajudar</h2>
+                    <h2 class="h5 fw-bold mb-3"><i class="fa-solid fa-thumbtack"></i> Como você pode ajudar</h2>
                     <p class="mb-0">
                         Você pode contribuir com melhorias, sugestões ou apoiando financeiramente. 
                         Toda ajuda mantém o Cadê Meu Pet? disponível e gratuito para mais pessoas.
@@ -114,7 +114,7 @@ include __DIR__ . '/../includes/header.php';
 
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-body">
-                    <h2 class="h5 fw-bold mb-3">💚 Doações recentes (públicas)</h2>
+                    <h2 class="h5 fw-bold mb-3"><i class="fa-solid fa-heart text-success"></i> Doações recentes (públicas)</h2>
 
                     <?php if (empty($doacoesPublicas)): ?>
                         <p class="text-muted mb-0">Ainda não há doações públicas para exibir.</p>

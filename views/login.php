@@ -59,7 +59,7 @@ include __DIR__ . '/../includes/header.php';
                 <div class="card-body p-5">
                     <!-- Cabeçalho -->
                     <div class="text-center mb-4">
-                        <div class="logo-icon-large mb-3">🐾</div>
+                        <div class="logo-icon-large mb-3"><i class="fa-solid fa-paw"></i></div>
                         <h2 class="fw-bold mb-2">Bem-vindo de Volta!</h2>
                         <p class="text-muted">Faça login para continuar</p>
                     </div>

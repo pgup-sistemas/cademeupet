@@ -43,7 +43,7 @@ include __DIR__ . '/../includes/header.php';
                                 </div>
                             <?php endif; ?>
                             <span class="badge tipo-badge <?php echo $favorito['tipo'] === 'perdido' ? 'bg-danger' : ($favorito['tipo'] === 'doacao' ? 'bg-primary' : 'bg-success'); ?>">
-                                <?php echo $favorito['tipo'] === 'perdido' ? '🔴 Perdido' : ($favorito['tipo'] === 'doacao' ? '💙 Adoção' : '🟢 Encontrado'); ?>
+                                <?php echo $favorito['tipo'] === 'perdido' ? '<i class="fa-solid fa-circle text-danger"></i> Perdido' : ($favorito['tipo'] === 'doacao' ? '<i class="fa-solid fa-circle text-primary"></i> Adoção' : '<i class="fa-solid fa-circle text-success"></i> Encontrado'); ?>
                             </span>
                         </div>
                         <div class="card-body">

@@ -24,7 +24,7 @@ include __DIR__ . '/../includes/header.php';
         <div class="row align-items-center">
             <div class="col-lg-7">
                 <h1 class="display-4 fw-bold mb-4 hero-title">
-                    🐾 Encontre ou Publique um Pet
+                    <i class="fa-solid fa-paw"></i> Encontre ou Publique um Pet
                 </h1>
                 <p class="lead mb-4">
                     Ajudamos a encontrar o dono de pets perdidos e a devolver cada animal ao seu lar.
@@ -35,7 +35,7 @@ include __DIR__ . '/../includes/header.php';
                 <div class="search-box mb-4">
                     <form action="<?php echo BASE_URL; ?>/busca" method="GET">
                         <div class="input-group input-group-lg">
-                            <span class="input-group-text" id="quick-search-addon">🔎</span>
+                            <span class="input-group-text" id="quick-search-addon"><i class="fa-solid fa-magnifying-glass"></i></span>
                             <input type="text" 
                                    name="q" 
                                    class="form-control" 
@@ -53,22 +53,22 @@ include __DIR__ . '/../includes/header.php';
                 <!-- Filtros Rápidos -->
                 <div class="quick-filters d-flex flex-wrap gap-2">
                     <a href="<?php echo BASE_URL; ?>/busca?tipo=perdido" class="btn btn-outline-danger">
-                        🔴 Perdidos
+                        <i class="fa-solid fa-circle text-danger"></i> Perdidos
                     </a>
                     <a href="<?php echo BASE_URL; ?>/busca?tipo=encontrado" class="btn btn-outline-success">
-                        🟢 Encontrados
+                        <i class="fa-solid fa-circle text-success"></i> Encontrados
                     </a>
                     <a href="<?php echo BASE_URL; ?>/busca?tipo=doacao" class="btn btn-outline-primary">
-                        💙 Adoção
+                        <i class="fa-solid fa-circle text-primary"></i> Adoção
                     </a>
                     <a href="<?php echo BASE_URL; ?>/busca?especie=cachorro" class="btn btn-outline-secondary">
-                        🐕 Cachorros
+                        Cachorros
                     </a>
                     <a href="<?php echo BASE_URL; ?>/busca?especie=gato" class="btn btn-outline-secondary">
-                        🐈 Gatos
+                        Gatos
                     </a>
                     <button onclick="buscarProximos()" class="btn btn-outline-primary">
-                        📍 Perto de Mim
+                        <i class="fa-solid fa-location-dot"></i> Perto de Mim
                     </button>
                 </div>
             </div>
@@ -141,7 +141,7 @@ include __DIR__ . '/../includes/header.php';
 <div class="anuncios-section py-5">
     <div class="container">
         <div class="section-header mb-4">
-            <h2 class="h3 fw-bold">⚡ Publicados Hoje</h2>
+            <h2 class="h3 fw-bold"><i class="fa-solid fa-bolt"></i> Publicados Hoje</h2>
             <p class="text-muted">Anúncios mais recentes na sua região</p>
         </div>
         
@@ -155,13 +155,13 @@ include __DIR__ . '/../includes/header.php';
                                      alt="<?php echo sanitize($anuncio['nome_pet']); ?>">
                             <?php else: ?>
                                 <div class="no-image">
-                                    <span>📷</span>
+                                    <span><i class="fa-solid fa-camera"></i></span>
                                     <p>Sem foto</p>
                                 </div>
                             <?php endif; ?>
                             
                             <div class="anuncio-badge badge-<?php echo $anuncio['tipo']; ?>">
-                                <?php echo $anuncio['tipo'] == 'perdido' ? '🔴 Perdido' : ($anuncio['tipo'] == 'doacao' ? '💙 Adoção' : '🟢 Encontrado'); ?>
+                                <?php echo $anuncio['tipo'] == 'perdido' ? '<i class="fa-solid fa-circle text-danger"></i> Perdido' : ($anuncio['tipo'] == 'doacao' ? '<i class="fa-solid fa-circle text-primary"></i> Adoção' : '<i class="fa-solid fa-circle text-success"></i> Encontrado'); ?>
                             </div>
                         </div>
                         
@@ -180,12 +180,12 @@ include __DIR__ . '/../includes/header.php';
                             </div>
                             
                             <p class="anuncio-location text-muted small mb-2">
-                                📍 <?php echo sanitize($anuncio['bairro']); ?>, 
+                                <i class="fa-solid fa-location-dot"></i> <?php echo sanitize($anuncio['bairro']); ?>, 
                                 <?php echo sanitize($anuncio['cidade']); ?>
                             </p>
                             
                             <p class="anuncio-time text-muted small">
-                                🕒 <?php echo timeAgo($anuncio['data_publicacao']); ?>
+                                <i class="fa-regular fa-clock"></i> <?php echo timeAgo($anuncio['data_publicacao']); ?>
                             </p>
                         </div>
                         
@@ -218,21 +218,21 @@ include __DIR__ . '/../includes/header.php';
         <div class="row text-center">
             <div class="col-md-4 mb-4">
                 <div class="step-card">
-                    <div class="step-icon">📝</div>
+                    <div class="step-icon"><i class="fa-solid fa-file-pen"></i></div>
                     <h4>1. Publique</h4>
                     <p>Cadastre o pet perdido ou encontrado com foto e localização</p>
                 </div>
             </div>
             <div class="col-md-4 mb-4">
                 <div class="step-card">
-                    <div class="step-icon">🔍</div>
+                    <div class="step-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
                     <h4>2. Busque</h4>
                     <p>Pessoas procuram por pets na sua região</p>
                 </div>
             </div>
             <div class="col-md-4 mb-4">
                 <div class="step-card">
-                    <div class="step-icon">❤️</div>
+                    <div class="step-icon"><i class="fa-solid fa-heart text-danger"></i></div>
                     <h4>3. Reúna</h4>
                     <p>Conecte pets com suas famílias novamente!</p>
                 </div>
@@ -246,7 +246,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h3 class="fw-bold mb-2">🐾 Serviços Pet na sua região</h3>
+                <h3 class="fw-bold mb-2"><i class="fa-solid fa-paw"></i> Serviços Pet na sua região</h3>
                 <p class="mb-0">
                     Conheça empresas parceiras (pet shops, clínicas, hotéis, adestradores) e ajude a manter o Cadê Meu Pet? sustentável.
                 </p>
@@ -265,7 +265,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h3 class="fw-bold mb-3">💚 Ajude a Manter o Cadê Meu Pet? Gratuito</h3>
+                <h3 class="fw-bold mb-3"><i class="fa-solid fa-heart text-success"></i> Ajude a Manter o Cadê Meu Pet? Gratuito</h3>
                 <p class="mb-0">
                     Com sua doação, mantemos o sistema funcionando e ajudamos 
                     mais pets a reencontrar suas famílias. Qualquer valor ajuda!
@@ -273,7 +273,7 @@ include __DIR__ . '/../includes/header.php';
             </div>
             <div class="col-md-4 text-md-end">
                 <a href="<?php echo BASE_URL; ?>/doar" class="btn btn-success btn-lg">
-                    💚 Doar Agora
+                    <i class="fa-solid fa-heart text-success"></i> Doar Agora
                 </a>
             </div>
         </div>

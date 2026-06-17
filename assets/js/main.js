@@ -7,7 +7,7 @@
 // INICIALIZAÇÃO
 // ═══════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🐾 Cadê Meu Pet? carregado!');
+    console.log('Cadê Meu Pet? carregado!');
     
     // Inicializa componentes
     initTooltips();
@@ -244,9 +244,9 @@ function showToast(message, type = 'info') {
     };
     
     const icons = {
-        success: '✓',
-        error: '✗',
-        warning: '⚠',
+        success: 'ok',
+        error: 'erro',
+        warning: 'aviso',
         info: 'ℹ'
     };
     
@@ -641,4 +641,4 @@ window.Cadê Meu Pet? = {
     showDonationModal
 };
 
-console.log('✅ Cadê Meu Pet? JS inicializado!');
+console.log('Cadê Meu Pet? JS inicializado!');
