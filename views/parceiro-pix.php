@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config.php';
 
 requireLogin();
 
-$pageTitle = 'Pagamento via Pix - Parceiro | PetFinder';
+$pageTitle = 'Pagamento via Pix - Parceiro | Cadê Meu Pet?';
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
@@ -42,6 +42,49 @@ if (($pagamento['status'] ?? '') === 'pendente' && $txid !== '') {
         }
     } catch (Exception $e) {
         error_log('[parceiro-pix] Falha ao sincronizar status Pix: ' . $e->getMessage());
+    }
+}
+
+// Se a sessão expirou, tentar reconstruir o QR Code via API a partir do TXID
+if (empty($pix) && $txid !== '') {
+    try {
+        $pagamentoController = new PagamentoController();
+        $detail = $pagamentoController->detalharCobrancaPix($txid);
+
+        $locId = null;
+        if (is_array($detail)) {
+            $locId = $detail['loc']['id'] ?? $detail['loc_id'] ?? null;
+        }
+
+        if (!empty($locId)) {
+            $api = $pagamentoController->getApi();
+            $responseQr = $api->pixGenerateQRCode(['id' => $locId]);
+
+            $qrImageBase64 = $responseQr['imagemQrcode'] ?? $responseQr['imagem_qrcode'] ?? null;
+            $qrText = $responseQr['qrcode'] ?? $responseQr['qrcodeText'] ?? $responseQr['qrCodeText'] ?? null;
+
+            $qrImageDataUrl = '';
+            if (!empty($qrImageBase64) && is_string($qrImageBase64)) {
+                $img = trim($qrImageBase64);
+                $qrImageDataUrl = str_starts_with($img, 'data:image') ? $img : ('data:image/png;base64,' . $img);
+            }
+
+            $pix = [
+                'txid' => $txid,
+                'qrcode' => [
+                    'imagemQrcode' => $qrImageDataUrl,
+                    'qrcode' => is_string($qrText) ? trim($qrText) : '',
+                    'raw' => $responseQr,
+                ],
+            ];
+
+            if (!isset($_SESSION['pix_parceiros']) || !is_array($_SESSION['pix_parceiros'])) {
+                $_SESSION['pix_parceiros'] = [];
+            }
+            $_SESSION['pix_parceiros'][$id] = $pix;
+        }
+    } catch (Throwable $e) {
+        error_log('[parceiro-pix] Falha ao reconstruir QR via API: ' . $e->getMessage());
     }
 }
 

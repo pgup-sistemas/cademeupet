@@ -1,6 +1,6 @@
 <?php
 /**
- * PetFinder - Modelo de Usuário
+ * Cadê Meu Pet? - Modelo de Usuário
  * Responsável por encapsular o acesso à camada de dados da tabela `usuarios`
  * e fornecer operações coerentes com as regras de negócio.
  */
@@ -78,7 +78,11 @@ class Usuario
      */
     public function updatePassword(int $id, string $novaSenha)
     {
-        return $this->update($id, ['senha' => hashPassword($novaSenha)]);
+        // Ao redefinir senha pelo admin, também confirma o email
+        return $this->update($id, [
+            'senha' => hashPassword($novaSenha),
+            'email_confirmado' => 1
+        ]);
     }
 
     /**

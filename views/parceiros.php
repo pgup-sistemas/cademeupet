@@ -1,9 +1,9 @@
 <?php
 require_once __DIR__ . '/../config.php';
 
-$pageTitle = 'Parceiros | PetFinder';
-$metaOgTitle = 'Parceiros PetFinder';
-$metaOgDescription = 'Encontre serviços pet confiáveis e ajude a manter o PetFinder sustentável.';
+$pageTitle = 'Parceiros | Cadê Meu Pet?';
+$metaOgTitle = 'Parceiros Cadê Meu Pet?';
+$metaOgDescription = 'Encontre serviços pet confiáveis e ajude a manter o Cadê Meu Pet? sustentável.';
 $metaOgUrl = BASE_URL . '/parceiros';
 
 $perfilModel = new ParceiroPerfil();
@@ -87,10 +87,10 @@ include __DIR__ . '/../includes/header.php';
                     <i class="bi bi-shield-check me-2"></i>
                     Serviços pet confiáveis
                 </div>
-                <h1 class="display-5 fw-bold mb-3">Parceiros PetFinder</h1>
+                <h1 class="display-5 fw-bold mb-3">Parceiros Cadê Meu Pet?</h1>
                 <p class="lead mb-4">
                     Encontre pet shops, clínicas, hotéis e adestradores na sua região.
-                    Este espaço ajuda a manter o PetFinder sustentável sem tirar o foco dos anúncios de pets.
+                    Este espaço ajuda a manter o Cadê Meu Pet? sustentável sem tirar o foco dos anúncios de pets.
                 </p>
 
                 <div class="partners-quick-actions d-flex flex-wrap gap-2">
@@ -112,7 +112,7 @@ include __DIR__ . '/../includes/header.php';
                         </div>
                         <div>
                             <div class="fw-bold">Plano Parceiro</div>
-                            <div class="text-muted">Receita recorrente para manter o PetFinder</div>
+                            <div class="text-muted">Receita recorrente para manter o Cadê Meu Pet?</div>
                         </div>
                     </div>
                     <ul class="partners-hero-list">

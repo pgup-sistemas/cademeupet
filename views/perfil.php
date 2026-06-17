@@ -2,7 +2,7 @@
 <?php
 require_once __DIR__ . '/../config.php';
 
-$pageTitle = 'Meu Perfil - PetFinder';
+$pageTitle = 'Meu Perfil - Cadê Meu Pet?';
 
 requireLogin();
 

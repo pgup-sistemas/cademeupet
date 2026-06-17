@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config.php';
 
 requireLogin();
 
-$pageTitle = 'Inscrição de Parceiro | PetFinder';
+$pageTitle = 'Inscrição de Parceiro | Cadê Meu Pet?';
 
 $usuarioId = (int)(getUserId() ?? 0);
 $usuarioModel = new Usuario();
@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $userName = (string)($usuario['nome'] ?? '');
         if ($userEmail !== '') {
             $link = BASE_URL . '/parceiro/painel';
-            $subject = 'Recebemos sua inscrição de Parceiro - PetFinder';
+            $subject = 'Recebemos sua inscrição de Parceiro - Cadê Meu Pet?';
             $message = "<html><body style='font-family: Arial, sans-serif;'>
                 <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
                     <h2 style='color:#2196F3;'>Inscrição recebida</h2>
@@ -115,7 +115,7 @@ include __DIR__ . '/../includes/header.php';
             <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
                 <div>
                     <h1 class="h3 fw-bold mb-1">Inscrição de Parceiro</h1>
-                    <p class="text-muted mb-0">Solicite seu perfil empresarial para divulgar serviços no PetFinder.</p>
+                    <p class="text-muted mb-0">Solicite seu perfil empresarial para divulgar serviços no Cadê Meu Pet?.</p>
                 </div>
                 <a class="btn btn-outline-primary" href="<?php echo BASE_URL; ?>/parceiro/painel">Painel do Parceiro</a>
             </div>

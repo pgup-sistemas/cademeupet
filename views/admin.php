@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config.php';
 
 requireAdmin();
 
-$pageTitle = 'Painel Admin - PetFinder';
+$pageTitle = 'Painel Admin - Cadê Meu Pet?';
 
 $doacaoModel = new Doacao();
 $usuarioModel = new Usuario();

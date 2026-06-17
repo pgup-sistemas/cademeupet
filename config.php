@@ -1,6 +1,6 @@
 <?php
 /**
- * PetFinder - Configurações Globais
+ * Cadê Meu Pet? - Configurações Globais
  * Arquivo principal de configuração do sistema
  */
 
@@ -9,9 +9,15 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Debug temporário: Mostrar erros na tela para diagnosticar o problema (REMOVA após resolver).
+// NOTA: isso deve ficar ativado apenas por curto período em produção.
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Configurações de Erro (PRODUÇÃO)
-error_reporting(E_ALL & ~E_NOTICE);
-ini_set('display_errors', 0);
+// error_reporting(E_ALL & ~E_NOTICE);
+// ini_set('display_errors', 0);
 
 // Timezone
 date_default_timezone_set('America/Porto_Velho');
@@ -20,16 +26,25 @@ date_default_timezone_set('America/Porto_Velho');
 // BANCO DE DADOS
 // ═══════════════════════════════════════════════
 define('DB_HOST', 'petfinder.mysql.dbaas.com.br'); // Ex: mysql.locaweb.com.br
-define('DB_NAME', 'petfinder');
+define('DB_NAME', 'cademeupet');
 define('DB_USER', 'petfinder');
 define('DB_PASS', 'Petfinder#2026');
 define('DB_CHARSET', 'utf8mb4');
+
+// ═══════════════════════════════════════════════
+// MODO SANDBOX vs PRODUÇÃO
+// ═══════════════════════════════════════════════
+define('EFI_SANDBOX', false); // true = Testes (Homologação), false = Produção
 
 // ═══════════════════════════════════════════════
 // CAMINHOS DO SISTEMA
 // ═══════════════════════════════════════════════
 define('BASE_PATH', __DIR__);
 define('BASE_URL', 'https://petfinder.pageup.net.br'); // Subdomínio correto
+
+// Informações de SEO do site
+define('SITE_NAME', 'Cadê Meu Pet?');
+define('SITE_DESCRIPTION', 'Perdeu ou encontrou um pet? Cadê Meu Pet? conecta tutores no Brasil.');
 define('UPLOAD_PATH', BASE_PATH . '/uploads');
 define('ASSETS_URL', BASE_URL . '/assets');
 
@@ -59,16 +74,92 @@ define('MIN_DONATION_AMOUNT', 2.00);
 define('MERCADO_PAGO_PUBLIC_KEY', 'TEST-your-public-key');
 define('MERCADO_PAGO_ACCESS_TOKEN', 'TEST-your-access-token');
 
-// Configurações EFIbank
-define('EFI_PIX_KEY', 'new.normando@gmail.com'); // Chave PIX para cobranças
-define('EFI_CLIENT_ID', 'Client_Id_eb634fb28bc3cf46747e4188072a77f40be0ec45'); // ID do cliente EFI
-define('EFI_CLIENT_SECRET', 'Client_Secret_10e743b7c9992ee387bdbdf32e38d7bb641684e4'); // Secret do cliente EFI
-define('EFI_CERTIFICATE_PATH', __DIR__ . '/certs/production.pem'); // Caminho do certificado
-define('EFI_PIX_DESCRIPTION', 'Doação para PetFinder'); // Descrição das cobranças
-define('EFI_PIX_NOTIFICATION_URL', 'https://petfinder.pageup.net.br/api/efi-billing-notification.php'); // URL de webhook
-define('EFI_BASE_URL', 'https://api.efipay.com.br/api/'); // Base URL da API
-define('EFI_WEBHOOK_TOKEN', 'e239441a10244d1b9c5bb4b14bab7e83'); // Token de segurança do webhook
-define('EFI_SANDBOX', false); // Modo sandbox (true = teste, false = produção)
+// Helper para ler variáveis de ambiente (simples, usa getenv e .env local como fallback)
+if (!function_exists('envValue')) {
+    function envValue(string $key, $default = '') {
+        $val = getenv($key);
+        if ($val !== false) {
+            return $val;
+        }
+        // Fallback: parse .env se existir (linha simples KEY=VAL)
+        $envFile = __DIR__ . '/.env';
+        if (file_exists($envFile)) {
+            $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if ($line === '' || str_starts_with($line, '#')) continue;
+                $parts = explode('=', $line, 2);
+                if (count($parts) === 2 && trim($parts[0]) === $key) {
+                    return trim($parts[1], " \"'");
+                }
+            }
+        }
+        return $default;
+    }
+}
+
+// ═══════════════════════════════════════════════
+// CONFIGURAÇÕES EFI BANK - PRODUÇÃO (ROTACIONADAS)
+// As chaves de produção foram removidas deste arquivo para segurança.
+// Defina as credenciais via variáveis de ambiente (ex.: .env) ou um secrets manager.
+// ═══════════════════════════════════════════════
+define('EFI_CLIENT_ID', envValue('EFI_CLIENT_ID', ''));
+define('EFI_CLIENT_SECRET', envValue('EFI_CLIENT_SECRET', ''));
+define('EFI_PIX_KEY', envValue('EFI_PIX_KEY', ''));
+define('EFI_WEBHOOK_TOKEN', envValue('EFI_WEBHOOK_TOKEN', ''));
+
+// CERTIFICADO: movido para `secrets/` e ignorado por VCS. Atualize EFI_CERTIFICATE_PATH via variável de ambiente se necessário.
+$__efiCertPath = (string)envValue('EFI_CERTIFICATE_PATH', __DIR__ . '/secrets/producao-573055-petfinder.pem');
+$__efiCertPath = trim($__efiCertPath);
+
+// Normalizar caminho do certificado: se veio um path antigo/inválido, buscar na raiz do projeto.
+if ($__efiCertPath !== '' && !file_exists($__efiCertPath)) {
+    $baseName = basename(str_replace('\\', '/', $__efiCertPath));
+    $rootCandidate = rtrim(__DIR__, '/\\') . DIRECTORY_SEPARATOR . $baseName;
+    if (file_exists($rootCandidate)) {
+        $__efiCertPath = $rootCandidate;
+    }
+}
+
+// Preferir PEM se existir um equivalente ao P12
+if ($__efiCertPath !== '' && str_ends_with(strtolower($__efiCertPath), '.p12')) {
+    $pemCandidate = preg_replace('/\.p12$/i', '.pem', $__efiCertPath);
+    if (is_string($pemCandidate) && file_exists($pemCandidate)) {
+        $__efiCertPath = $pemCandidate;
+    } else {
+        $pemInRoot = rtrim(__DIR__, '/\\') . DIRECTORY_SEPARATOR . basename($pemCandidate);
+        if (is_string($pemInRoot) && file_exists($pemInRoot)) {
+            $__efiCertPath = $pemInRoot;
+        }
+    }
+}
+
+// Se for PEM e não existir, tentar PEM na raiz
+if ($__efiCertPath !== '' && str_ends_with(strtolower($__efiCertPath), '.pem') && !file_exists($__efiCertPath)) {
+    $pemInRoot = rtrim(__DIR__, '/\\') . DIRECTORY_SEPARATOR . basename($__efiCertPath);
+    if (file_exists($pemInRoot)) {
+        $__efiCertPath = $pemInRoot;
+    }
+}
+
+define('EFI_CERTIFICATE_PATH', $__efiCertPath);
+define('EFI_CERTIFICATE_PASSWORD', envValue('EFI_CERTIFICATE_PASSWORD', ''));
+
+// === SPLIT PAYMENTS (Opcional) ===
+// Habilite e forneça regras em JSON via .env ou variáveis de ambiente.
+// Exemplo de JSON: [{"recipient_id":"12345","percentage":50},{"recipient_id":"67890","percentage":50}]
+define('EFI_SPLIT_ENABLED', (bool)envValue('EFI_SPLIT_ENABLED', false));
+define('EFI_SPLIT_RULES_JSON', envValue('EFI_SPLIT_RULES_JSON', ''));
+
+// URLs Base conforme documentação oficial
+define('EFI_BASE_URL', EFI_SANDBOX === true 
+    ? 'https://pix-h.api.efipay.com.br'      // Homologação (testes)
+    : 'https://pix.api.efipay.com.br'         // Produção
+);
+
+define('EFI_PIX_DESCRIPTION', 'Doação para PetFinder');
+define('EFI_PIX_NOTIFICATION_URL', 'https://petfinder.pageup.net.br/api/efi-webhook.php');
+
 define('DONATION_MODAL_TITLE', 'Ajude a manter o PetFinder ativo!');
 define('DONATION_MODAL_TEXT', 'Seja um apoiador e ajude a manter o PetFinder ativo!');
 
@@ -123,6 +214,14 @@ spl_autoload_register(function ($class) {
 // ═══════════════════════════════════════════════
 require_once BASE_PATH . '/includes/functions.php';
 require_once BASE_PATH . '/includes/db.php';
+// Tentar carregar autoload do Composer (se existir) para disponibilizar SDKs
+if (file_exists(BASE_PATH . '/vendor/autoload.php')) {
+    require_once BASE_PATH . '/vendor/autoload.php';
+}
+// Carrega SDK EFI local como fallback (se composer não estiver instalado em produção)
+if (file_exists(BASE_PATH . '/includes/efi.php')) {
+    require_once BASE_PATH . '/includes/efi.php';
+}
 
 // ═══════════════════════════════════════════════
 // CONSTANTES DE STATUS

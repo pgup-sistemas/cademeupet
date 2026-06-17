@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config.php';
 
 requireAdmin();
 
-$pageTitle = 'Admin - Cancelamentos | PetFinder';
+$pageTitle = 'Admin - Cancelamentos | Cadê Meu Pet?';
 
 $cancelamentoController = new CancelamentoController();
 

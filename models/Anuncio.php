@@ -1,6 +1,6 @@
 <?php
 /**
- * PetFinder - Modelo de Anúncio
+ * Cadê Meu Pet? - Modelo de Anúncio
  * Centraliza operações de leitura e escrita na tabela `anuncios`,
  * incluindo regras auxiliares para limitações e filtros de busca.
  */
@@ -111,6 +111,17 @@ class Anuncio
     {
         return $this->update($id, [
             'status' => STATUS_RESOLVIDO,
+            'data_atualizacao' => date('Y-m-d H:i:s')
+        ]);
+    }
+
+    /**
+     * Reativar anúncio (marcar como ativo).
+     */
+    public function markAsActive(int $id)
+    {
+        return $this->update($id, [
+            'status' => STATUS_ATIVO,
             'data_atualizacao' => date('Y-m-d H:i:s')
         ]);
     }

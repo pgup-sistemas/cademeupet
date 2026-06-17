@@ -81,7 +81,7 @@ if ($tab === 'doacoes') {
         . 'th{background:#f5f5f5;text-align:left;}'
         . '</style></head><body>';
 
-    $html .= '<div class="brand">PetFinder · Financeiro</div>';
+    $html .= '<div class="brand">Cadê Meu Pet? · Financeiro</div>';
     $html .= '<h1>' . sanitize($title) . '</h1>';
     $html .= '<div class="sub">' . sanitize($subtitle) . ' · Gerado em ' . date('d/m/Y H:i') . '</div>';
 
@@ -187,7 +187,7 @@ $html = '<html><head><meta charset="utf-8"><style>'
     . 'th{background:#f5f5f5;text-align:left;}'
     . '</style></head><body>';
 
-$html .= '<div class="brand">PetFinder · Financeiro</div>';
+$html .= '<div class="brand">Cadê Meu Pet? · Financeiro</div>';
 $html .= '<h1>' . sanitize($title) . '</h1>';
 $html .= '<div class="sub">' . sanitize($subtitle) . ' · Gerado em ' . date('d/m/Y H:i') . '</div>';
 

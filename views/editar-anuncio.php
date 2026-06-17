@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../config.php';
 
-$pageTitle = 'Editar Anúncio - PetFinder';
+$pageTitle = 'Editar Anúncio - Cadê Meu Pet?';
 
 requireLogin();
 
@@ -45,6 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Recarrega dados para repopular form
     $anuncio = $controller->getDetalhes($id) ?: $anuncio;
 }
+
+$includeMapAssets = true;
 
 include __DIR__ . '/../includes/header.php';
 ?>
@@ -154,7 +156,7 @@ include __DIR__ . '/../includes/header.php';
 
                             <div class="col-12">
                                 <label class="form-label fw-bold">Marque no mapa</label>
-                                <div id="mapPickerEditar" class="petfinder-map"></div>
+                                <div id="mapPickerEditar" class="cmp-map"></div>
                                 <div class="form-text">Clique no mapa para ajustar a posição (ou arraste o marcador).</div>
                                 <input type="hidden" name="latitude" id="latitude" value="<?php echo sanitize($anuncio['latitude'] ?? ''); ?>">
                                 <input type="hidden" name="longitude" id="longitude" value="<?php echo sanitize($anuncio['longitude'] ?? ''); ?>">
@@ -211,7 +213,7 @@ include __DIR__ . '/../includes/header.php';
 </div>
 
 <style>
-.petfinder-map {
+.cmp-map {
     height: 280px;
     border-radius: 12px;
     overflow: hidden;
@@ -221,8 +223,8 @@ include __DIR__ . '/../includes/header.php';
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    if (document.getElementById('mapPickerEditar') && window.PetFinderMap) {
-        const instance = window.PetFinderMap.init({
+    if (document.getElementById('mapPickerEditar') && window.Cadê Meu Pet?Map) {
+        const instance = window.Cadê Meu Pet?Map.init({
             containerId: 'mapPickerEditar',
             latInputId: 'latitude',
             lngInputId: 'longitude'

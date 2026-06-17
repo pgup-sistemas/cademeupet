@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../config.php';
 
-$pageTitle = 'Publicar Anúncio - PetFinder';
+$pageTitle = 'Publicar Anúncio - Cadê Meu Pet?';
 
 // Requer login
 requireLogin();
@@ -190,6 +190,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $formData = $_SESSION['anuncio_temp'] ?? [];
+
+$includeMapAssets = true;
 
 include __DIR__ . '/../includes/header.php';
 ?>
@@ -612,7 +614,7 @@ include __DIR__ . '/../includes/header.php';
                                 
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Marque no mapa</label>
-                                    <div id="mapPicker" class="petfinder-map"></div>
+                                    <div id="mapPicker" class="cmp-map"></div>
                                     <small class="text-muted">Clique no mapa para ajustar a posição (ou arraste o marcador).</small>
                                 </div>
                                 
@@ -842,7 +844,7 @@ include __DIR__ . '/../includes/header.php';
     min-width: 120px;
 }
 
-.petfinder-map {
+.cmp-map {
     height: 280px;
     border-radius: 12px;
     overflow: hidden;
@@ -944,8 +946,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    if (document.getElementById('mapPicker') && window.PetFinderMap) {
-        window.__petfinderMapPicker = window.PetFinderMap.init({
+    if (document.getElementById('mapPicker') && window.Cadê Meu Pet?Map) {
+        window.__petfinderMapPicker = window.Cadê Meu Pet?Map.init({
             containerId: 'mapPicker',
             latInputId: 'latitude',
             lngInputId: 'longitude'

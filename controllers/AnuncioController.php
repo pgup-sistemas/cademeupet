@@ -1,7 +1,7 @@
 <?php
 
 /**
- * PetFinder - Controller de Anúncios
+ * Cadê Meu Pet? - Controller de Anúncios
  * Responsável por orquestrar a criação, leitura e atualização de anúncios,
  * aplicando as regras de negócio descritas nas documentações.
  */
@@ -138,6 +138,26 @@ class AnuncioController
 
         $this->anuncioModel->markAsResolved($id);
         return ['success' => true, 'showDonation' => true];
+    }
+
+    /**
+     * Reativa anúncio (marca como ativo). Somente dono ou admin.
+     */
+    public function marcarComoAtivo(int $id, int $usuarioId)
+    {
+        $anuncio = $this->anuncioModel->findByIdAnyStatus($id);
+
+        if (!$anuncio) {
+            return ['success' => false, 'error' => 'Anúncio não encontrado.'];
+        }
+
+        $isAdmin = call_user_func($this->isAdminResolver);
+        if ($anuncio['usuario_id'] != $usuarioId && !$isAdmin) {
+            return ['success' => false, 'error' => 'Você não tem permissão para alterar este anúncio.'];
+        }
+
+        $this->anuncioModel->markAsActive($id);
+        return ['success' => true];
     }
 
     /**

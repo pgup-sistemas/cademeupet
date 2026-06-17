@@ -11,7 +11,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Resumo do seu alerta - PetFinder</title>
+    <title>Resumo do seu alerta - Cadê Meu Pet?</title>
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f6f8fb; margin: 0; padding: 0; color: #333; }
         .container { max-width: 640px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 35px rgba(31,45,61,0.12); }
@@ -103,10 +103,10 @@
             </div>
         </div>
         <div class="footer">
-            Você está recebendo este e-mail porque solicitou alertas de busca no PetFinder.<br>
+            Você está recebendo este e-mail porque solicitou alertas de busca no Cadê Meu Pet?.<br>
             Para alterar suas preferências, <a href="<?php echo $baseUrl . '/perfil.php'; ?>" style="color: #667eea; text-decoration: none;">acesse seu perfil</a>.
             <br><br>
-            <strong>PetFinder</strong> · reunindo pets às suas famílias desde 2025 🐾
+            <strong>Cadê Meu Pet?</strong> · reunindo pets às suas famílias desde 2025 🐾
         </div>
     </div>
 </body>

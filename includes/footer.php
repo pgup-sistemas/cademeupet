@@ -7,7 +7,7 @@
                 <!-- Sobre -->
                 <div class="col-lg-4 col-md-6 mb-4">
                     <h5 class="mb-3">
-                        <span class="logo-icon">🐾</span> PetFinder
+                        <i class="fa-solid fa-paw logo-icon"></i> Cadê Meu Pet?
                     </h5>
                     <p class="text-light-gray">
                         Ajudamos a reunir pets perdidos com suas famílias desde 2025.
@@ -84,7 +84,7 @@
                 <div class="col-lg-3 col-md-6 mb-4">
                     <h6 class="mb-3">Precisa de Ajuda?</h6>
                     <ul class="list-unstyled text-light-gray">
-                        <li class="mb-2"><i class="bi bi-envelope me-2"></i> suporte@petfinder.com</li>
+                        <li class="mb-2"><i class="bi bi-envelope me-2"></i> suporte@cademeupet.com.br</li>
                         <li class="mb-2"><i class="bi bi-whatsapp me-2"></i> (69) 99388-2222</li>
                         <li class="mb-2"><i class="bi bi-clock me-2"></i> Seg - Sex, 9h às 18h</li>
                     </ul>
@@ -94,7 +94,7 @@
                 <div class="col-lg-3 col-md-6">
                     <h6 class="mb-3">Transparência</h6>
                     <p class="text-light-gray mb-3">
-                        Acompanhe nossas metas financeiras e veja como sua doação ajuda a manter o PetFinder vivo.
+                        Acompanhe nossas metas financeiras e veja como sua doação ajuda a manter o Cadê Meu Pet? vivo.
                     </p>
                     <a href="<?php echo BASE_URL; ?>/transparencia.php" class="btn btn-outline-light btn-sm">
                         Ver relatório financeiro
@@ -103,7 +103,7 @@
             </div>
         </div>
         <div class="bg-black text-center py-3">
-            <small class="text-light">&copy; <?php echo date('Y'); ?> PetFinder. Todos os direitos reservados.</small>
+            <small class="text-light">&copy; <?php echo date('Y'); ?> Cadê Meu Pet?. Todos os direitos reservados.</small>
             <div class="mt-2">
                 <small class="text-light-gray">
                     Feito com <i class="bi bi-heart-fill text-danger"></i> por PageUp Sistemas
@@ -128,7 +128,7 @@
                 <div class="modal-body p-4 p-lg-5">
                     <div class="row g-4 align-items-center">
                         <div class="col-lg-5 text-center text-lg-start">
-                            <img src="<?php echo ASSETS_URL; ?>/img/donation-heart.svg" alt="Doação PetFinder" class="img-fluid mb-3" style="max-height: 160px;">
+                            <img src="<?php echo ASSETS_URL; ?>/img/donation-heart.svg" alt="Doação Cadê Meu Pet?" class="img-fluid mb-3" style="max-height: 160px;">
                             <p class="text-muted mb-0">
                                 <?php echo sanitize(DONATION_MODAL_TEXT); ?>
                             </p>
@@ -175,8 +175,10 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="<?php echo ASSETS_URL; ?>/js/main.js"></script>
-    <script src="<?php echo ASSETS_URL; ?>/js/map.js"></script>
+    <?php if (!empty($includeMapAssets)): ?>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+        <script src="<?php echo ASSETS_URL; ?>/js/map.js"></script>
+    <?php endif; ?>
 </body>
 </html>

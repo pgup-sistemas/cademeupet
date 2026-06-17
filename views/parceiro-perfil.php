@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config.php';
 
 requireLogin();
 
-$pageTitle = 'Meu Perfil Parceiro | PetFinder';
+$pageTitle = 'Meu Perfil Parceiro | Cadê Meu Pet?';
 
 $usuarioId = (int)(getUserId() ?? 0);
 $usuarioModel = new Usuario();

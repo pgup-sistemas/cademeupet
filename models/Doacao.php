@@ -1,6 +1,6 @@
 <?php
 /**
- * PetFinder - Modelo de Doação
+ * Cadê Meu Pet? - Modelo de Doação
  * Gerencia as operações do módulo de doações, incluindo métricas e histórico do usuário.
  */
 
@@ -76,13 +76,13 @@ class Doacao
 
     public function countApprovedDonations(): int
     {
-        $row = $this->db->fetchOne('SELECT COUNT(*) AS total FROM doacoes WHERE status = "aprovada"');
+        $row = $this->db->fetchOne('SELECT COUNT(*) AS total FROM doacoes WHERE status IN ("aprovado", "aprovada")');
         return (int)($row['total'] ?? 0);
     }
 
     public function sumApprovedDonations(): float
     {
-        $row = $this->db->fetchOne('SELECT COALESCE(SUM(valor), 0) AS total FROM doacoes WHERE status = "aprovada"');
+        $row = $this->db->fetchOne('SELECT COALESCE(SUM(valor), 0) AS total FROM doacoes WHERE status IN ("aprovado", "aprovada")');
         return (float)($row['total'] ?? 0);
     }
 
@@ -91,7 +91,7 @@ class Doacao
         return $this->db->fetchAll(
             'SELECT id, valor, nome_doador, mensagem, data_doacao
              FROM doacoes
-             WHERE status = "aprovada" AND exibir_mural = 1
+             WHERE status IN ("aprovado", "aprovada") AND exibir_mural = 1
              ORDER BY data_doacao DESC
              LIMIT ? OFFSET ?',
             [$limit, $offset]
@@ -100,7 +100,7 @@ class Doacao
 
     public function countApprovedDonationsPublic(): int
     {
-        $row = $this->db->fetchOne('SELECT COUNT(*) AS total FROM doacoes WHERE status = "aprovada" AND exibir_mural = 1');
+        $row = $this->db->fetchOne('SELECT COUNT(*) AS total FROM doacoes WHERE status IN ("aprovado", "aprovada") AND exibir_mural = 1');
         return (int)($row['total'] ?? 0);
     }
 
@@ -152,9 +152,9 @@ class Doacao
         return $this->db->fetchOne(
             'SELECT 
                 COUNT(*) AS total_doacoes,
-                SUM(CASE WHEN status = "aprovada" THEN valor ELSE 0 END) AS total_aprovado,
-                SUM(CASE WHEN tipo = "mensal" AND status = "aprovada" THEN valor ELSE 0 END) AS recorrente,
-                SUM(CASE WHEN DATE_FORMAT(data_doacao, "%Y-%m") = DATE_FORMAT(CURDATE(), "%Y-%m") AND status = "aprovada" THEN valor ELSE 0 END) AS mes_atual
+                SUM(CASE WHEN status IN ("aprovado", "aprovada") THEN valor ELSE 0 END) AS total_aprovado,
+                SUM(CASE WHEN tipo = "mensal" AND status IN ("aprovado", "aprovada") THEN valor ELSE 0 END) AS recorrente,
+                SUM(CASE WHEN DATE_FORMAT(data_doacao, "%Y-%m") = DATE_FORMAT(CURDATE(), "%Y-%m") AND status IN ("aprovado", "aprovada") THEN valor ELSE 0 END) AS mes_atual
              FROM doacoes'
         );
     }
@@ -167,7 +167,7 @@ class Doacao
         return $this->db->fetchAll(
             'SELECT nome_doador, mensagem, valor, data_doacao 
              FROM doacoes 
-             WHERE status = "aprovada" AND exibir_mural = 1 
+             WHERE status IN ("aprovado", "aprovada") AND exibir_mural = 1 
              ORDER BY data_doacao DESC 
              LIMIT ?',
             [$limit]

@@ -13,7 +13,7 @@ include __DIR__ . '/../../includes/header.php';
                     <p class="text-muted">Última atualização: <?= date('d/m/Y') ?></p>
                     
                     <h3 class="h5 mb-3">1. Introdução</h3>
-                    <p>O PetFinder está comprometido com a proteção da sua privacidade e dos seus dados pessoais. Esta Política de Privacidade explica como coletamos, usamos, divulgamos e protegemos suas informações quando você utiliza nosso site e serviços.</p>
+                    <p>O Cadê Meu Pet? está comprometido com a proteção da sua privacidade e dos seus dados pessoais. Esta Política de Privacidade explica como coletamos, usamos, divulgamos e protegemos suas informações quando você utiliza nosso site e serviços.</p>
                     
                     <h3 class="h5 mb-3 mt-4">2. Dados que Coletamos</h3>
                     <p>Podemos coletar as seguintes categorias de informações:</p>
@@ -41,7 +41,7 @@ include __DIR__ . '/../../includes/header.php';
                     <ul>
                         <li>Com prestadores de serviços que nos auxiliam na operação do site</li>
                         <li>Quando exigido por lei ou processo legal</li>
-                        <li>Para proteger direitos, propriedade ou segurança do PetFinder, nossos usuários ou terceiros</li>
+                        <li>Para proteger direitos, propriedade ou segurança do Cadê Meu Pet?, nossos usuários ou terceiros</li>
                         <li>Com seu consentimento explícito</li>
                     </ul>
                     

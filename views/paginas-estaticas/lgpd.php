@@ -15,8 +15,8 @@ include __DIR__ . '/../../includes/header.php';
                     <h3 class="h5 mb-3">1. O que é a LGPD?</h3>
                     <p>A Lei Geral de Proteção de Dados (Lei nº 13.709/2018) é a legislação brasileira que regula as atividades de tratamento de dados pessoais e que altera os artigos 7º e 16 do Marco Civil da Internet.</p>
                     
-                    <h3 class="h5 mb-3 mt-4">2. Como o PetFinder se adequa à LGPD</h3>
-                    <p>O PetFinder está comprometido em cumprir todas as diretrizes estabelecidas pela LGPD. Nossa política de privacidade e termos de uso foram atualizados para atender a todas as exigências legais.</p>
+                    <h3 class="h5 mb-3 mt-4">2. Como o Cadê Meu Pet? se adequa à LGPD</h3>
+                    <p>O Cadê Meu Pet? está comprometido em cumprir todas as diretrizes estabelecidas pela LGPD. Nossa política de privacidade e termos de uso foram atualizados para atender a todas as exigências legais.</p>
                     
                     <h3 class="h5 mb-3 mt-4">3. Seus Direitos na LGPD</h3>
                     <p>De acordo com a LGPD, você possui os seguintes direitos em relação aos seus dados pessoais:</p>

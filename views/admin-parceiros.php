@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config.php';
 
 requireAdmin();
 
-$pageTitle = 'Admin - Parceiros | PetFinder';
+$pageTitle = 'Admin - Parceiros | Cadê Meu Pet?';
 
 $inscricaoModel = new ParceiroInscricao();
 $perfilModel = new ParceiroPerfil();
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = (string)($inscricao['email'] ?? '');
             if ($email !== '') {
                 $link = BASE_URL . '/parceiro/painel';
-                $subject = 'Sua inscrição de Parceiro foi aprovada - PetFinder';
+                $subject = 'Sua inscrição de Parceiro foi aprovada - Cadê Meu Pet?';
                 $message = "<html><body style='font-family: Arial, sans-serif;'>
                     <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
                         <h2 style='color:#2196F3;'>Parabéns! Sua inscrição foi aprovada.</h2>
@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $email = (string)($inscricao['email'] ?? '');
             if ($email !== '') {
-                $subject = 'Inscrição de Parceiro - PetFinder';
+                $subject = 'Inscrição de Parceiro - Cadê Meu Pet?';
                 $message = "<html><body style='font-family: Arial, sans-serif;'>
                     <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
                         <h2 style='color:#FF4444;'>Inscrição recusada</h2>
@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($email !== '' && $perfil) {
                 $link = BASE_URL . '/parceiro/' . $perfil['slug'];
-                $subject = 'Pagamento aprovado - Perfil publicado - PetFinder';
+                $subject = 'Pagamento aprovado - Perfil publicado - Cadê Meu Pet?';
                 $message = "<html><body style='font-family: Arial, sans-serif;'>
                     <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
                         <h2 style='color:#00CC66;'>Pagamento aprovado!</h2>

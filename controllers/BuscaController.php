@@ -1,7 +1,7 @@
 <?php
 
 /**
- * PetFinder - Controller de Busca
+ * Cadê Meu Pet? - Controller de Busca
  * Orquestra as buscas de anúncios aplicando filtros e preparando dados para as views.
  */
 class BuscaController

@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../config.php';
 
-$pageTitle = 'Buscar Pets - PetFinder';
+$pageTitle = 'Buscar Pets - Cadê Meu Pet?';
 
 $buscaController = new BuscaController();
 $params = $_GET;
@@ -10,6 +10,8 @@ $resultado = $buscaController->listar($params);
 $anuncios = $resultado['anuncios'];
 $filters = $resultado['filters'];
 $page = $resultado['page'];
+
+$includeMapAssets = true;
 
 $mapPoints = [];
 foreach ($anuncios as $anuncio) {

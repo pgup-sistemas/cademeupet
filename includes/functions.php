@@ -1,6 +1,6 @@
 <?php
 /**
- * PetFinder - Funções Auxiliares
+ * Cadê Meu Pet? - Funções Auxiliares
  * Funções utilitárias usadas em todo o sistema
  */
 
@@ -52,6 +52,41 @@ function generateCSRFToken() {
         $_SESSION[CSRF_TOKEN_NAME] = bin2hex(random_bytes(32));
     }
     return $_SESSION[CSRF_TOKEN_NAME];
+}
+
+/**
+ * Lê variáveis de ambiente do arquivo .env (cacheado) e retorna um valor.
+ * Uso: envValue('KEY', 'default')
+ */
+if (!function_exists('envValue')) {
+    function envValue($key, $default = null) {
+        static $vars = null;
+        if ($vars === null) {
+            $vars = [];
+            $envFile = defined('BASE_PATH') ? BASE_PATH . '/.env' : __DIR__ . '/../.env';
+            if (file_exists($envFile) && is_readable($envFile)) {
+                $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                foreach ($lines as $line) {
+                    $line = trim($line);
+                    if ($line === '' || $line[0] === '#') {
+                        continue;
+                    }
+                    if (strpos($line, '=') === false) {
+                        continue;
+                    }
+                    [$k, $v] = array_map('trim', explode('=', $line, 2));
+                    // Remove quotes
+                    $v = preg_replace('/^"(.*)"$/', '$1', $v);
+                    $v = preg_replace("/^'(.*)'$/", '$1', $v);
+                    $vars[$k] = $v;
+                    // Export to environment variables so getenv() works
+                    @putenv("$k=$v");
+                    $_ENV[$k] = $v;
+                }
+            }
+        }
+        return array_key_exists($key, $vars) ? $vars[$key] : (getenv($key) !== false ? getenv($key) : $default);
+    }
 }
 
 function generateDeterministicToken($seed)

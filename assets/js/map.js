@@ -1,5 +1,5 @@
 
-window.PetFinderMap = (function () {
+window.Cadê Meu Pet?Map = (function () {
     function toNumber(value) {
         if (value === null || value === undefined) return null;
         const n = Number(value);

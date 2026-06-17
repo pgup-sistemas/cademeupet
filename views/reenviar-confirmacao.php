@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../config.php';
 
-$pageTitle = 'Reenviar Confirmação - PetFinder';
+$pageTitle = 'Reenviar Confirmação - Cadê Meu Pet?';
 
 if (isLoggedIn()) {
     redirect('/');

@@ -1,6 +1,6 @@
 <?php
 /**
- * PetFinder - Controller de Alertas de Busca
+ * Cadê Meu Pet? - Controller de Alertas de Busca
  */
 class AlertaController
 {
@@ -124,7 +124,7 @@ class AlertaController
             return false;
         }
 
-        $subject = 'Novos anúncios combinando com seu alerta - PetFinder';
+        $subject = 'Novos anúncios combinando com seu alerta - Cadê Meu Pet?';
 
         ob_start();
         $baseUrl = BASE_URL;

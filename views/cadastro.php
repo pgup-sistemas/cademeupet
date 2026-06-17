@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../config.php';
 
-$pageTitle = 'Criar Conta - PetFinder';
+$pageTitle = 'Criar Conta - Cadê Meu Pet?';
 
 if (isLoggedIn()) {
     redirect('/');

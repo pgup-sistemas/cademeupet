@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config.php';
 
 requireAdmin();
 
-$pageTitle = 'Admin - Usuários - PetFinder';
+$pageTitle = 'Admin - Usuários - Cadê Meu Pet?';
 
 $usuarioModel = new Usuario();
 
@@ -15,6 +15,13 @@ $pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
 $pagina = max(1, $pagina);
 $limite = 20;
 $offset = ($pagina - 1) * $limite;
+
+// Alerta de falha no envio de e-mail
+$alertEmailFail = '';
+if (!empty($_SESSION['alert_email_fail'])) {
+    $alertEmailFail = $_SESSION['alert_email_fail'];
+    unset($_SESSION['alert_email_fail']);
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
@@ -220,6 +227,12 @@ include __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="container py-5">
+    <?php if (!empty($alertEmailFail)): ?>
+        <div class="alert alert-warning fw-bold mb-4">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <?php echo sanitize($alertEmailFail); ?>
+        </div>
+    <?php endif; ?>
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <div>
             <h1 class="h4 fw-bold mb-1">Admin · Usuários</h1>
@@ -301,6 +314,7 @@ include __DIR__ . '/../includes/header.php';
                                 <th>Ativo</th>
                                 <th>Admin</th>
                                 <th>Tipo</th>
+                                <th>Email</th>
                                 <th class="text-end">Ações</th>
                             </tr>
                         </thead>
@@ -310,7 +324,14 @@ include __DIR__ . '/../includes/header.php';
                                 <tr>
                                     <td><?php echo (int)$u['id']; ?></td>
                                     <td><?php echo sanitize($u['nome'] ?? ''); ?></td>
-                                    <td><?php echo sanitize($u['email'] ?? ''); ?></td>
+                                    <td>
+                                        <?php echo sanitize($u['email'] ?? ''); ?>
+                                        <?php if (empty($u['email_confirmado'])): ?>
+                                            <span class="badge bg-warning text-dark ms-1">Não confirmado</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-success ms-1">Confirmado</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>
                                         <span class="badge <?php echo !empty($u['ativo']) ? 'bg-success' : 'bg-secondary'; ?>">
                                             <?php echo !empty($u['ativo']) ? 'Sim' : 'Não'; ?>

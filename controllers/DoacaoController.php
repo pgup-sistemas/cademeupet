@@ -1,7 +1,7 @@
 <?php
 
 /**
- * PetFinder - Controller de Doações
+ * Cadê Meu Pet? - Controller de Doações
  * Gerencia o fluxo de doações, resumo para dashboards e histórico do usuário.
  */
 class DoacaoController
@@ -34,15 +34,38 @@ class DoacaoController
                 $doacaoParaPix = $payload;
                 $doacaoParaPix['id'] = $doacaoId;
 
-                $pix = $pagamentoController->criarCobrancaPix($doacaoParaPix, 'Doação PetFinder #' . $doacaoId);
+                // Preparar split se habilitado nas configs
+                $split = null;
+                if (defined('EFI_SPLIT_ENABLED') && EFI_SPLIT_ENABLED === true) {
+                    $splitJson = (string)(defined('EFI_SPLIT_RULES_JSON') ? EFI_SPLIT_RULES_JSON : '');
+                    if ($splitJson !== '') {
+                        $decoded = json_decode($splitJson, true);
+                        if (is_array($decoded)) {
+                            $split = $decoded;
+                        } else {
+                            error_log('[DoacaoController] EFI_SPLIT_RULES_JSON inválido: ' . $splitJson);
+                        }
+                    }
+                }
+
+                $pix = $pagamentoController->criarCobrancaPix($doacaoParaPix, 'Doação Cadê Meu Pet? #' . $doacaoId, $split);
+
+                $updateExtras = [
+                    'gateway' => 'efi',
+                    'transaction_id' => (string)$pix['txid'],
+                    'pix_qrcode' => json_encode($pix['qrcode']),
+                ];
+
+                if (!empty($pix['split'])) {
+                    $updateExtras['efi_split'] = json_encode($pix['split']);
+                } elseif (!empty($split)) {
+                    $updateExtras['efi_split'] = json_encode($split);
+                }
 
                 $this->doacaoModel->updateStatus(
                     (int)$doacaoId,
                     'pendente',
-                    [
-                        'gateway' => 'efi',
-                        'transaction_id' => (string)$pix['txid'],
-                    ]
+                    $updateExtras
                 );
 
                 if (!isset($_SESSION['pix_doacoes']) || !is_array($_SESSION['pix_doacoes'])) {
@@ -52,6 +75,7 @@ class DoacaoController
                 $_SESSION['pix_doacoes'][(int)$doacaoId] = [
                     'txid' => (string)$pix['txid'],
                     'qrcode' => $pix['qrcode'],
+                    'split' => $pix['split'] ?? $split ?? null,
                 ];
 
                 return ['success' => true, 'id' => $doacaoId, 'redirect' => '/doacao-pix?id=' . $doacaoId];
@@ -74,7 +98,9 @@ class DoacaoController
                 );
 
                 if ($paymentUrl !== '') {
-                    return ['success' => true, 'id' => $doacaoId, 'redirect' => $paymentUrl];
+                    // Redirecionar para rota local que abre o checkout em nova aba (target=_blank)
+                    $redirectLocal = '/doacao-abrir-pagamento.php?id=' . $doacaoId;
+                    return ['success' => true, 'id' => $doacaoId, 'redirect' => $redirectLocal];
                 }
 
                 throw new Exception('Não foi possível gerar o link de pagamento do cartão.');
@@ -104,7 +130,9 @@ class DoacaoController
                 );
 
                 if ($paymentUrl !== '') {
-                    return ['success' => true, 'id' => $doacaoId, 'redirect' => $paymentUrl];
+                    // Redirecionar para rota local que abre o checkout em nova aba (target=_blank)
+                    $redirectLocal = '/doacao-abrir-pagamento.php?id=' . $doacaoId;
+                    return ['success' => true, 'id' => $doacaoId, 'redirect' => $redirectLocal];
                 }
 
                 throw new Exception('Não foi possível gerar o link de pagamento do cartão recorrente.');
@@ -112,8 +140,63 @@ class DoacaoController
 
             return ['success' => true, 'id' => $doacaoId];
         } catch (Exception $e) {
-            error_log('[DoacaoController] Erro ao registrar doação: ' . $e->getMessage());
-            return ['success' => false, 'errors' => ['Não foi possível registrar a doação. Tente novamente.']];
+            $msg = $e->getMessage();
+            error_log('[DoacaoController] Erro ao registrar doação: ' . $msg);
+
+            // Geração de ID de debug para rastreamento
+            try {
+                $debugId = 'doacao_' . date('YmdHis') . '_' . substr(bin2hex(random_bytes(4)), 0, 8);
+            } catch (Throwable $t) {
+                $debugId = 'doacao_' . date('YmdHis') . '_' . substr(md5(uniqid('', true)), 0, 8);
+            }
+
+            // Preparar payload de debug (não incluir segredos sensíveis)
+            $debugEntry = [
+                'id' => $debugId,
+                'time' => date('c'),
+                'user_id' => getUserId(),
+                'payload' => $payload ?? null,
+                'exception' => [
+                    'message' => $msg,
+                    'trace' => $e->getTraceAsString()
+                ],
+                'server' => [
+                    'REMOTE_ADDR' => $_SERVER['REMOTE_ADDR'] ?? null,
+                    'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? null,
+                    'HTTP_USER_AGENT' => $_SERVER['HTTP_USER_AGENT'] ?? null,
+                ]
+            ];
+
+            // Salvar em log específico para doações (somente se DEBUG_DOACAO estiver ativo)
+            $debugEnabled = (bool)envValue('DEBUG_DOACAO', false);
+            $logPath = BASE_PATH . '/logs/doacao_debug.log';
+            if ($debugEnabled) {
+                @mkdir(dirname($logPath), 0755, true);
+                file_put_contents($logPath, json_encode($debugEntry, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND | LOCK_EX);
+            }
+
+            // Registrar no error_log sempre (apenas ID e mensagem curta)
+            error_log('[DoacaoController][DEBUG] DebugID: ' . $debugId . ' - ' . $msg);
+
+            // Mensagem padrão para o usuário (incluir código de debug para suporte)
+            $userError = 'Não foi possível registrar a doação. Tente novamente. Código para suporte: ' . $debugId;
+
+            // Se for um erro relacionado à integração EFI (SDK ausente, credenciais ou certificado),
+            // retornar uma mensagem mais clara ao usuário e instruções para o administrador.
+            if (
+                stripos($msg, 'efi') !== false ||
+                stripos($msg, 'sdk') !== false ||
+                stripos($msg, 'certificado') !== false ||
+                stripos($msg, 'composer') !== false ||
+                stripos($msg, 'credenciais') !== false
+            ) {
+                $userError = 'Pagamento com cartão indisponível no momento. Por favor, selecione outro método ou tente novamente mais tarde. Código para suporte: ' . $debugId;
+
+                // Log com instrução administrativa detalhada (somente para logs)
+                error_log('[DoacaoController] AÇÃO SUGERIDA: Verificar instalação da SDK EFI (composer install), credenciais EFI (EFI_CLIENT_ID/Efi_CLIENT_SECRET) e o caminho do certificado (EFI_CERTIFICATE_PATH). DebugID: ' . $debugId);
+            }
+
+            return ['success' => false, 'errors' => [$userError], 'debug_id' => $debugId];
         }
     }
 
@@ -145,8 +228,18 @@ class DoacaoController
     {
         $erros = [];
 
-        if (empty($dados['valor']) || !is_numeric($dados['valor']) || $dados['valor'] < MIN_DONATION_AMOUNT) {
-            $erros[] = 'Valor da doação inválido. O mínimo é R$ ' . number_format(MIN_DONATION_AMOUNT, 2, ',', '.');
+        $minDonation = (float)envValue('MIN_DONATION_AMOUNT', MIN_DONATION_AMOUNT);
+        
+        // Obter valor (pode ser do radio ou do campo customizado)
+        $valor = 0;
+        if (!empty($dados['valor'])) {
+            $valor = (float)$dados['valor'];
+        } elseif (!empty($dados['valor_custom'])) {
+            $valor = (float)$dados['valor_custom'];
+        }
+        
+        if ($valor === 0 || $valor < $minDonation) {
+            $erros[] = 'Valor da doação inválido. O mínimo é R$ ' . number_format($minDonation, 2, ',', '.');
         }
 
         if (empty($dados['metodo_pagamento'])) {
@@ -185,7 +278,14 @@ class DoacaoController
     private function converterPayload(array $dados): array
     {
         $usuarioId = getUserId();
-        $valor = (float)$dados['valor'];
+        
+        // Obter valor (pode ser do radio ou do campo customizado)
+        $valor = 0;
+        if (!empty($dados['valor'])) {
+            $valor = (float)$dados['valor'];
+        } elseif (!empty($dados['valor_custom'])) {
+            $valor = (float)$dados['valor_custom'];
+        }
 
         $metodo = strtolower((string)($dados['metodo_pagamento'] ?? 'pix'));
         $isRecorrente = !empty($dados['recorrente']) || $metodo === 'cartao_recorrente';

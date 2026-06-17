@@ -1,5 +1,5 @@
 /**
- * PetFinder - CSS Principal
+ * Cadê Meu Pet? - CSS Principal
  * Design moderno e responsivo
  */
 
@@ -70,7 +70,7 @@ body {
     font-size: var(--font-size-base);
     color: var(--dark);
     line-height: 1.6;
-    background: white;
+    background: var(--bg-light);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -264,6 +264,21 @@ body {
     display: flex;
     flex-direction: column;
 }
+
+@media (max-width: 575.98px) {
+  .anuncio-card .mt-3.d-flex.gap-2 {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+  .anuncio-card .btn,
+  .anuncio-card form .btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    font-size: 1rem !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+}
+
 
 .anuncio-card:hover {
     transform: translateY(-5px);

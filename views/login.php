@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../config.php';
 
-$pageTitle = 'Login - PetFinder';
+$pageTitle = 'Login - Cadê Meu Pet?';
 
 // Se já estiver logado, redireciona
 if (isLoggedIn()) {
@@ -16,7 +16,7 @@ if (isset($_GET['logout'])) {
 }
 
 if (isset($_GET['registered'])) {
-    $infoMessages[] = 'Conta criada com sucesso! Confirme seu email para acessar o PetFinder.';
+    $infoMessages[] = 'Conta criada com sucesso! Confirme seu email para acessar o Cadê Meu Pet?.';
 }
 
 $usuarioController = new UsuarioController();

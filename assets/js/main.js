@@ -1,5 +1,5 @@
 /**
- * PetFinder - JavaScript Principal
+ * Cadê Meu Pet? - JavaScript Principal
  * Funcionalidades globais do sistema
  */
 
@@ -7,7 +7,7 @@
 // INICIALIZAÇÃO
 // ═══════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🐾 PetFinder carregado!');
+    console.log('🐾 Cadê Meu Pet? carregado!');
     
     // Inicializa componentes
     initTooltips();
@@ -626,7 +626,7 @@ function updateDonationState(partial) {
 // ═══════════════════════════════════════════════
 // EXPORT GLOBAL
 // ═══════════════════════════════════════════════
-window.PetFinder = {
+window.Cadê Meu Pet? = {
     showToast,
     showLoading,
     hideLoading,
@@ -641,4 +641,4 @@ window.PetFinder = {
     showDonationModal
 };
 
-console.log('✅ PetFinder JS inicializado!');
+console.log('✅ Cadê Meu Pet? JS inicializado!');

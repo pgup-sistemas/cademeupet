@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
 /**
- * PetFinder - Controller de Usuários
+ * Cadê Meu Pet? - Controller de Usuários
  * Responsável por orquestrar autenticação, cadastro e gerenciamento de perfil.
  */
 

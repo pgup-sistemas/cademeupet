@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config.php';
 
 requireLogin();
 
-$pageTitle = 'Meus Favoritos - PetFinder';
+$pageTitle = 'Meus Favoritos - Cadê Meu Pet?';
 
 $favoritoController = new FavoritoController();
 $favoritos = $favoritoController->listarDoUsuario();

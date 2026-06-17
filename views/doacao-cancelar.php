@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config.php';
 
 requireLogin();
 
-$pageTitle = 'Cancelar Doação Recorrente | PetFinder';
+$pageTitle = 'Cancelar Doação Recorrente | Cadê Meu Pet?';
 
 $usuarioId = (int)(getUserId() ?? 0);
 $doacaoId = (int)($_GET['id'] ?? 0);
@@ -148,7 +148,7 @@ include __DIR__ . '/../includes/header.php';
                             <div class="alert alert-success">
                                 <i class="fas fa-heart me-2"></i>
                                 <strong>Muito obrigado!</strong> Sua contribuição até hoje ajudou a resgatar e cuidar de muitos pets. 
-                                As portas do PetFinder estarão sempre abertas para você!
+                                As portas do Cadê Meu Pet? estarão sempre abertas para você!
                             </div>
                         </div>
 

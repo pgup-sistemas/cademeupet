@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../config.php';
 
-$pageTitle = 'Doar - PetFinder';
+$pageTitle = 'Doar - Cadê Meu Pet?';
 
 $doacaoController = new DoacaoController();
 $errors = [];
@@ -39,7 +39,7 @@ include __DIR__ . '/../includes/header.php';
                     <div class="d-flex align-items-center gap-3 mb-4">
                         <div class="display-4">💚</div>
                         <div>
-                            <h1 class="h3 fw-bold mb-1">Ajude a Manter o PetFinder Gratuito</h1>
+                            <h1 class="h3 fw-bold mb-1">Ajude a Manter o Cadê Meu Pet? Gratuito</h1>
                             <p class="text-muted mb-0">Sua contribuição mantém o site online, gratuito e sem anúncios.</p>
                         </div>
                     </div>
@@ -76,10 +76,13 @@ include __DIR__ . '/../includes/header.php';
                                         </label>
                                     </div>
                                 <?php endforeach; ?>
-                                <div class="col-12 mt-2">
+                            </div>
+                            <div class="row g-2 mt-2">
+                                <div class="col-12">
+                                    <label class="form-label">Ou digite outro valor</label>
                                     <div class="input-group">
                                         <span class="input-group-text">R$</span>
-                                        <input type="number" class="form-control" name="valor" min="<?php echo MIN_DONATION_AMOUNT; ?>" step="1" placeholder="Outro valor (mínimo R$ <?php echo MIN_DONATION_AMOUNT; ?>)">
+                                        <input type="number" class="form-control" id="valorCustom" name="valor_custom" min="<?php echo (float)envValue('MIN_DONATION_AMOUNT', MIN_DONATION_AMOUNT); ?>" step="1" placeholder="Outro valor (mínimo R$ <?php echo number_format((float)envValue('MIN_DONATION_AMOUNT', MIN_DONATION_AMOUNT), 2, ',', '.'); ?>)">
                                     </div>
                                 </div>
                             </div>
@@ -88,7 +91,24 @@ include __DIR__ . '/../includes/header.php';
                         <div class="mb-4">
                             <label class="form-label fw-bold">Método de pagamento</label>
                             <div class="row g-2">
-                                <?php $metodos = ['PIX' => 'pix', 'Cartão (à vista)' => 'cartao_avista', 'Cartão (mensal)' => 'cartao_recorrente']; ?>
+                                <?php
+                                    // Verificar se a integração EFI está disponível (SDK + credenciais + certificado)
+                                    $efiAvailable = false;
+                                    try {
+                                        $efiAvailable = (class_exists('Efi\\EfiPay') || class_exists('EfiPay'))
+                                            && !empty(EFI_CLIENT_ID) && !empty(EFI_CLIENT_SECRET)
+                                            && file_exists((string)EFI_CERTIFICATE_PATH);
+                                    } catch (Throwable $ex) {
+                                        $efiAvailable = false;
+                                    }
+
+                                    $metodos = ['PIX' => 'pix'];
+                                    if ($efiAvailable) {
+                                        $metodos['Cartão (à vista)'] = 'cartao_avista';
+                                        $metodos['Cartão (mensal)'] = 'cartao_recorrente';
+                                    }
+                                ?>
+
                                 <?php foreach ($metodos as $label => $valor): ?>
                                     <div class="col-6 col-md-3">
                                         <input type="radio" class="btn-check" name="metodo_pagamento" id="metodo_<?php echo $valor; ?>" value="<?php echo $valor; ?>">
@@ -96,7 +116,14 @@ include __DIR__ . '/../includes/header.php';
                                     </div>
                                 <?php endforeach; ?>
                             </div>
-                            <div class="form-text">Pix e cartão à vista são doações únicas. Para doação mensal, use Cartão (mensal).</div>
+
+                            <?php if (!$efiAvailable): ?>
+                                <div class="alert alert-warning mt-3 mb-0">
+                                    <strong>Atenção:</strong> Pagamentos por cartão estão temporariamente indisponíveis no momento. Por favor, escolha PIX ou tente novamente mais tarde.
+                                </div>
+                            <?php else: ?>
+                                <div class="form-text">Pix e cartão à vista são doações únicas. Para doação mensal, use Cartão (mensal).</div>
+                            <?php endif; ?>
                         </div>
 
                         <div class="form-check form-switch mb-4">
@@ -169,22 +196,38 @@ include __DIR__ . '/../includes/header.php';
                     <?php if (empty($mural)): ?>
                         <p class="text-muted">Seja o primeiro a aparecer por aqui! 💚</p>
                     <?php else: ?>
-                        <div class="list-group list-group-flush">
-                            <?php foreach ($mural as $doacao): ?>
-                                <div class="list-group-item px-0">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="fw-bold mb-1"><?php echo sanitize($doacao['nome_doador'] ?? 'Apoiador anônimo'); ?></h6>
+                        <div class="row g-3">
+                            <?php $first = true; foreach ($mural as $doacao):
+                                $nameRaw = trim((string)($doacao['nome_doador'] ?? ''));
+                                $displayName = $nameRaw !== '' ? sanitize($nameRaw) : 'Apoiador anônimo';
+                                // Gerar iniciais (até duas letras)
+                                $initials = '';
+                                if ($nameRaw !== '') {
+                                    $parts = preg_split('/\s+/', $nameRaw);
+                                    $initials = strtoupper(substr($parts[0], 0, 1) . (isset($parts[1]) ? substr($parts[1], 0, 1) : ''));
+                                } else {
+                                    $initials = '💚';
+                                }
+                            ?>
+                                <div class="col-12 <?php echo $first ? 'col-md-12' : 'col-md-6'; ?>">
+                                    <div class="donor-card d-flex align-items-start gap-3 p-3 <?php echo $first ? 'donor-highlight' : ''; ?>">
+                                        <div class="avatar-circle d-flex align-items-center justify-content-center">
+                                            <?php echo sanitize($initials); ?>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="fw-bold mb-1"><?php echo $displayName; ?></h6>
                                             <?php if (!empty($doacao['mensagem'])): ?>
                                                 <p class="mb-1 text-muted small"><?php echo sanitize($doacao['mensagem']); ?></p>
                                             <?php endif; ?>
-                                            <span class="badge bg-light text-dark">
-                                                <?php echo formatMoney($doacao['valor']); ?> · <?php echo date('d/m/Y', strtotime($doacao['data_doacao'])); ?>
-                                            </span>
+                                            <div>
+                                                <span class="badge bg-light text-dark">
+                                                    <?php echo formatMoney($doacao['valor']); ?> · <?php echo date('d/m/Y', strtotime($doacao['data_doacao'])); ?>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            <?php endforeach; ?>
+                            <?php $first = false; endforeach; ?>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -217,16 +260,97 @@ include __DIR__ . '/../includes/header.php';
 .card {
     border-radius: 16px;
 }
+
+/* Mural de Doadores - estilos customizados */
+.donor-card {
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.03);
+}
+.donor-highlight {
+    background: linear-gradient(90deg, #e9f7f1 0%, #ffffff 100%);
+    border: 1px solid rgba(0,160,107,0.12);
+}
+.avatar-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #f1f5f4;
+    color: #006a45;
+    font-weight: 700;
+    display: inline-flex;
+    font-size: 18px;
+}
 </style>
 
 <script>
 (() => {
+    const form = document.querySelector('form');
     const recorrente = document.getElementById('recorrente');
     const metodoInputs = document.querySelectorAll('input[name="metodo_pagamento"]');
+    const valorRadios = document.querySelectorAll('input[name="valor"][type="radio"]');
+    const valorCustom = document.getElementById('valorCustom');
+
+    // Sincronizar valor customizado com radio buttons
+    if (valorCustom) {
+        valorCustom.addEventListener('input', () => {
+            if (valorCustom.value) {
+                // Se o usuário digita um valor customizado, desmarca os radios pré-definidos
+                valorRadios.forEach(radio => radio.checked = false);
+            }
+        });
+    }
+
+    valorRadios.forEach(radio => {
+        radio.addEventListener('change', () => {
+            // Quando um botão de valor é selecionado, preenche o campo de valor custom e marca o radio
+            if (valorCustom) {
+                // normalizar para número (sem vírgula)
+                var v = parseFloat(radio.value);
+                if (!isNaN(v)) {
+                    valorCustom.value = v;
+                } else {
+                    valorCustom.value = '';
+                }
+            }
+        });
+    });
+
+    // Suporte adicional: ao clicar no label (botão visual), também preenche o input e dispara o change no radio
+    var valorLabels = document.querySelectorAll('label[for^="valor_"]');
+    valorLabels.forEach(function(lbl) {
+        lbl.addEventListener('click', function(e) {
+            var forId = lbl.getAttribute('for');
+            if (!forId) return;
+            var r = document.getElementById(forId);
+            if (!r) return;
+            // Marcar o radio explicitamente e disparar evento change
+            r.checked = true;
+            var ev = new Event('change', { bubbles: true });
+            r.dispatchEvent(ev);
+
+            // Preencher campo custom conforme valor
+            if (valorCustom) {
+                var v = parseFloat(r.value);
+                if (!isNaN(v)) valorCustom.value = v;
+            }
+        });
+    });
 
     function getMetodoSelecionado() {
         const el = document.querySelector('input[name="metodo_pagamento"]:checked');
         return el ? el.value : '';
+    }
+
+    function getValorSelecionado() {
+        const radioSelecionado = document.querySelector('input[name="valor"]:checked');
+        if (radioSelecionado) {
+            return parseFloat(radioSelecionado.value);
+        }
+        if (valorCustom && valorCustom.value) {
+            return parseFloat(valorCustom.value);
+        }
+        return 0;
     }
 
     function selectMetodo(value) {
@@ -250,6 +374,25 @@ include __DIR__ . '/../includes/header.php';
             recorrente.disabled = true;
         }
     }
+
+    // Validar formulário antes de submeter
+    form.addEventListener('submit', (e) => {
+        const valor = getValorSelecionado();
+        const metodo = getMetodoSelecionado();
+        const minValue = <?php echo (float)envValue('MIN_DONATION_AMOUNT', MIN_DONATION_AMOUNT); ?>;
+
+        if (valor < minValue) {
+            e.preventDefault();
+            alert('Por favor, selecione um valor mínimo de R$ ' + minValue.toFixed(2).replace('.', ','));
+            return false;
+        }
+
+        if (!metodo) {
+            e.preventDefault();
+            alert('Por favor, selecione um método de pagamento');
+            return false;
+        }
+    });
 
     metodoInputs.forEach((el) => {
         el.addEventListener('change', syncRecorrencia);

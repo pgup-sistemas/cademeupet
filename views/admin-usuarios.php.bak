@@ -1,0 +1,499 @@
+<?php
+require_once __DIR__ . '/../config.php';
+
+requireAdmin();
+
+$pageTitle = 'Admin - Usuários - PetFinder';
+
+$usuarioModel = new Usuario();
+
+$search = isset($_GET['q']) ? trim((string)$_GET['q']) : '';
+
+$currentUserId = (int)(getUserId() ?? 0);
+
+$pagina = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+$pagina = max(1, $pagina);
+$limite = 20;
+$offset = ($pagina - 1) * $limite;
+
+// Alerta de falha no envio de e-mail
+$alertEmailFail = '';
+if (!empty($_SESSION['alert_email_fail'])) {
+    $alertEmailFail = $_SESSION['alert_email_fail'];
+    unset($_SESSION['alert_email_fail']);
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
+        setFlashMessage('Falha na validação do formulário. Recarregue a página.', MSG_ERROR);
+        redirect('/admin/usuarios');
+    }
+
+    $acao = (string)($_POST['acao'] ?? '');
+
+    if ($acao === 'create_user') {
+        $nome = trim((string)($_POST['nome'] ?? ''));
+        $email = trim((string)($_POST['email'] ?? ''));
+        $telefone = trim((string)($_POST['telefone'] ?? ''));
+        $senha = (string)($_POST['senha'] ?? '');
+        $tipoUsuario = (string)($_POST['tipo_usuario'] ?? 'comum');
+        $ativo = !empty($_POST['ativo']) ? 1 : 0;
+        $isAdminFlag = !empty($_POST['is_admin']) ? 1 : 0;
+        $emailConfirmado = !empty($_POST['email_confirmado']) ? 1 : 0;
+
+        $errors = [];
+        if ($nome === '') {
+            $errors[] = 'Informe o nome.';
+        }
+        if ($email === '' || !isValidEmail($email)) {
+            $errors[] = 'Informe um email válido.';
+        }
+        if ($telefone === '') {
+            $errors[] = 'Informe o telefone.';
+        }
+        if (strlen($senha) < PASSWORD_MIN_LENGTH) {
+            $errors[] = 'Senha deve ter pelo menos ' . PASSWORD_MIN_LENGTH . ' caracteres.';
+        }
+        if (!in_array($tipoUsuario, ['comum', 'parceiro'], true)) {
+            $errors[] = 'Tipo de usuário inválido.';
+        }
+        if ($email !== '' && $usuarioModel->findByEmail($email)) {
+            $errors[] = 'Já existe um usuário com este email.';
+        }
+
+        if (!empty($errors)) {
+            setFlashMessage(implode(' ', $errors), MSG_ERROR);
+            redirect('/admin/usuarios');
+        }
+
+        try {
+            $usuarioModel->create([
+                'nome' => $nome,
+                'email' => $email,
+                'telefone' => $telefone,
+                'senha' => hashPassword($senha),
+                'tipo_usuario' => $tipoUsuario,
+                'notificacoes_email' => 1,
+                'email_confirmado' => $emailConfirmado,
+                'token_confirmacao' => null,
+                'tentativas_login' => 0,
+                'bloqueado_ate' => null,
+                'ultimo_acesso' => null,
+                'ativo' => $ativo,
+                'is_admin' => $isAdminFlag,
+            ]);
+
+            setFlashMessage('Usuário criado com sucesso.', MSG_SUCCESS);
+            redirect('/admin/usuarios');
+        } catch (Throwable $e) {
+            error_log('[Admin Usuarios] create_user: ' . $e->getMessage());
+            setFlashMessage('Erro ao criar usuário. Verifique os dados e tente novamente.', MSG_ERROR);
+            redirect('/admin/usuarios');
+        }
+    }
+
+    $id = (int)($_POST['id'] ?? 0);
+
+    if ($id <= 0) {
+        setFlashMessage('Usuário inválido.', MSG_ERROR);
+        redirect('/admin/usuarios');
+    }
+
+    $alvo = $usuarioModel->findById($id);
+    if (!$alvo) {
+        setFlashMessage('Usuário não encontrado.', MSG_ERROR);
+        redirect('/admin/usuarios');
+    }
+
+    if ($acao === 'toggle_active') {
+        if ($currentUserId === $id) {
+            setFlashMessage('Você não pode desativar seu próprio usuário.', MSG_ERROR);
+            redirect('/admin/usuarios');
+        }
+
+        try {
+            $usuarioModel->setActive($id, !(bool)$alvo['ativo']);
+            setFlashMessage('Status do usuário atualizado.', MSG_SUCCESS);
+            redirect('/admin/usuarios');
+        } catch (Throwable $e) {
+            error_log('[Admin Usuarios] toggle_active: ' . $e->getMessage());
+            setFlashMessage('Erro ao atualizar status do usuário.', MSG_ERROR);
+            redirect('/admin/usuarios');
+        }
+    }
+
+    if ($acao === 'toggle_admin') {
+        if ($currentUserId === $id) {
+            setFlashMessage('Você não pode remover seu próprio acesso admin.', MSG_ERROR);
+            redirect('/admin/usuarios');
+        }
+
+        try {
+            $usuarioModel->setAdmin($id, !(bool)$alvo['is_admin']);
+            setFlashMessage('Permissão admin atualizada.', MSG_SUCCESS);
+            redirect('/admin/usuarios');
+        } catch (Throwable $e) {
+            error_log('[Admin Usuarios] toggle_admin: ' . $e->getMessage());
+            setFlashMessage('Erro ao atualizar permissão admin.', MSG_ERROR);
+            redirect('/admin/usuarios');
+        }
+    }
+
+    if ($acao === 'update_user') {
+        $nome = trim((string)($_POST['nome'] ?? ''));
+        $email = trim((string)($_POST['email'] ?? ''));
+        $telefone = trim((string)($_POST['telefone'] ?? ''));
+        $tipoUsuario = (string)($_POST['tipo_usuario'] ?? ($alvo['tipo_usuario'] ?? 'comum'));
+        $ativo = !empty($_POST['ativo']) ? 1 : 0;
+        $isAdminFlag = !empty($_POST['is_admin']) ? 1 : 0;
+        $emailConfirmado = !empty($_POST['email_confirmado']) ? 1 : 0;
+
+        $errors = [];
+        if ($nome === '') {
+            $errors[] = 'Informe o nome.';
+        }
+        if ($email === '' || !isValidEmail($email)) {
+            $errors[] = 'Informe um email válido.';
+        }
+        if ($telefone === '') {
+            $errors[] = 'Informe o telefone.';
+        }
+        if (!in_array($tipoUsuario, ['comum', 'parceiro'], true)) {
+            $errors[] = 'Tipo de usuário inválido.';
+        }
+
+        $existingEmail = $usuarioModel->findByEmail($email);
+        if (!empty($existingEmail) && (int)($existingEmail['id'] ?? 0) !== $id) {
+            $errors[] = 'Já existe um usuário com este email.';
+        }
+
+        if ($currentUserId === $id) {
+            $ativo = 1;
+            $isAdminFlag = 1;
+        }
+
+        if (!empty($errors)) {
+            setFlashMessage(implode(' ', $errors), MSG_ERROR);
+            redirect('/admin/usuarios');
+        }
+
+        try {
+            $usuarioModel->update($id, [
+                'nome' => $nome,
+                'email' => $email,
+                'telefone' => $telefone,
+                'tipo_usuario' => $tipoUsuario,
+                'ativo' => $ativo,
+                'is_admin' => $isAdminFlag,
+                'email_confirmado' => $emailConfirmado,
+            ]);
+
+            setFlashMessage('Usuário atualizado com sucesso.', MSG_SUCCESS);
+            redirect('/admin/usuarios');
+        } catch (Throwable $e) {
+            error_log('[Admin Usuarios] update_user: ' . $e->getMessage());
+            setFlashMessage('Erro ao atualizar usuário.', MSG_ERROR);
+            redirect('/admin/usuarios');
+        }
+    }
+
+    if ($acao === 'reset_password') {
+        $senha = (string)($_POST['senha'] ?? '');
+        if (strlen($senha) < PASSWORD_MIN_LENGTH) {
+            setFlashMessage('Senha deve ter pelo menos ' . PASSWORD_MIN_LENGTH . ' caracteres.', MSG_ERROR);
+            redirect('/admin/usuarios');
+        }
+
+        try {
+            $usuarioModel->updatePassword($id, $senha);
+            setFlashMessage('Senha atualizada com sucesso.', MSG_SUCCESS);
+            redirect('/admin/usuarios');
+        } catch (Throwable $e) {
+            error_log('[Admin Usuarios] reset_password: ' . $e->getMessage());
+            setFlashMessage('Erro ao atualizar senha.', MSG_ERROR);
+            redirect('/admin/usuarios');
+        }
+    }
+
+    setFlashMessage('Ação inválida.', MSG_ERROR);
+    redirect('/admin/usuarios');
+}
+
+$total = $usuarioModel->countAll($search);
+$usuarios = $usuarioModel->findAll($limite, $offset, $search);
+$totalPaginas = (int)ceil($total / $limite);
+
+include __DIR__ . '/../includes/header.php';
+?>
+
+<div class="container py-5">
+    <?php if (!empty($alertEmailFail)): ?>
+        <div class="alert alert-warning fw-bold mb-4">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <?php echo sanitize($alertEmailFail); ?>
+        </div>
+    <?php endif; ?>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div>
+            <h1 class="h4 fw-bold mb-1">Admin · Usuários</h1>
+            <p class="text-muted mb-0">Cadastro, edição e permissões.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="<?php echo BASE_URL; ?>/admin" class="btn btn-outline-secondary">Voltar</a>
+            <a href="<?php echo BASE_URL; ?>/admin/financeiro" class="btn btn-primary">Financeiro</a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+            <h2 class="h6 fw-bold mb-3">Criar usuário</h2>
+            <form method="POST" action="" class="row g-2">
+                <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                <input type="hidden" name="acao" value="create_user">
+                <div class="col-md-4">
+                    <input type="text" name="nome" class="form-control" placeholder="Nome" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="email" name="email" class="form-control" placeholder="Email" required>
+                </div>
+                <div class="col-md-2">
+                    <input type="text" name="telefone" class="form-control" placeholder="Telefone" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="password" name="senha" class="form-control" placeholder="Senha" required>
+                </div>
+
+                <div class="col-md-3">
+                    <select name="tipo_usuario" class="form-select">
+                        <option value="comum">Comum</option>
+                        <option value="parceiro">Parceiro</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="ativo" id="create_ativo" checked>
+                        <label class="form-check-label" for="create_ativo">Ativo</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="is_admin" id="create_admin">
+                        <label class="form-check-label" for="create_admin">Admin</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="email_confirmado" id="create_email_confirmado">
+                        <label class="form-check-label" for="create_email_confirmado">Email confirmado</label>
+                    </div>
+                </div>
+                <div class="col-md-3 d-grid">
+                    <button class="btn btn-success" type="submit">Criar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <form method="GET" action="" class="row g-2 mb-3">
+        <div class="col-md-8">
+            <input type="text" name="q" class="form-control" placeholder="Buscar por nome ou email" value="<?php echo sanitize($search); ?>">
+        </div>
+        <div class="col-md-4 d-grid">
+            <button class="btn btn-outline-primary" type="submit">Buscar</button>
+        </div>
+    </form>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <?php if (empty($usuarios)): ?>
+                <p class="text-muted mb-0">Nenhum usuário encontrado.</p>
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Ativo</th>
+                                <th>Admin</th>
+                                <th>Tipo</th>
+                                <th>Email</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php $modals = ''; ?>
+                            <?php foreach ($usuarios as $u): ?>
+                                <tr>
+                                    <td><?php echo (int)$u['id']; ?></td>
+                                    <td><?php echo sanitize($u['nome'] ?? ''); ?></td>
+                                    <td>
+                                        <?php echo sanitize($u['email'] ?? ''); ?>
+                                        <?php if (empty($u['email_confirmado'])): ?>
+                                            <span class="badge bg-warning text-dark ms-1">Não confirmado</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-success ms-1">Confirmado</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <span class="badge <?php echo !empty($u['ativo']) ? 'bg-success' : 'bg-secondary'; ?>">
+                                            <?php echo !empty($u['ativo']) ? 'Sim' : 'Não'; ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge <?php echo !empty($u['is_admin']) ? 'bg-primary' : 'bg-light text-dark'; ?>">
+                                            <?php echo !empty($u['is_admin']) ? 'Sim' : 'Não'; ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark"><?php echo sanitize($u['tipo_usuario'] ?? ''); ?></span>
+                                    </td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#modalEditUser<?php echo (int)$u['id']; ?>">
+                                            Editar
+                                        </button>
+
+                                        <button class="btn btn-sm btn-outline-warning" type="button" data-bs-toggle="modal" data-bs-target="#modalResetPass<?php echo (int)$u['id']; ?>">
+                                            Senha
+                                        </button>
+
+                                        <form method="POST" action="" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                                            <input type="hidden" name="id" value="<?php echo (int)$u['id']; ?>">
+                                            <input type="hidden" name="acao" value="toggle_active">
+                                            <button class="btn btn-sm btn-outline-secondary" type="submit" <?php echo ((int)$u['id'] === $currentUserId) ? 'disabled' : ''; ?>>
+                                                <?php echo !empty($u['ativo']) ? 'Bloquear' : 'Ativar'; ?>
+                                            </button>
+                                        </form>
+
+                                        <form method="POST" action="" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                                            <input type="hidden" name="id" value="<?php echo (int)$u['id']; ?>">
+                                            <input type="hidden" name="acao" value="toggle_admin">
+                                            <button class="btn btn-sm btn-outline-primary" type="submit" <?php echo ((int)$u['id'] === $currentUserId) ? 'disabled' : ''; ?>>
+                                                <?php echo !empty($u['is_admin']) ? 'Remover admin' : 'Tornar admin'; ?>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <?php ob_start(); ?>
+                                <div class="modal fade" id="modalEditUser<?php echo (int)$u['id']; ?>" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Editar usuário #<?php echo (int)$u['id']; ?></h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                            </div>
+                                            <form method="POST" action="">
+                                                <div class="modal-body">
+                                                    <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                                                    <input type="hidden" name="acao" value="update_user">
+                                                    <input type="hidden" name="id" value="<?php echo (int)$u['id']; ?>">
+
+                                                    <div class="row g-2">
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">Nome</label>
+                                                            <input type="text" name="nome" class="form-control" value="<?php echo sanitize($u['nome'] ?? ''); ?>" required>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">Email</label>
+                                                            <input type="email" name="email" class="form-control" value="<?php echo sanitize($u['email'] ?? ''); ?>" required>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">Telefone</label>
+                                                            <input type="text" name="telefone" class="form-control" value="<?php echo sanitize($u['telefone'] ?? ''); ?>" required>
+                                                        </div>
+
+                                                        <div class="col-md-4">
+                                                            <label class="form-label">Tipo</label>
+                                                            <select name="tipo_usuario" class="form-select">
+                                                                <option value="comum" <?php echo (($u['tipo_usuario'] ?? '') === 'comum') ? 'selected' : ''; ?>>Comum</option>
+                                                                <option value="parceiro" <?php echo (($u['tipo_usuario'] ?? '') === 'parceiro') ? 'selected' : ''; ?>>Parceiro</option>
+                                                            </select>
+                                                        </div>
+
+                                                        <div class="col-md-8">
+                                                            <label class="form-label">Permissões</label>
+                                                            <div class="d-flex flex-wrap gap-3">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox" name="ativo" id="edit_ativo_<?php echo (int)$u['id']; ?>" <?php echo !empty($u['ativo']) ? 'checked' : ''; ?> <?php echo ((int)$u['id'] === $currentUserId) ? 'disabled' : ''; ?>>
+                                                                    <label class="form-check-label" for="edit_ativo_<?php echo (int)$u['id']; ?>">Ativo</label>
+                                                                </div>
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox" name="is_admin" id="edit_admin_<?php echo (int)$u['id']; ?>" <?php echo !empty($u['is_admin']) ? 'checked' : ''; ?> <?php echo ((int)$u['id'] === $currentUserId) ? 'disabled' : ''; ?>>
+                                                                    <label class="form-check-label" for="edit_admin_<?php echo (int)$u['id']; ?>">Admin</label>
+                                                                </div>
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="checkbox" name="email_confirmado" id="edit_emailconf_<?php echo (int)$u['id']; ?>" <?php echo !empty($u['email_confirmado']) ? 'checked' : ''; ?>>
+                                                                    <label class="form-check-label" for="edit_emailconf_<?php echo (int)$u['id']; ?>">Email confirmado</label>
+                                                                </div>
+                                                            </div>
+                                                            <?php if ((int)$u['id'] === $currentUserId): ?>
+                                                                <div class="text-muted small mt-2">Seu próprio usuário não pode ser desativado ou perder permissão admin.</div>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                    <button type="submit" class="btn btn-primary">Salvar</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="modal fade" id="modalResetPass<?php echo (int)$u['id']; ?>" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Redefinir senha #<?php echo (int)$u['id']; ?></h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                                            </div>
+                                            <form method="POST" action="">
+                                                <div class="modal-body">
+                                                    <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                                                    <input type="hidden" name="acao" value="reset_password">
+                                                    <input type="hidden" name="id" value="<?php echo (int)$u['id']; ?>">
+
+                                                    <label class="form-label">Nova senha</label>
+                                                    <input type="password" name="senha" class="form-control" required>
+                                                    <div class="text-muted small mt-2">Mínimo <?php echo (int)PASSWORD_MIN_LENGTH; ?> caracteres.</div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                    <button type="submit" class="btn btn-warning">Atualizar senha</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php $modals .= ob_get_clean(); ?>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <?php echo $modals; ?>
+
+                <?php if ($totalPaginas > 1): ?>
+                    <?php
+                        $prev = max(1, $pagina - 1);
+                        $next = min($totalPaginas, $pagina + 1);
+                        $qs = $search !== '' ? '&q=' . urlencode($search) : '';
+                    ?>
+                    <nav class="mt-3" aria-label="Paginação">
+                        <ul class="pagination justify-content-center mb-0">
+                            <li class="page-item <?php echo $pagina <= 1 ? 'disabled' : ''; ?>">
+                                <a class="page-link" href="<?php echo BASE_URL . '/admin/usuarios?pagina=' . $prev . $qs; ?>">Anterior</a>
+                            </li>
+                            <li class="page-item disabled"><span class="page-link"><?php echo $pagina; ?> / <?php echo $totalPaginas; ?></span></li>
+                            <li class="page-item <?php echo $pagina >= $totalPaginas ? 'disabled' : ''; ?>">
+                                <a class="page-link" href="<?php echo BASE_URL . '/admin/usuarios?pagina=' . $next . $qs; ?>">Próxima</a>
+                            </li>
+                        </ul>
+                    </nav>
+                <?php endif; ?>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<?php include __DIR__ . '/../includes/footer.php'; ?>

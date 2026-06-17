@@ -1,7 +1,7 @@
 <?php
 
 /**
- * PetFinder - Controller de Cancelamentos
+ * Cadê Meu Pet? - Controller de Cancelamentos
  * Gerencia cancelamentos de assinaturas de parceiros e doações recorrentes
  * com segurança, auditoria e validações rigorosas.
  */
@@ -298,8 +298,8 @@ class CancelamentoController
         }
 
         $subject = $tipo === 'assinatura' 
-            ? 'Assinatura PetFinder Cancelada' 
-            : 'Doação Recorrente PetFinder Cancelada';
+            ? 'Assinatura Cadê Meu Pet? Cancelada' 
+            : 'Doação Recorrente Cadê Meu Pet? Cancelada';
 
         $message = $this->gerarEmailCancelamento($usuario, $tipo, $motivo, $doacaoId);
         
@@ -319,7 +319,7 @@ class CancelamentoController
                 <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
                     <h2 style='color:#FF6B6B;'>Cancelamento confirmado</h2>
                     <p>Olá, <strong>{$nome}</strong>!</p>
-                    <p>Sua assinatura de Parceiro PetFinder foi cancelada conforme solicitado.</p>
+                    <p>Sua assinatura de Parceiro Cadê Meu Pet? foi cancelada conforme solicitado.</p>
                     <p><strong>Motivo:</strong> {$motivoFormatado}</p>
                     <p>Seu perfil será despublicado em até 24 horas.</p>
                     <p>Agradecemos sua parceria e esperamos vê-lo novamente em breve!</p>
@@ -334,7 +334,7 @@ class CancelamentoController
                 <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
                     <h2 style='color:#FF6B6B;'>Doação recorrente cancelada</h2>
                     <p>Olá, <strong>{$nome}</strong>!</p>
-                    <p>Sua doação recorrente PetFinder foi cancelada conforme solicitado.</p>
+                    <p>Sua doação recorrente Cadê Meu Pet? foi cancelada conforme solicitado.</p>
                     <p><strong>Motivo:</strong> {$motivoFormatado}</p>
                     <p>Não haverá mais cobranças futuras.</p>
                     <p>Agradecemos imensamente seu apoio à nossa causa!</p>

@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config.php';
 
 requireLogin();
 
-$pageTitle = 'Cancelar Assinatura | PetFinder';
+$pageTitle = 'Cancelar Assinatura | Cadê Meu Pet?';
 
 $usuarioId = (int)(getUserId() ?? 0);
 $assinaturaModel = new ParceiroAssinatura();

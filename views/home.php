@@ -27,8 +27,8 @@ include __DIR__ . '/../includes/header.php';
                     🐾 Encontre ou Publique um Pet
                 </h1>
                 <p class="lead mb-4">
-                    Ajudamos a reunir animais perdidos com suas famílias. 
-                    Juntos já reunimos <strong><?php echo number_format($stats['casos_resolvidos'] ?? 0); ?> pets</strong>!
+                    Ajudamos a encontrar o dono de pets perdidos e a devolver cada animal ao seu lar.
+                    Juntos, já promovemos <?php echo number_format($stats['casos_resolvidos'] ?? 0); ?> reencontros.
                 </p>
                 
                 <!-- Busca Rápida -->
@@ -248,7 +248,7 @@ include __DIR__ . '/../includes/header.php';
             <div class="col-md-8">
                 <h3 class="fw-bold mb-2">🐾 Serviços Pet na sua região</h3>
                 <p class="mb-0">
-                    Conheça empresas parceiras (pet shops, clínicas, hotéis, adestradores) e ajude a manter o PetFinder sustentável.
+                    Conheça empresas parceiras (pet shops, clínicas, hotéis, adestradores) e ajude a manter o Cadê Meu Pet? sustentável.
                 </p>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
@@ -265,7 +265,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-8">
-                <h3 class="fw-bold mb-3">💚 Ajude a Manter o PetFinder Gratuito</h3>
+                <h3 class="fw-bold mb-3">💚 Ajude a Manter o Cadê Meu Pet? Gratuito</h3>
                 <p class="mb-0">
                     Com sua doação, mantemos o sistema funcionando e ajudamos 
                     mais pets a reencontrar suas famílias. Qualquer valor ajuda!

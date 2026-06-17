@@ -1,6 +1,6 @@
 <?php
 /**
- * PetFinder - Conexão com Banco de Dados
+ * Cadê Meu Pet? - Conexão com Banco de Dados
  * Classe singleton para gerenciar conexão PDO
  */
 

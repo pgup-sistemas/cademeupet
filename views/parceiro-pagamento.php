@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config.php';
 
 requireLogin();
 
-$pageTitle = 'Pagamento Parceiro | PetFinder';
+$pageTitle = 'Pagamento Parceiro | Cadê Meu Pet?';
 
 $usuarioId = (int)(getUserId() ?? 0);
 $usuarioModel = new Usuario();
@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pagamentoController = new PagamentoController();
 
         if ($metodoPagamento === 'pix') {
-            $descricaoPix = 'Assinatura Parceiro PetFinder #' . (int)$pagamentoId;
+            $descricaoPix = 'Assinatura Parceiro Cadê Meu Pet? #' . (int)$pagamentoId;
             $pix = $pagamentoController->criarCobrancaPixParceiro((int)$pagamentoId, (float)$valor, $descricaoPix);
 
             $pagamentoModel->update((int)$pagamentoId, [
@@ -132,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'efi_charge_id' => $chargeId !== '' ? $chargeId : null,
             ]);
             if ($paymentUrl !== '') {
-                redirect($paymentUrl);
+                redirect('/parceiro-abrir-pagamento.php?id=' . (int)$pagamentoId);
             }
             throw new Exception('Não foi possível gerar o link de pagamento do cartão recorrente.');
         }
@@ -147,7 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
 
         if ($paymentUrl !== '') {
-            redirect($paymentUrl);
+            redirect('/parceiro-abrir-pagamento.php?id=' . (int)$pagamentoId);
         }
 
         throw new Exception('Não foi possível gerar o link de pagamento.');
@@ -195,12 +195,31 @@ if (!in_array($metodoPagamentoAtual, ['pix', 'cartao_avista', 'cartao_recorrente
                         <div class="row g-3">
                             <div class="col-12">
                                 <label class="form-label">Método de pagamento</label>
+                                <?php
+                                    // Verificação simplificada da disponibilidade do EFI
+                                    $efiAvailable = false;
+                                    try {
+                                        $efiAvailable = (class_exists('Efi\\EfiPay') || class_exists('EfiPay'))
+                                            && !empty(EFI_CLIENT_ID) && !empty(EFI_CLIENT_SECRET)
+                                            && file_exists((string)EFI_CERTIFICATE_PATH);
+                                    } catch (Throwable $ex) {
+                                        $efiAvailable = false;
+                                    }
+                                ?>
+
                                 <select name="metodo_pagamento" id="metodo_pagamento" class="form-select">
                                     <option value="pix" <?php echo $metodoPagamentoAtual === 'pix' ? 'selected' : ''; ?>>Pix (à vista)</option>
-                                    <option value="cartao_avista" <?php echo $metodoPagamentoAtual === 'cartao_avista' ? 'selected' : ''; ?>>Cartão (à vista)</option>
-                                    <option value="cartao_recorrente" <?php echo $metodoPagamentoAtual === 'cartao_recorrente' ? 'selected' : ''; ?>>Cartão (recorrente)</option>
+                                    <?php if ($efiAvailable): ?>
+                                        <option value="cartao_avista" <?php echo $metodoPagamentoAtual === 'cartao_avista' ? 'selected' : ''; ?>>Cartão (à vista)</option>
+                                        <option value="cartao_recorrente" <?php echo $metodoPagamentoAtual === 'cartao_recorrente' ? 'selected' : ''; ?>>Cartão (recorrente)</option>
+                                    <?php endif; ?>
                                 </select>
-                                <div class="form-text">No Pix o pagamento é à vista. No cartão recorrente a cobrança é mensal automática.</div>
+
+                                <?php if (!$efiAvailable): ?>
+                                    <div class="alert alert-warning mt-2">Pagamentos por cartão estão temporariamente indisponíveis. Contate o administrador.</div>
+                                <?php else: ?>
+                                    <div class="form-text">No Pix o pagamento é à vista. No cartão recorrente a cobrança é mensal automática.</div>
+                                <?php endif; ?>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Plano</label>

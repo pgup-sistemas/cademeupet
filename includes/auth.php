@@ -1,6 +1,6 @@
 <?php
 /**
- * PetFinder - Sistema de Autenticação
+ * Cadê Meu Pet? - Sistema de Autenticação
  * Gerencia login, logout, registro e recuperação de senha
  */
 
@@ -320,12 +320,12 @@ class Auth {
     public function sendConfirmationEmail($email, $nome, $token) {
         $link = BASE_URL . "/confirmar-email.php?token=" . $token;
         
-        $subject = "Confirme seu email - PetFinder";
+        $subject = "Confirme seu email - Cadê Meu Pet?";
         $message = "
             <html>
             <body style='font-family: Arial, sans-serif;'>
                 <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
-                    <h2 style='color: #2196F3;'>Bem-vindo ao PetFinder, {$nome}!</h2>
+                    <h2 style='color: #2196F3;'>Bem-vindo ao Cadê Meu Pet?, {$nome}!</h2>
                     <p>Obrigado por se cadastrar. Para ativar sua conta, clique no link abaixo:</p>
                     <p style='margin: 30px 0;'>
                         <a href='{$link}' 
@@ -338,7 +338,7 @@ class Auth {
                     <p style='color: #666; font-size: 12px;'>{$link}</p>
                     <hr style='margin: 30px 0; border: none; border-top: 1px solid #ddd;'>
                     <p style='color: #999; font-size: 12px;'>
-                        Se você não se cadastrou no PetFinder, ignore este email.
+                        Se você não se cadastrou no Cadê Meu Pet?, ignore este email.
                     </p>
                 </div>
             </body>
@@ -347,7 +347,11 @@ class Auth {
         
         $sent = sendEmail($email, $subject, $message);
         if (!$sent) {
-            error_log('[Auth] Falha ao enviar email de confirmação para: ' . $email);
+            error_log('[Auth] Falha ao enviar email de confirmação para: ' . $email . ' | SMTP_HOST=' . (defined('SMTP_HOST') ? SMTP_HOST : 'N/A'));
+            // Salva flag em sessão para exibir alerta ao admin
+            if (isAdmin()) {
+                $_SESSION['alert_email_fail'] = 'Falha ao enviar e-mail de confirmação para: ' . $email;
+            }
         }
     }
     
@@ -357,7 +361,7 @@ class Auth {
     private function sendPasswordResetEmail($email, $nome, $token) {
         $link = BASE_URL . "/resetar-senha.php?token=" . $token;
         
-        $subject = "Recuperação de Senha - PetFinder";
+        $subject = "Recuperação de Senha - Cadê Meu Pet?";
         $message = "
             <html>
             <body style='font-family: Arial, sans-serif;'>

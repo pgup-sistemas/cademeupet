@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../config.php';
 
-$pageTitle = 'Redefinir Senha - PetFinder';
+$pageTitle = 'Redefinir Senha - Cadê Meu Pet?';
 
 if (isLoggedIn()) {
     redirect('/');

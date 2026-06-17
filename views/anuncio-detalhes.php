@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../config.php';
 
-$pageTitle = 'Detalhes do Anúncio - PetFinder';
+$pageTitle = 'Detalhes do Anúncio - Cadê Meu Pet?';
 
 $anuncioController = new AnuncioController();
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -28,7 +28,7 @@ $shareUrl = rtrim((string)BASE_URL, '/') . '/anuncio/' . (int)$anuncio['id'] . '
 $shareTitle = ($anuncio['nome_pet'] ?: ('Pet ' . ucfirst($anuncio['especie'])));
 $shareDescription = trim((string)($anuncio['descricao'] ?? ''));
 if ($shareDescription === '') {
-    $shareDescription = 'Veja este anúncio no PetFinder.';
+    $shareDescription = 'Veja este anúncio no Cadê Meu Pet?.';
 }
 $shareDescription = truncate($shareDescription, 140);
 
@@ -41,6 +41,30 @@ $metaOgTitle = $shareTitle;
 $metaOgDescription = $shareDescription;
 $metaOgUrl = $shareUrl;
 $metaOgImage = $firstPhoto;
+
+// Page-specific SEO overrides
+$pageTitle = ($shareTitle ? $shareTitle . ' — ' . SITE_NAME : ($pageTitle ?? ('Detalhes do Anúncio - ' . SITE_NAME)));
+$metaDescription = $shareDescription;
+$canonical = $shareUrl;
+$metaRobots = $metaRobots ?? 'index, follow';
+$pageJsonLd = [
+    '@context' => 'https://schema.org',
+    '@type' => 'Article',
+    'mainEntityOfPage' => [
+        '@type' => 'WebPage',
+        '@id' => $shareUrl
+    ],
+    'headline' => $shareTitle,
+    'description' => $shareDescription,
+    'image' => $firstPhoto ? [$firstPhoto] : [],
+    'datePublished' => date('c', strtotime($anuncio['data_publicacao'] ?? date('Y-m-d H:i:s'))),
+    'author' => [
+        '@type' => 'Person',
+        'name' => $anuncio['usuario_nome'] ?? 'Anunciante'
+    ]
+];
+
+$includeMapAssets = true;
 
 include __DIR__ . '/../includes/header.php';
 ?>
@@ -224,7 +248,7 @@ include __DIR__ . '/../includes/header.php';
                 </div>
                 <?php if (!empty($anuncio['latitude']) && !empty($anuncio['longitude'])): ?>
                     <div id="mapDetalhe"
-                         class="petfinder-map"
+                         class="cmp-map"
                          data-lat="<?php echo sanitize($anuncio['latitude']); ?>"
                          data-lng="<?php echo sanitize($anuncio['longitude']); ?>"></div>
                 <?php endif; ?>
@@ -269,8 +293,8 @@ include __DIR__ . '/../includes/header.php';
                                 <?php
                                     $emailContato = trim((string)$anuncio['email_contato']);
                                     $emailContatoSafe = filter_var($emailContato, FILTER_VALIDATE_EMAIL) ? $emailContato : '';
-                                    $mailtoSubject = $shareTitle . ' - PetFinder';
-                                    $mailtoBody = "Olá! Vi este anúncio no PetFinder e gostaria de falar com você.\n\n" . $shareUrl;
+                                    $mailtoSubject = $shareTitle . ' - Cadê Meu Pet?';
+                                    $mailtoBody = "Olá! Vi este anúncio no Cadê Meu Pet? e gostaria de falar com você.\n\n" . $shareUrl;
                                     $mailtoHref = $emailContatoSafe
                                         ? ('mailto:' . $emailContatoSafe . '?subject=' . rawurlencode($mailtoSubject) . '&body=' . rawurlencode($mailtoBody))
                                         : '';
@@ -292,6 +316,17 @@ include __DIR__ . '/../includes/header.php';
                         <hr>
                         <div class="d-grid gap-2">
                             <a href="<?php echo BASE_URL; ?>/editar-anuncio/<?php echo $anuncio['id']; ?>/" class="btn btn-outline-primary"><i class="bi bi-pencil me-1"></i>Editar anúncio</a>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if (($anuncio['status'] ?? '') === STATUS_RESOLVIDO && ($isOwner || isAdmin())): ?>
+                        <div class="mt-3">
+                            <form method="POST" action="<?php echo BASE_URL; ?>/marcar-ativo.php" class="d-inline" onsubmit="return confirm('Reativar este anúncio?');">
+                                <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                                <input type="hidden" name="anuncio_id" value="<?php echo (int)$anuncio['id']; ?>">
+                                <input type="hidden" name="return_to" value="<?php echo '/anuncio/' . (int)$anuncio['id'] . '/'; ?>">
+                                <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise me-1"></i> Reativar</button>
+                            </form>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -357,7 +392,7 @@ include __DIR__ . '/../includes/header.php';
     color: #333;
 }
 
-.petfinder-map {
+.cmp-map {
     height: 280px;
     border-bottom-left-radius: 0.375rem;
     border-bottom-right-radius: 0.375rem;

@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config.php';
 
 requireLogin();
 
-$pageTitle = 'Meus Alertas - PetFinder';
+$pageTitle = 'Meus Alertas - Cadê Meu Pet?';
 $controller = new AlertaController();
 $usuarioId = (int) getUserId();
 $errors = [];

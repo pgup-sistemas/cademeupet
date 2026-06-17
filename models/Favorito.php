@@ -1,6 +1,6 @@
 <?php
 /**
- * PetFinder - Modelo de Favoritos
+ * Cadê Meu Pet? - Modelo de Favoritos
  */
 class Favorito
 {

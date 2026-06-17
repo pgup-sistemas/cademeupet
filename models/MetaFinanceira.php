@@ -1,6 +1,6 @@
 <?php
 /**
- * PetFinder - Modelo de Metas Financeiras
+ * Cadê Meu Pet? - Modelo de Metas Financeiras
  * Gerencia metas de arrecadação e custos operacionais
  */
 

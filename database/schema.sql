@@ -1,17 +1,17 @@
 -- ═══════════════════════════════════════════════
--- PETFINDER - ESTRUTURA DO BANCO DE DADOS
--- Versão: 1.0
--- Data: Dezembro 2025
+-- CADE MEU PET? - ESTRUTURA DO BANCO DE DADOS
+-- Versão: 2.0
+-- Data: Junho 2026
 -- ═══════════════════════════════════════════════
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "-04:00";
 
-CREATE DATABASE IF NOT EXISTS `petfinder` 
+CREATE DATABASE IF NOT EXISTS `cademeupet` 
 DEFAULT CHARACTER SET utf8mb4 
 COLLATE utf8mb4_unicode_ci;
 
-USE `petfinder`;
+USE `cademeupet`;
 
 -- ═══════════════════════════════════════════════
 -- TABELA: usuarios
@@ -358,7 +358,7 @@ CREATE TABLE `auditoria` (
 INSERT INTO `usuarios` 
   (`nome`, `email`, `telefone`, `senha`, `cidade`, `estado`, `email_confirmado`, `is_admin`, `ativo`) 
 VALUES 
-  ('Administrador', 'admin@petfinder.com', '00000000000',
+  ('Administrador', 'admin@cademeupet.com.br', '00000000000',
    '$2y$12$Qr/WHCQl8WZKCYMXrsO8DOcVEkpnDgM409t7VodkxexXxwsWgjJLG',
    'Porto Velho', 'RO', 1, 1, 1);
 

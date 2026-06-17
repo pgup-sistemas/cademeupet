@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $erroEnvio = 'Por favor, insira um endereço de e-mail válido.';
     } else {
             // Enviar e-mail usando a função sendEmail
-        $para = 'dpo@petfinder.com.br';
+        $para = 'dpo@cademeupet.com.br';
         $assuntoEmail = "[Contato DPO] $assunto";
         
         // Corpo do e-mail em HTML
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <body>
             <div class='container'>
                 <div class='header'>
-                    <h2 style='margin: 0; color: #0d6efd;'>Contato do DPO - PetFinder</h2>
+                    <h2 style='margin: 0; color: #0d6efd;'>Contato do DPO - Cadê Meu Pet?</h2>
                 </div>
                 
                 <div class='content'>
@@ -54,22 +54,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 
                 <div class='footer'>
-                    <p>Esta é uma mensagem automática enviada pelo sistema PetFinder. Por favor, não responda este e-mail.</p>
-                    <p>&copy; " . date('Y') . " PetFinder. Todos os direitos reservados.</p>
+                    <p>Esta é uma mensagem automática enviada pelo sistema Cadê Meu Pet?. Por favor, não responda este e-mail.</p>
+                    <p>&copy; " . date('Y') . " Cadê Meu Pet?. Todos os direitos reservados.</p>
                 </div>
             </div>
         </body>
         </html>";
         
         // Versão em texto simples para clientes de e-mail que não suportam HTML
-        $corpoTexto = "Contato do DPO - PetFinder\n\n";
+        $corpoTexto = "Contato do DPO - Cadê Meu Pet?\n\n";
         $corpoTexto .= "Nome: $nome\n";
         $corpoTexto .= "E-mail: $email\n";
         $corpoTexto .= "Assunto: $assunto\n\n";
         $corpoTexto .= "Mensagem:\n$mensagem\n\n";
         $corpoTexto .= "---\n";
-        $corpoTexto .= "Esta é uma mensagem automática enviada pelo sistema PetFinder.\n";
-        $corpoTexto .= "© " . date('Y') . " PetFinder. Todos os direitos reservados.";
+        $corpoTexto .= "Esta é uma mensagem automática enviada pelo sistema Cadê Meu Pet?.\n";
+        $corpoTexto .= "© " . date('Y') . " Cadê Meu Pet?. Todos os direitos reservados.";
         
         // Enviar e-mail
         try {
@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mensagemCopia .= "$mensagem\n\n";
                 $mensagemCopia .= "----------------------------------------\n";
                 $mensagemCopia .= "Agradecemos pelo seu contato. Nossa equipe irá analisar sua solicitação e retornar o mais breve possível.\n\n";
-                $mensagemCopia .= "Atenciosamente,\nEquipe PetFinder\n";
+                $mensagemCopia .= "Atenciosamente,\nEquipe Cadê Meu Pet?\n";
                 
                 sendEmail(
                     $email,
@@ -317,7 +317,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p class="mb-3">
                 <i class="fas fa-envelope"></i> 
                 <strong>E-mail:</strong><br>
-                <a href="mailto:dpo@petfinder.com.br" class="ms-4">dpo@petfinder.com.br</a>
+                <a href="mailto:dpo@cademeupet.com.br" class="ms-4">dpo@cademeupet.com.br</a>
             </p>
         </div>
         <div class="col-md-6">

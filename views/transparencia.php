@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../config.php';
 
-$pageTitle = 'Transparência - PetFinder';
+$pageTitle = 'Transparência - Cadê Meu Pet?';
 
 $doacaoController = new DoacaoController();
 $doacaoModel = new Doacao();
@@ -29,7 +29,7 @@ include __DIR__ . '/../includes/header.php';
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
                 <div>
                     <h1 class="h3 fw-bold mb-1">📊 Transparência</h1>
-                    <p class="text-muted mb-0">Relatório público de custos, metas e andamento do PetFinder.</p>
+                    <p class="text-muted mb-0">Relatório público de custos, metas e andamento do Cadê Meu Pet?.</p>
                 </div>
                 <a href="<?php echo BASE_URL; ?>/doar/" class="btn btn-success">
                     💚 Fazer uma doação
@@ -65,7 +65,7 @@ include __DIR__ . '/../includes/header.php';
                     <h2 class="h5 fw-bold mb-3">📌 Como você pode ajudar</h2>
                     <p class="mb-0">
                         Você pode contribuir com melhorias, sugestões ou apoiando financeiramente. 
-                        Toda ajuda mantém o PetFinder disponível e gratuito para mais pessoas.
+                        Toda ajuda mantém o Cadê Meu Pet? disponível e gratuito para mais pessoas.
                     </p>
                 </div>
             </div>

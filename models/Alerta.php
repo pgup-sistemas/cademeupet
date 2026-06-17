@@ -1,6 +1,6 @@
 <?php
 /**
- * PetFinder - Modelo de Alertas de Busca
+ * Cadê Meu Pet? - Modelo de Alertas de Busca
  */
 class Alerta
 {

@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../config.php';
 
-$pageTitle = 'Ajuda - PetFinder';
+$pageTitle = 'Ajuda - Cadê Meu Pet?';
 
 include __DIR__ . '/../includes/header.php';
 ?>
@@ -11,7 +11,7 @@ include __DIR__ . '/../includes/header.php';
         <div class="col-lg-9">
             <h1 class="h3 fw-bold mb-3">Ajuda e Como Usar</h1>
             <p class="text-muted mb-4">
-                Aqui você encontra orientações rápidas para usar o PetFinder: publicar anúncios, buscar pets, favoritos, alertas e status.
+                Aqui você encontra orientações rápidas para usar o Cadê Meu Pet?: publicar anúncios, buscar pets, favoritos, alertas e status.
             </p>
 
             <div class="card shadow-sm border-0 mb-4">
@@ -132,7 +132,7 @@ include __DIR__ . '/../includes/header.php';
                 <div class="card-body p-4">
                     <h2 class="h5 fw-bold mb-3"><i class="fas fa-handshake me-2"></i>9) Como se tornar Parceiro (empresas)</h2>
                     <div class="text-muted">
-                        O PetFinder possui uma área de <strong><i class="fas fa-store me-1"></i>Parceiros</strong> para empresas do segmento pet (pet shops, clínicas, hotéis/creches e adestradores).
+                        O Cadê Meu Pet? possui uma área de <strong><i class="fas fa-store me-1"></i>Parceiros</strong> para empresas do segmento pet (pet shops, clínicas, hotéis/creches e adestradores).
                         O objetivo é manter o sistema sustentável sem tirar o foco principal dos anúncios de pets.
                         <div class="mt-3">
                             <div class="fw-bold"><i class="fas fa-credit-card me-1"></i>Pagamento (Efí)</div>

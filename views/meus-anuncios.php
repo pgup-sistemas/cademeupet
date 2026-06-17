@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../config.php';
 
-$pageTitle = 'Meus Anúncios - PetFinder';
+$pageTitle = 'Meus Anúncios - Cadê Meu Pet?';
 
 requireLogin();
 
@@ -102,6 +102,17 @@ include __DIR__ . '/../includes/header.php';
                                         <input type="hidden" name="return_to" value="/meus-anuncios.php">
                                         <button type="submit" class="btn btn-outline-success btn-sm w-100">
                                             Resolver
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+
+                                <?php if (($anuncio['status'] ?? '') === STATUS_RESOLVIDO): ?>
+                                    <form method="POST" action="<?php echo BASE_URL; ?>/marcar-ativo.php" class="flex-grow-1" onsubmit="return confirm('Reativar este anúncio?');">
+                                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                                        <input type="hidden" name="anuncio_id" value="<?php echo (int)$anuncio['id']; ?>">
+                                        <input type="hidden" name="return_to" value="/meus-anuncios.php">
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
+                                            Reativar
                                         </button>
                                     </form>
                                 <?php endif; ?>

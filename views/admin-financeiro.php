@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config.php';
 
 requireAdmin();
 
-$pageTitle = 'Admin - Financeiro - PetFinder';
+$pageTitle = 'Admin - Financeiro - Cadê Meu Pet?';
 
 $doacaoController = new DoacaoController();
 $doacaoModel = new Doacao();
@@ -107,9 +107,25 @@ $assinaturasExpirando = $parceiroAssinaturaModel->listExpiringSoon(7, 10);
 $totalGeralMesAtual = (float)($doacaoResumo['mes_atual'] ?? 0) + (float)($parceiroResumo['mes_atual'] ?? 0);
 
 include __DIR__ . '/../includes/header.php';
+
+// Verificar disponibilidade da integração com EFI (para pagamentos por cartão)
+$efiAvailable = false;
+try {
+    $efiAvailable = (class_exists('Efi\\EfiPay') || class_exists('EfiPay'))
+        && !empty(EFI_CLIENT_ID) && !empty(EFI_CLIENT_SECRET)
+        && file_exists((string)EFI_CERTIFICATE_PATH);
+} catch (Throwable $ex) {
+    $efiAvailable = false;
+}
+
 ?>
 
 <div class="container py-5">
+    <?php if (! $efiAvailable): ?>
+        <div class="alert alert-warning">
+            <strong>Atenção:</strong> A integração com o gateway EFI parece estar indisponível (SDK, credenciais ou certificado ausente). Pagamentos por cartão podem falhar. Verifique a instalação do Composer, as credenciais `EFI_CLIENT_ID` / `EFI_CLIENT_SECRET` e o caminho `EFI_CERTIFICATE_PATH`.
+        </div>
+    <?php endif; ?>
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <div>
             <h1 class="h4 fw-bold mb-1">Admin · Financeiro</h1>

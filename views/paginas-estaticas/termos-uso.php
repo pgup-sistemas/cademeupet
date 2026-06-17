@@ -13,7 +13,7 @@ include __DIR__ . '/../../includes/header.php';
                     <p class="text-muted">Última atualização: <?= date('d/m/Y') ?></p>
                     
                     <h3 class="h5 mb-3">1. Aceitação dos Termos</h3>
-                    <p>Ao acessar e utilizar o site PetFinder, você concorda em cumprir estes Termos de Uso e nossa Política de Privacidade. Se não concordar com estes termos, por favor, não utilize nosso site.</p>
+                    <p>Ao acessar e utilizar o site Cadê Meu Pet?, você concorda em cumprir estes Termos de Uso e nossa Política de Privacidade. Se não concordar com estes termos, por favor, não utilize nosso site.</p>
                     
                     <h3 class="h5 mb-3 mt-4">2. Cadastro de Usuário</h3>
                     <p>Para acessar determinadas funcionalidades do site, será necessário realizar um cadastro, fornecendo informações precisas e atualizadas. Você é responsável por manter a confidencialidade de sua senha e por todas as atividades que ocorram em sua conta.</p>
@@ -29,12 +29,12 @@ include __DIR__ . '/../../includes/header.php';
                     </ul>
                     
                     <h3 class="h5 mb-3 mt-4">4. Anúncios de Animais</h3>
-                    <p>Ao publicar um anúncio no PetFinder, você concorda que:</p>
+                    <p>Ao publicar um anúncio no Cadê Meu Pet?, você concorda que:</p>
                     <ul>
                         <li>As informações fornecidas são verdadeiras e precisas</li>
                         <li>Você tem o direito de oferecer o animal em adoção ou de anunciar um animal perdido/encontrado</li>
                         <li>As imagens utilizadas são de sua autoria ou você tem permissão para utilizá-las</li>
-                        <li>O PetFinder não se responsabiliza por acordos feitos entre os usuários</li>
+                        <li>O Cadê Meu Pet? não se responsabiliza por acordos feitos entre os usuários</li>
                     </ul>
                     
                     <h3 class="h5 mb-3 mt-4">5. Doações</h3>
@@ -46,10 +46,10 @@ include __DIR__ . '/../../includes/header.php';
                     </ul>
                     
                     <h3 class="h5 mb-3 mt-4">6. Propriedade Intelectual</h3>
-                    <p>Todos os direitos de propriedade intelectual relacionados ao site, incluindo textos, gráficos, logotipos, ícones, imagens, clipes de áudio e software, são de propriedade do PetFinder ou de seus licenciadores.</p>
+                    <p>Todos os direitos de propriedade intelectual relacionados ao site, incluindo textos, gráficos, logotipos, ícones, imagens, clipes de áudio e software, são de propriedade do Cadê Meu Pet? ou de seus licenciadores.</p>
                     
                     <h3 class="h5 mb-3 mt-4">7. Limitação de Responsabilidade</h3>
-                    <p>O PetFinder não se responsabiliza por:</p>
+                    <p>O Cadê Meu Pet? não se responsabiliza por:</p>
                     <ul>
                         <li>Danos diretos ou indiretos decorrentes do uso ou incapacidade de usar o site</li>
                         <li>Conteúdo de sites de terceiros vinculados ao nosso site</li>
