@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../config.php';
 
 $pageTitle = 'Buscar Pets - Cadê Meu Pet?';
@@ -7,9 +7,11 @@ $buscaController = new BuscaController();
 $params = $_GET;
 $resultado = $buscaController->listar($params);
 
-$anuncios = $resultado['anuncios'];
-$filters = $resultado['filters'];
-$page = $resultado['page'];
+$anuncios   = $resultado['anuncios'];
+$filters    = $resultado['filters'];
+$page       = $resultado['page'];
+$total      = $resultado['total'] ?? count($anuncios);
+$totalPages = $resultado['totalPages'] ?? 1;
 
 $includeMapAssets = true;
 
@@ -86,6 +88,17 @@ include __DIR__ . '/../includes/header.php';
                         </div>
 
                         <div class="mb-3">
+                            <label class="form-label">Porte</label>
+                            <select name="tamanho" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="pequeno" <?php echo (($filters['tamanho'] ?? '') === 'pequeno') ? 'selected' : ''; ?>>Pequeno</option>
+                                <option value="medio" <?php echo (($filters['tamanho'] ?? '') === 'medio') ? 'selected' : ''; ?>>Médio</option>
+                                <option value="grande" <?php echo (($filters['tamanho'] ?? '') === 'grande') ? 'selected' : ''; ?>>Grande</option>
+                                <option value="gigante" <?php echo (($filters['tamanho'] ?? '') === 'gigante') ? 'selected' : ''; ?>>Gigante</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Ordenar por</label>
                             <select name="ordenacao" class="form-select">
                                 <option value="">Mais recentes</option>
@@ -130,7 +143,13 @@ include __DIR__ . '/../includes/header.php';
             <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3">
                 <div>
                     <h1 class="h3 fw-bold mb-0">Resultados da busca</h1>
-                    <p class="text-muted mb-0">Encontramos <strong><?php echo count($anuncios); ?></strong> anúncios nesta página.</p>
+                    <p class="text-muted mb-0">
+                        <?php if ($total > 0): ?>
+                            <strong><?php echo number_format($total); ?></strong> anúnci<?php echo $total === 1 ? 'o encontrado' : 'os encontrados'; ?><?php if ($totalPages > 1): ?> &mdash; página <?php echo $page; ?> de <?php echo $totalPages; ?><?php endif; ?>
+                        <?php else: ?>
+                            Nenhum anúncio encontrado
+                        <?php endif; ?>
+                    </p>
                 </div>
                 <div class="mt-3 mt-md-0">
                     <div class="btn-group" role="group">
@@ -203,19 +222,34 @@ include __DIR__ . '/../includes/header.php';
                             <?php endforeach; ?>
                         </div>
 
+                        <?php if ($totalPages > 1): ?>
                         <nav class="mt-4" aria-label="Paginação de resultados">
-                            <ul class="pagination justify-content-center">
-                                <?php $prevPage = max(1, $page - 1); ?>
-                                <li class="page-item <?php echo $page === 1 ? 'disabled' : ''; ?>">
-                                    <a class="page-link" href="?<?php echo http_build_query(array_merge($params, ['page' => $prevPage])); ?>" tabindex="-1">Anterior</a>
+                            <ul class="pagination justify-content-center flex-wrap">
+                                <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
+                                    <a class="page-link" href="?<?php echo http_build_query(array_merge($params, ['page' => $page - 1])); ?>" tabindex="-1">Anterior</a>
                                 </li>
-                                <li class="page-item active"><span class="page-link"><?php echo $page; ?></span></li>
-                                <?php $nextPage = $page + 1; ?>
-                                <li class="page-item <?php echo count($anuncios) < RESULTS_PER_PAGE ? 'disabled' : ''; ?>">
-                                    <a class="page-link" href="?<?php echo http_build_query(array_merge($params, ['page' => $nextPage])); ?>">Próxima</a>
+                                <?php
+                                $rangeStart = max(1, $page - 2);
+                                $rangeEnd   = min($totalPages, $page + 2);
+                                if ($rangeStart > 1): ?>
+                                    <li class="page-item"><a class="page-link" href="?<?php echo http_build_query(array_merge($params, ['page' => 1])); ?>">1</a></li>
+                                    <?php if ($rangeStart > 2): ?><li class="page-item disabled"><span class="page-link">…</span></li><?php endif; ?>
+                                <?php endif; ?>
+                                <?php for ($p = $rangeStart; $p <= $rangeEnd; $p++): ?>
+                                    <li class="page-item <?php echo $p === $page ? 'active' : ''; ?>">
+                                        <a class="page-link" href="?<?php echo http_build_query(array_merge($params, ['page' => $p])); ?>"><?php echo $p; ?></a>
+                                    </li>
+                                <?php endfor; ?>
+                                <?php if ($rangeEnd < $totalPages): ?>
+                                    <?php if ($rangeEnd < $totalPages - 1): ?><li class="page-item disabled"><span class="page-link">…</span></li><?php endif; ?>
+                                    <li class="page-item"><a class="page-link" href="?<?php echo http_build_query(array_merge($params, ['page' => $totalPages])); ?>"><?php echo $totalPages; ?></a></li>
+                                <?php endif; ?>
+                                <li class="page-item <?php echo $page >= $totalPages ? 'disabled' : ''; ?>">
+                                    <a class="page-link" href="?<?php echo http_build_query(array_merge($params, ['page' => $page + 1])); ?>">Próxima</a>
                                 </li>
                             </ul>
                         </nav>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
 
@@ -239,49 +273,6 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
 </div>
-
-<style>
-.anuncio-card {
-    border: none;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-    transition: transform .2s ease, box-shadow .2s ease;
-    cursor: pointer;
-}
-
-.anuncio-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
-}
-
-.anuncio-card img {
-    height: 200px;
-    object-fit: cover;
-    object-position: top center;
-}
-
-.tipo-badge {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    padding: 0.4rem 0.75rem;
-    font-weight: 600;
-    border-radius: 999px;
-}
-
-.card-footer .btn {
-    border-radius: 999px;
-}
-
-#filtrosBusca select, #filtrosBusca input {
-    border-radius: 10px;
-}
-
-.btn-outline-primary.active {
-    color: #fff;
-    background-color: #2196F3;
-    border-color: #2196F3;
-}
-</style>
 
 <script>
 let __petfinderBuscaMapInitialized = false;

@@ -4,72 +4,23 @@ require_once __DIR__ . '/../config.php';
 requireAdmin();
 
 $pageTitle = 'Admin - Moderação - Cadê Meu Pet?';
-$db = getDB();
+$adminCtrl = new AdminController();
 
-// Processar ação de moderação
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
         setFlashMessage('Erro de validação. Recarregue a página.', MSG_ERROR);
         redirect('/admin/moderacao');
     }
-
     $anuncioId = (int)($_POST['anuncio_id'] ?? 0);
-    $acao      = $_POST['acao'] ?? '';
-    $motivo    = trim($_POST['motivo'] ?? '');
-
-    if ($anuncioId > 0 && in_array($acao, ['aprovar', 'rejeitar'], true)) {
-        $novoStatus = $acao === 'aprovar' ? 'aprovado' : 'rejeitado';
-        $db->update('anuncios', [
-            'moderacao_status' => $novoStatus,
-            'moderacao_motivo' => $motivo ?: null,
-            // Anúncios rejeitados ficam inativos
-            'status'           => $acao === 'rejeitar' ? STATUS_INATIVO : STATUS_ATIVO,
-        ], 'id = ?', [$anuncioId]);
-
-        // Notifica o autor por e-mail
-        $anuncio = $db->fetchOne('SELECT a.*, u.nome AS autor_nome, u.email AS autor_email FROM anuncios a JOIN usuarios u ON a.usuario_id = u.id WHERE a.id = ?', [$anuncioId]);
-        if ($anuncio && !empty($anuncio['autor_email'])) {
-            $nomePet = sanitize($anuncio['nome_pet'] ?: ucfirst($anuncio['especie']));
-            if ($acao === 'aprovar') {
-                $assunto = "Seu anuncio de {$nomePet} foi aprovado!";
-                $corpo   = "<p>Ola, {$anuncio['autor_nome']}!</p><p>Seu anuncio de <strong>{$nomePet}</strong> foi aprovado e ja esta visivel no Cade Meu Pet?.</p><p><a href='" . BASE_URL . "/anuncio/{$anuncioId}/'>Ver anuncio</a></p>";
-            } else {
-                $assunto = "Seu anuncio de {$nomePet} nao foi aprovado";
-                $corpo   = "<p>Ola, {$anuncio['autor_nome']}!</p><p>Infelizmente seu anuncio de <strong>{$nomePet}</strong> nao foi aprovado." . ($motivo ? " Motivo: {$motivo}." : '') . "</p><p>Se tiver duvidas, entre em contato conosco.</p>";
-            }
-            sendEmail($anuncio['autor_email'], $assunto, $corpo);
-        }
-
-        setFlashMessage('Anúncio ' . ($acao === 'aprovar' ? 'aprovado' : 'rejeitado') . ' com sucesso.', MSG_SUCCESS);
-    }
-
+    $adminCtrl->processarModeracaoAnuncio($anuncioId, $_POST['acao'] ?? '', trim($_POST['motivo'] ?? ''));
     redirect('/admin/moderacao');
 }
 
-// Filtro
 $filtro = $_GET['filtro'] ?? 'pendente';
-$filtrosValidos = ['pendente', 'aprovado', 'rejeitado'];
-if (!in_array($filtro, $filtrosValidos, true)) {
-    $filtro = 'pendente';
-}
-
-$anuncios = $db->fetchAll("
-    SELECT a.*, u.nome AS autor_nome, u.email AS autor_email,
-           (SELECT nome_arquivo FROM fotos_anuncios WHERE anuncio_id = a.id ORDER BY ordem LIMIT 1) AS foto
-    FROM anuncios a
-    JOIN usuarios u ON a.usuario_id = u.id
-    WHERE a.moderacao_status = ?
-    ORDER BY a.data_publicacao DESC
-    LIMIT 100
-", [$filtro]);
-
-$contagens = $db->fetchOne("
-    SELECT
-        SUM(moderacao_status = 'pendente')  AS pendentes,
-        SUM(moderacao_status = 'aprovado')  AS aprovados,
-        SUM(moderacao_status = 'rejeitado') AS rejeitados
-    FROM anuncios
-") ?: [];
+[
+    'anuncios'  => $anuncios,
+    'contagens' => $contagens,
+] = $adminCtrl->listarFilaModeracaoAnuncios($filtro);
 
 $breadcrumbs = [
     ['label' => 'Início',    'url' => BASE_URL],

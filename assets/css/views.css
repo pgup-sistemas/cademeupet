@@ -1,0 +1,228 @@
+/**
+ * views.css — Estilos específicos das views do Cadê Meu Pet?
+ * Centralizado a partir dos blocos <style> inline das views.
+ */
+
+/* ─── Formulários de autenticação (login, cadastro, recuperar, resetar) ─── */
+.logo-icon-large { font-size: 3.5em; }
+
+.card { border-radius: 12px; }
+
+.input-group-text { background: white; }
+
+.form-control:focus {
+    border-color: var(--cmp-primary, #E85D2B);
+    box-shadow: 0 0 0 3px rgba(232, 93, 43, 0.12);
+}
+
+.form-control-lg {
+    border-radius: 8px;
+    padding: 11px 16px;
+    font-size: .95rem;
+}
+
+/* ─── Cards de listagem (busca, favoritos) ─── */
+.anuncio-card {
+    border: 1px solid var(--cmp-border, #E2E8F0);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    cursor: pointer;
+}
+.anuncio-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0,0,0,.10);
+    border-color: rgba(232,93,43,.2);
+}
+.anuncio-card img {
+    height: 200px;
+    object-fit: cover;
+    object-position: top center;
+}
+
+.tipo-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: .25rem .65rem;
+    font-size: .7rem;
+    font-weight: 700;
+    border-radius: 999px;
+}
+
+#filtrosBusca select,
+#filtrosBusca input { border-radius: 8px; }
+
+/* ─── Carousel de fotos (anuncio-detalhes, petlove-detalhe) ─── */
+.carousel-item {
+    background: #111;
+    position: relative;
+    overflow: hidden;
+}
+.carousel-blur-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: blur(18px);
+    transform: scale(1.12);
+    opacity: 0.95;
+    border-radius: inherit;
+}
+.carousel-photo {
+    position: relative;
+    z-index: 1;
+}
+.carousel-item img {
+    height: 420px;
+    width: 100%;
+    object-fit: contain;
+    object-position: center;
+    background: transparent;
+}
+@media (max-width: 768px) {
+    .carousel-item img { height: 300px; }
+}
+
+.info-box {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 12px 16px;
+}
+.info-label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #6c757d;
+    letter-spacing: 0.05em;
+}
+.info-value {
+    font-weight: 600;
+    color: #333;
+}
+
+/* ─── Painel Admin — gerenciado por cademeupet.css ─── */
+
+/* ─── Formulário multistep de novo anúncio ─── */
+#doacaoFields { display: none; }
+#doacaoFields[style*="display: block"],
+#doacaoFields[style*="display:block"] { display: block !important; }
+
+.stepper { position: relative; }
+.stepper::before {
+    content: '';
+    position: absolute;
+    top: 30px; left: 25%; right: 25%;
+    height: 2px;
+    background: #e0e0e0;
+    z-index: 0;
+}
+.step { text-align: center; position: relative; z-index: 1; }
+.step-icon {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid #e0e0e0;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 10px;
+    font-size: 1.5em; font-weight: bold; color: #999;
+}
+.step.active .step-icon    { background: var(--cmp-primary, #E85D2B); border-color: var(--cmp-primary, #E85D2B); color: white; }
+.step.completed .step-icon { background: #4CAF50; border-color: #4CAF50; color: white; }
+
+.btn-tipo {
+    height: 180px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    transition: all 0.3s;
+}
+.btn-tipo:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+.tipo-icon { font-size: 3em; margin-bottom: 10px; }
+
+.upload-area {
+    border: 2px dashed #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s;
+}
+.upload-area:hover { border-color: var(--cmp-primary, #E85D2B); background: #f8f9fa; }
+.upload-placeholder { cursor: pointer; padding: 40px; }
+.upload-placeholder i { font-size: 3em; color: var(--cmp-primary, #E85D2B); display: block; margin-bottom: 15px; }
+
+/* ─── Mapa (editar-anuncio) ─── */
+.cmp-map {
+    height: 280px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.08);
+}
+
+/* ─── Doação / botões de valor ─── */
+.btn-outline-success,
+.btn-outline-primary { border-radius: 12px; }
+
+.btn-outline-success:hover,
+.btn-check:checked + .btn-outline-success {
+    color: #fff;
+    background-color: #00a86b;
+    border-color: #00a86b;
+}
+
+.donor-card {
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.03);
+}
+
+/* ─── Assinaturas ─── */
+.assinaturas-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.assinatura-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.assinatura-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 15px;
+}
+.assinatura-titulo { font-size: 18px; font-weight: bold; color: #333; }
+.status-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.status-ativa    { background: #d4edda; color: #155724; }
+.status-pausada  { background: #fff3cd; color: #856404; }
+.status-cancelada{ background: #f8d7da; color: #721c24; }
+.status-pendente { background: #cce5ff; color: #004085; }
+.assinatura-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+.info-item { font-size: 14px; }
+.valor-grande { color: #28a745; font-size: 20px; font-weight: bold; }
+.assinatura-acoes { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ─── Contato DPO ─── */
+.contact-form {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}

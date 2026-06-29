@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../config.php';
 
 $id   = (int)($_GET['id'] ?? 0);
@@ -333,16 +333,5 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
 <?php endif; ?>
-
-<style>
-.carousel-item { background:#111; position:relative; overflow:hidden; }
-.carousel-blur-bg { position:absolute;inset:0;background-size:cover;background-position:center;filter:blur(18px);transform:scale(1.12);opacity:.95; }
-.carousel-photo  { position:relative; z-index:1; }
-.carousel-item img { height:380px; width:100%; object-fit:contain; }
-@media(max-width:768px){ .carousel-item img { height:260px; } }
-.info-box { background:#f8f9fa; border-radius:10px; padding:12px 16px; }
-.info-label { display:block; font-size:.75rem; text-transform:uppercase; color:#6c757d; letter-spacing:.05em; }
-.info-value { font-weight:600; color:#333; }
-</style>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

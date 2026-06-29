@@ -4,97 +4,38 @@ require_once __DIR__ . '/../config.php';
 requireAdmin();
 
 $pageTitle = 'Admin - Configurações - Cadê Meu Pet?';
-$db = getDB();
+$adminCtrl = new AdminController();
 
-// Processar salvamento
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
         setFlashMessage('Erro de validação. Recarregue a página.', MSG_ERROR);
         redirect('/admin/config');
     }
-
-    $campos = [
-        'site_nome'        => ['label' => 'Nome do site',              'type' => 'text',    'max' => 100],
-        'site_descricao'   => ['label' => 'Descrição do site',         'type' => 'text',    'max' => 300],
-        'max_anuncios'     => ['label' => 'Máx. anúncios por usuário', 'type' => 'int',     'min' => 1, 'max_val' => 50],
-        'min_intervalo'    => ['label' => 'Intervalo mínimo (horas)',   'type' => 'int',     'min' => 0, 'max_val' => 168],
-        'expiracao_dias'   => ['label' => 'Expiração (dias)',           'type' => 'int',     'min' => 1, 'max_val' => 365],
-        'max_fotos'        => ['label' => 'Máx. fotos por anúncio',    'type' => 'int',     'min' => 1, 'max_val' => 20],
-        'moderacao_ativa'  => ['label' => 'Moderação ativa',           'type' => 'bool'],
-        'email_contato'    => ['label' => 'E-mail de contato',         'type' => 'email',   'max' => 150],
-        'meta_keywords'    => ['label' => 'Meta keywords',             'type' => 'text',    'max' => 300],
-        'rodape_texto'     => ['label' => 'Texto do rodapé',           'type' => 'text',    'max' => 300],
-    ];
-
-    $erros = [];
-    $valores = [];
-
-    foreach ($campos as $chave => $cfg) {
-        if ($cfg['type'] === 'bool') {
-            $valores[$chave] = isset($_POST[$chave]) ? '1' : '0';
-        } elseif ($cfg['type'] === 'int') {
-            $v = (int)($_POST[$chave] ?? 0);
-            if (isset($cfg['min']) && $v < $cfg['min']) {
-                $erros[] = $cfg['label'] . " deve ser pelo menos {$cfg['min']}.";
-                continue;
-            }
-            if (isset($cfg['max_val']) && $v > $cfg['max_val']) {
-                $erros[] = $cfg['label'] . " não pode exceder {$cfg['max_val']}.";
-                continue;
-            }
-            $valores[$chave] = (string)$v;
-        } elseif ($cfg['type'] === 'email') {
-            $v = trim($_POST[$chave] ?? '');
-            if (!empty($v) && !filter_var($v, FILTER_VALIDATE_EMAIL)) {
-                $erros[] = $cfg['label'] . ' deve ser um e-mail válido.';
-                continue;
-            }
-            $valores[$chave] = $v;
-        } else {
-            $v = trim($_POST[$chave] ?? '');
-            if (isset($cfg['max']) && mb_strlen($v) > $cfg['max']) {
-                $v = mb_substr($v, 0, $cfg['max']);
-            }
-            $valores[$chave] = $v;
-        }
-    }
-
+    $erros = $adminCtrl->salvarConfiguracoes($_POST);
     if ($erros) {
         setFlashMessage(implode(' ', $erros), MSG_ERROR);
     } else {
-        foreach ($valores as $chave => $valor) {
-            $exists = $db->fetchOne('SELECT chave FROM configuracoes WHERE chave = ?', [$chave]);
-            if ($exists) {
-                $db->update('configuracoes', ['valor' => $valor], 'chave = ?', [$chave]);
-            } else {
-                $db->insert('configuracoes', ['chave' => $chave, 'valor' => $valor]);
-            }
-        }
         setFlashMessage('Configurações salvas com sucesso.', MSG_SUCCESS);
     }
-
     redirect('/admin/config');
 }
 
-// Carregar configurações atuais
-$rows = $db->fetchAll('SELECT chave, valor FROM configuracoes');
-$config = [];
-foreach ($rows as $row) {
-    $config[$row['chave']] = $row['valor'];
-}
+$config = $adminCtrl->getConfiguracoes();
 
 // Valores padrão
 $defaults = [
-    'site_nome'       => 'Cadê Meu Pet?',
-    'site_descricao'  => 'Plataforma de anúncios para pets perdidos e encontrados.',
-    'max_anuncios'    => '5',
-    'min_intervalo'   => '1',
-    'expiracao_dias'  => '30',
-    'max_fotos'       => '5',
-    'moderacao_ativa' => '0',
-    'email_contato'   => '',
-    'meta_keywords'   => 'pet perdido, pet encontrado, adoção de animais',
-    'rodape_texto'    => '',
+    'site_nome'                      => 'Cadê Meu Pet?',
+    'site_descricao'                 => 'Plataforma de anúncios para pets perdidos e encontrados.',
+    'max_anuncios'                   => '5',
+    'min_intervalo'                  => '1',
+    'expiracao_dias'                 => '30',
+    'max_fotos'                      => '5',
+    'moderacao_ativa'                => '0',
+    'email_contato'                  => '',
+    'meta_keywords'                  => 'pet perdido, pet encontrado, adoção de animais',
+    'rodape_texto'                   => '',
+    'parceiro_plano_basico_mensal'   => '79.90',
+    'parceiro_plano_destaque_mensal' => '129.90',
 ];
 foreach ($defaults as $k => $v) {
     if (!isset($config[$k])) {
@@ -232,6 +173,38 @@ include __DIR__ . '/../includes/header.php';
                     </div>
                 </div>
 
+                <!-- Planos de Parceiros -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                        <h5 class="fw-bold mb-0"><i class="fa-solid fa-handshake me-2 text-primary"></i>Planos de Parceiros</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-3">Valores mensais cobrados por plano. O anual é calculado automaticamente (× 12).</p>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label class="form-label fw-semibold">Plano Básico (R$/mês)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" name="parceiro_plano_basico_mensal" class="form-control"
+                                           value="<?php echo cfg($config, 'parceiro_plano_basico_mensal'); ?>"
+                                           min="0.01" step="0.01" required>
+                                </div>
+                                <div class="form-text">Anual: R$ <?php echo number_format((float)($config['parceiro_plano_basico_mensal'] ?? 79.90) * 12, 2, ',', '.'); ?></div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label fw-semibold">Plano Destaque (R$/mês)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" name="parceiro_plano_destaque_mensal" class="form-control"
+                                           value="<?php echo cfg($config, 'parceiro_plano_destaque_mensal'); ?>"
+                                           min="0.01" step="0.01" required>
+                                </div>
+                                <div class="form-text">Anual: R$ <?php echo number_format((float)($config['parceiro_plano_destaque_mensal'] ?? 129.90) * 12, 2, ',', '.'); ?></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Moderação -->
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header bg-transparent border-0 pt-4 pb-0">
@@ -286,6 +259,79 @@ include __DIR__ . '/../includes/header.php';
             <a href="<?php echo BASE_URL; ?>/admin" class="btn btn-outline-secondary">Cancelar</a>
         </div>
     </form>
+
+    <!-- ═══════════════════════════════════════════════════════
+         PAINEL DE WEBHOOK PIX (fora do form de config)
+    ══════════════════════════════════════════════════════════ -->
+    <div class="card border-0 shadow-sm mt-5">
+        <div class="card-header bg-white d-flex align-items-center gap-2 py-3">
+            <i class="fa-solid fa-webhook text-warning fs-5"></i>
+            <h5 class="mb-0 fw-bold">Webhook PIX — EFI</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-3">
+                O EFI precisa saber para qual URL enviar as notificações de pagamento PIX.
+                Use os botões abaixo para registrar, consultar ou remover o webhook.<br>
+                <strong>URL configurada:</strong>
+                <code><?php echo htmlspecialchars((string)EFI_PIX_NOTIFICATION_URL, ENT_QUOTES); ?></code><br>
+                <strong>Chave PIX:</strong>
+                <code><?php echo htmlspecialchars((string)EFI_PIX_KEY, ENT_QUOTES); ?></code>
+            </p>
+
+            <?php if (IS_LOCAL): ?>
+            <div class="alert alert-warning py-2 small mb-3">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                Ambiente <strong>local</strong>: o EFI não consegue alcançar <code>localhost</code>.
+                O botão <em>Registrar</em> falhará. Use um túnel público (ngrok, localtunnel) e atualize
+                <code>EFI_PIX_NOTIFICATION_URL</code> no <code>.env</code> antes de registrar.
+                Em local, o <strong>polling automático</strong> da página de doação-pix já garante confirmação.
+            </div>
+            <?php endif; ?>
+
+            <div id="webhookResult" class="mb-3" style="display:none;"></div>
+
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-success btn-sm" onclick="webhookAcao('registrar')">
+                    <i class="fa-solid fa-plug me-1"></i>Registrar webhook
+                </button>
+                <button class="btn btn-outline-primary btn-sm" onclick="webhookAcao('consultar')">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i>Consultar status
+                </button>
+                <button class="btn btn-outline-danger btn-sm" onclick="webhookAcao('remover')">
+                    <i class="fa-solid fa-trash me-1"></i>Remover webhook
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+const csrfToken = '<?php echo generateCSRFToken(); ?>';
+const webhookApiUrl = '<?php echo BASE_URL; ?>/api/webhook-pix-admin';
+
+async function webhookAcao(acao) {
+    const resultDiv = document.getElementById('webhookResult');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<div class="alert alert-info py-2 small"><span class="spinner-border spinner-border-sm me-2"></span>Aguarde...</div>';
+
+    try {
+        const resp = await fetch(webhookApiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ csrf_token: csrfToken, acao: acao })
+        });
+        const data = await resp.json();
+
+        if (data.ok) {
+            const webhookInfo = data.resposta_efi ? '<pre class="mt-2 mb-0 small bg-light p-2 rounded">' + JSON.stringify(data.resposta_efi, null, 2) + '</pre>' : '';
+            resultDiv.innerHTML = '<div class="alert alert-success py-2 small"><i class="fa-solid fa-check me-1"></i><strong>' + acao.charAt(0).toUpperCase() + acao.slice(1) + '</strong> executado com sucesso.' + webhookInfo + '</div>';
+        } else {
+            resultDiv.innerHTML = '<div class="alert alert-danger py-2 small"><i class="fa-solid fa-xmark me-1"></i><strong>Erro:</strong> ' + (data.error || 'desconhecido') + (data.dica ? '<br><em>' + data.dica + '</em>' : '') + '</div>';
+        }
+    } catch (e) {
+        resultDiv.innerHTML = '<div class="alert alert-danger py-2 small"><strong>Erro de rede:</strong> ' + e.message + '</div>';
+    }
+}
+</script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

@@ -180,7 +180,14 @@ class Doacao
     public function getCurrentGoalProgress()
     {
         return $this->db->fetchOne(
-            'SELECT m.id, m.mes_referencia, m.valor_meta, m.valor_arrecadado, m.custos_servidor, m.custos_manutencao, m.custos_outros, m.descricao
+            'SELECT m.id, m.mes_referencia, m.valor_meta,
+                    COALESCE((
+                        SELECT SUM(d.valor) FROM doacoes d
+                        WHERE d.status = "aprovada"
+                          AND MONTH(d.data_doacao) = MONTH(CURDATE())
+                          AND YEAR(d.data_doacao)  = YEAR(CURDATE())
+                    ), 0) AS valor_arrecadado,
+                    m.custos_servidor, m.custos_manutencao, m.custos_outros, m.descricao
              FROM metas_financeiras m
              WHERE m.ativo = 1
              ORDER BY m.mes_referencia DESC

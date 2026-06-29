@@ -14,7 +14,7 @@ $usuarioModel = new Usuario();
 $adminId = (int)(getUserId() ?? 0);
 
 $tab = isset($_GET['tab']) ? (string)$_GET['tab'] : 'inscricoes';
-$tab = in_array($tab, ['inscricoes', 'pagamentos'], true) ? $tab : 'inscricoes';
+$tab = in_array($tab, ['inscricoes', 'pagamentos', 'assinaturas'], true) ? $tab : 'inscricoes';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $assinatura = $assinaturaModel->findByUserId($usuarioId);
             if (!$assinatura) {
-                $valor = (float)envValue('PARTNER_PLAN_BASIC_PRICE', 79.90);
+                $valor = (float)getConfig('parceiro_plano_basico_mensal', '79.90');
                 $assinaturaModel->create([
                     'usuario_id' => $usuarioId,
                     'plano' => 'basico',
@@ -125,6 +125,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    if ($acao === 'reabrir_inscricao') {
+        $id = (int)($_POST['id'] ?? 0);
+        try {
+            $inscricao = $inscricaoModel->findById($id);
+            if (!$inscricao) {
+                setFlashMessage('Inscrição não encontrada.', MSG_ERROR);
+                redirect('/admin/parceiros?tab=inscricoes');
+            }
+            $inscricaoModel->reopen($id, $adminId);
+            setFlashMessage('Inscrição reaberta e voltou para pendentes.', MSG_SUCCESS);
+            redirect('/admin/parceiros?tab=inscricoes');
+        } catch (Throwable $e) {
+            error_log('[Admin Parceiros] reabrir_inscricao: ' . $e->getMessage());
+            setFlashMessage('Erro ao reabrir inscrição.', MSG_ERROR);
+            redirect('/admin/parceiros?tab=inscricoes');
+        }
+    }
+
+    if ($acao === 'excluir_inscricao') {
+        $id = (int)($_POST['id'] ?? 0);
+        try {
+            $inscricao = $inscricaoModel->findById($id);
+            if (!$inscricao) {
+                setFlashMessage('Inscrição não encontrada.', MSG_ERROR);
+                redirect('/admin/parceiros?tab=inscricoes');
+            }
+            $inscricaoModel->delete($id);
+            // Reverte tipo_usuario para 'usuario' caso não tenha perfil publicado
+            $usuarioId  = (int)$inscricao['usuario_id'];
+            $perfil     = $perfilModel->findByUserId($usuarioId);
+            if (!$perfil || !(int)($perfil['publicado'] ?? 0)) {
+                $usuarioModel->update($usuarioId, ['tipo_usuario' => 'usuario']);
+            }
+            setFlashMessage('Inscrição excluída. O solicitante poderá fazer uma nova inscrição.', MSG_SUCCESS);
+            redirect('/admin/parceiros?tab=inscricoes');
+        } catch (Throwable $e) {
+            error_log('[Admin Parceiros] excluir_inscricao: ' . $e->getMessage());
+            setFlashMessage('Erro ao excluir inscrição.', MSG_ERROR);
+            redirect('/admin/parceiros?tab=inscricoes');
+        }
+    }
+
     if ($acao === 'aprovar_pagamento') {
         $id = (int)($_POST['id'] ?? 0);
         try {
@@ -202,11 +244,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/admin/parceiros?tab=pagamentos');
         }
     }
+
+    if ($acao === 'cancelar_assinatura') {
+        $usuarioIdAlvo = (int)($_POST['usuario_id'] ?? 0);
+        try {
+            $assinatura = $assinaturaModel->findByUserId($usuarioIdAlvo);
+            if (!$assinatura) {
+                setFlashMessage('Assinatura não encontrada.', MSG_ERROR);
+                redirect('/admin/parceiros?tab=assinaturas');
+            }
+
+            // Cancela no gateway se for recorrente com subscription_id
+            $subscriptionId = (string)($assinatura['efi_subscription_id'] ?? '');
+            if ($subscriptionId !== '' && $subscriptionId !== '0') {
+                // Tenta cancelar na EFI; ignora erro se já estiver cancelada
+                try {
+                    $pagamentoController = new PagamentoController();
+                    $pagamentoController->cancelarAssinaturaGateway($subscriptionId);
+                } catch (Exception $eGateway) {
+                    error_log('[Admin Parceiros] cancelar_assinatura gateway: ' . $eGateway->getMessage());
+                    // Continua: cancela localmente mesmo se o gateway falhar
+                }
+            }
+
+            // Cancela localmente
+            $assinaturaModel->cancelar($usuarioIdAlvo);
+
+            // Despublica o perfil imediatamente
+            $perfilModel->publishForUser($usuarioIdAlvo, false);
+
+            // Notifica o parceiro
+            $usuario = $usuarioModel->findById($usuarioIdAlvo);
+            if (!empty($usuario['email'])) {
+                $pagoAte = !empty($assinatura['pago_ate']) ? formatDateBR($assinatura['pago_ate']) : null;
+                $subject = 'Assinatura cancelada - Cadê Meu Pet?';
+                $pagoMsg = $pagoAte ? "<p>Seu acesso ficará disponível até <strong>{$pagoAte}</strong>, referente ao período já pago.</p>" : '';
+                $message = "<html><body style='font-family:Arial,sans-serif;'>
+                    <div style='max-width:600px;margin:0 auto;padding:20px;'>
+                        <h2 style='color:#dc3545;'>Assinatura cancelada</h2>
+                        <p>Olá, {$usuario['nome']}!</p>
+                        <p>Sua assinatura no plano <strong>" . ucfirst((string)($assinatura['plano'] ?? 'básico')) . "</strong> foi cancelada.</p>
+                        {$pagoMsg}
+                        <p>Se desejar retomar, acesse o painel e faça um novo pagamento.</p>
+                        <p style='color:#666;font-size:12px;'>Em caso de dúvidas entre em contato pelo menu Ajuda.</p>
+                    </div>
+                </body></html>";
+                sendEmail($usuario['email'], $subject, $message);
+            }
+
+            setFlashMessage('Assinatura cancelada. Cobranças futuras interrompidas e perfil despublicado.', MSG_SUCCESS);
+            redirect('/admin/parceiros?tab=assinaturas');
+        } catch (Throwable $e) {
+            error_log('[Admin Parceiros] cancelar_assinatura: ' . $e->getMessage());
+            setFlashMessage('Erro ao cancelar assinatura: ' . $e->getMessage(), MSG_ERROR);
+            redirect('/admin/parceiros?tab=assinaturas');
+        }
+    }
 }
 
 $inscricoesPendentes = $inscricaoModel->listByStatus('pendente');
 $inscricoesAprovadas = $inscricaoModel->listByStatus('aprovada');
+$inscricoesRecusadas = $inscricaoModel->listByStatus('recusada');
 $pagamentosPendentes = $pagamentoModel->listByStatus('pendente');
+$todasAssinaturas    = $assinaturaModel->listAll();
 
 $breadcrumbs = [
     ['label' => 'Início',    'url' => BASE_URL],
@@ -227,10 +327,28 @@ include __DIR__ . '/../includes/header.php';
 
     <ul class="nav nav-tabs mb-3">
         <li class="nav-item">
-            <a class="nav-link <?php echo $tab === 'inscricoes' ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>/admin/parceiros?tab=inscricoes">Inscrições</a>
+            <a class="nav-link <?php echo $tab === 'inscricoes' ? 'active' : ''; ?>"
+               href="<?php echo BASE_URL; ?>/admin/parceiros?tab=inscricoes">
+                Inscrições
+                <?php if (count($inscricoesPendentes) > 0): ?>
+                    <span class="badge bg-warning text-dark ms-1"><?php echo count($inscricoesPendentes); ?></span>
+                <?php endif; ?>
+            </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link <?php echo $tab === 'pagamentos' ? 'active' : ''; ?>" href="<?php echo BASE_URL; ?>/admin/parceiros?tab=pagamentos">Pagamentos</a>
+            <a class="nav-link <?php echo $tab === 'pagamentos' ? 'active' : ''; ?>"
+               href="<?php echo BASE_URL; ?>/admin/parceiros?tab=pagamentos">
+                Pagamentos
+                <?php if (count($pagamentosPendentes) > 0): ?>
+                    <span class="badge bg-warning text-dark ms-1"><?php echo count($pagamentosPendentes); ?></span>
+                <?php endif; ?>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <?php echo $tab === 'assinaturas' ? 'active' : ''; ?>"
+               href="<?php echo BASE_URL; ?>/admin/parceiros?tab=assinaturas">
+                Assinaturas
+            </a>
         </li>
     </ul>
 
@@ -249,6 +367,7 @@ include __DIR__ . '/../includes/header.php';
                                     <th>Categoria</th>
                                     <th>Cidade</th>
                                     <th>Contato</th>
+                                    <th>Mensagem</th>
                                     <th class="text-end">Ações</th>
                                 </tr>
                             </thead>
@@ -263,9 +382,28 @@ include __DIR__ . '/../includes/header.php';
                                         <td><?php echo sanitize($i['cidade']); ?> - <?php echo sanitize($i['estado']); ?></td>
                                         <td>
                                             <div class="small"><?php echo sanitize($i['email']); ?></div>
-                                            <div class="small text-muted"><?php echo sanitize($i['telefone']); ?></div>
+                                            <?php
+                                            $tel = preg_replace('/\D/', '', (string)($i['telefone'] ?? ''));
+                                            if ($tel !== '' && !preg_match('/^0+$/', $tel)):
+                                            ?>
+                                            <div class="small">
+                                                <a href="https://wa.me/55<?php echo $tel; ?>" target="_blank" rel="noopener" class="text-success text-decoration-none">
+                                                    <i class="bi bi-whatsapp me-1"></i><?php echo sanitize((string)($i['telefone'] ?? '')); ?>
+                                                </a>
+                                            </div>
+                                            <?php else: ?>
+                                            <div class="small text-muted fst-italic">Sem telefone</div>
+                                            <?php endif; ?>
                                         </td>
-                                        <td class="text-end">
+                                        <td class="small text-muted" style="max-width:200px;">
+                                            <?php echo $i['mensagem'] ? sanitize(mb_substr((string)$i['mensagem'], 0, 100)) . (mb_strlen((string)$i['mensagem']) > 100 ? '…' : '') : '<span class="fst-italic">—</span>'; ?>
+                                        </td>
+                                        <td class="text-end" style="white-space:nowrap;">
+                                            <a class="btn btn-sm btn-outline-secondary"
+                                               href="<?php echo BASE_URL; ?>/admin/parceiro-editar?id=<?php echo (int)$i['id']; ?>"
+                                               title="Editar dados">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
                                             <form method="POST" class="d-inline">
                                                 <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                                                 <input type="hidden" name="acao" value="aprovar_inscricao">
@@ -288,6 +426,85 @@ include __DIR__ . '/../includes/header.php';
             </div>
         </div>
 
+        <?php if (!empty($inscricoesRecusadas)): ?>
+        <div class="card shadow-sm border-0 border-danger mb-3" style="border-left: 4px solid #dc3545 !important;">
+            <div class="card-body p-4">
+                <h2 class="h6 fw-bold mb-3 text-danger">
+                    <i class="bi bi-x-circle me-1"></i>Inscrições recusadas
+                    <span class="badge bg-danger ms-1"><?php echo count($inscricoesRecusadas); ?></span>
+                </h2>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Empresa</th>
+                                <th>Categoria</th>
+                                <th>Cidade</th>
+                                <th>Contato</th>
+                                <th>Mensagem</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($inscricoesRecusadas as $i): ?>
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold"><?php echo sanitize($i['nome_fantasia']); ?></div>
+                                        <div class="text-muted small"><?php echo sanitize($i['usuario_nome'] ?? ''); ?></div>
+                                    </td>
+                                    <td><span class="badge bg-light text-dark"><?php echo sanitize($i['categoria']); ?></span></td>
+                                    <td><?php echo sanitize($i['cidade']); ?> - <?php echo sanitize($i['estado']); ?></td>
+                                    <td>
+                                        <div class="small"><?php echo sanitize($i['email']); ?></div>
+                                        <?php
+                                        $tel = preg_replace('/\D/', '', (string)($i['telefone'] ?? ''));
+                                        if ($tel !== '' && !preg_match('/^0+$/', $tel)): ?>
+                                        <div class="small">
+                                            <a href="https://wa.me/55<?php echo $tel; ?>" target="_blank" rel="noopener" class="text-success text-decoration-none">
+                                                <i class="bi bi-whatsapp me-1"></i><?php echo sanitize((string)($i['telefone'] ?? '')); ?>
+                                            </a>
+                                        </div>
+                                        <?php else: ?>
+                                        <div class="small text-muted fst-italic">Sem telefone</div>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="small text-muted" style="max-width:200px;">
+                                        <?php echo $i['mensagem'] ? sanitize(mb_substr((string)$i['mensagem'], 0, 100)) . (mb_strlen((string)$i['mensagem']) > 100 ? '…' : '') : '<span class="fst-italic">—</span>'; ?>
+                                    </td>
+                                    <td class="text-end" style="white-space:nowrap;">
+                                        <a class="btn btn-sm btn-outline-secondary"
+                                           href="<?php echo BASE_URL; ?>/admin/parceiro-editar?id=<?php echo (int)$i['id']; ?>"
+                                           title="Editar dados">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form method="POST" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                                            <input type="hidden" name="acao" value="aprovar_inscricao">
+                                            <input type="hidden" name="id" value="<?php echo (int)$i['id']; ?>">
+                                            <button class="btn btn-sm btn-success" type="submit" title="Aprovar diretamente">Aprovar</button>
+                                        </form>
+                                        <form method="POST" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                                            <input type="hidden" name="acao" value="reabrir_inscricao">
+                                            <input type="hidden" name="id" value="<?php echo (int)$i['id']; ?>">
+                                            <button class="btn btn-sm btn-outline-warning" type="submit" title="Volta para Pendentes">Reabrir</button>
+                                        </form>
+                                        <form method="POST" class="d-inline" onsubmit="return confirm('Excluir esta inscrição? O parceiro poderá fazer uma nova.')">
+                                            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                                            <input type="hidden" name="acao" value="excluir_inscricao">
+                                            <input type="hidden" name="id" value="<?php echo (int)$i['id']; ?>">
+                                            <button class="btn btn-sm btn-outline-danger" type="submit" title="Excluir definitivamente">Excluir</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
                 <h2 class="h6 fw-bold mb-3">Inscrições aprovadas</h2>
@@ -301,7 +518,8 @@ include __DIR__ . '/../includes/header.php';
                                     <th>Empresa</th>
                                     <th>Categoria</th>
                                     <th>Cidade</th>
-                                    <th>Data</th>
+                                    <th>Data aprovação</th>
+                                    <th class="text-end">Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -311,6 +529,12 @@ include __DIR__ . '/../includes/header.php';
                                         <td><span class="badge bg-light text-dark"><?php echo sanitize($i['categoria']); ?></span></td>
                                         <td><?php echo sanitize($i['cidade']); ?> - <?php echo sanitize($i['estado']); ?></td>
                                         <td class="text-muted small"><?php echo sanitize((string)($i['aprovada_em'] ?? '')); ?></td>
+                                        <td class="text-end">
+                                            <a class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+                                               href="<?php echo BASE_URL; ?>/admin/parceiro-editar?id=<?php echo (int)$i['id']; ?>">
+                                                <i class="bi bi-pencil"></i> Editar
+                                            </a>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -319,7 +543,7 @@ include __DIR__ . '/../includes/header.php';
                 <?php endif; ?>
             </div>
         </div>
-    <?php else: ?>
+    <?php elseif ($tab === 'pagamentos'): ?>
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
                 <h2 class="h6 fw-bold mb-3">Pagamentos pendentes</h2>
@@ -373,6 +597,126 @@ include __DIR__ . '/../includes/header.php';
                 </div>
             </div>
         </div>
+
+    <?php elseif ($tab === 'assinaturas'): ?>
+
+        <?php
+        $statusAssinaturaLabel = [
+            'ativa'              => ['label' => 'Ativa',              'badge' => 'success'],
+            'pendente_pagamento' => ['label' => 'Aguard. pagamento',  'badge' => 'warning'],
+            'suspensa'           => ['label' => 'Suspensa',           'badge' => 'secondary'],
+            'cancelada'          => ['label' => 'Cancelada',          'badge' => 'danger'],
+        ];
+        $metodoLabel = [
+            'pix_manual'        => 'Pix (manual)',
+            'gateway'           => 'Gateway',
+        ];
+        $gatewayLabel = [
+            'pix'               => 'Pix',
+            'cartao_avista'     => 'Cartão à vista',
+            'cartao_recorrente' => 'Cartão recorrente',
+        ];
+        ?>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h2 class="h6 fw-bold mb-1">Assinaturas de parceiros</h2>
+                <p class="text-muted small mb-3">
+                    Assinaturas com cartão recorrente podem ser canceladas aqui — a cobrança na EFI é interrompida imediatamente e o perfil é despublicado.
+                </p>
+
+                <?php if (empty($todasAssinaturas)): ?>
+                    <div class="text-muted">Nenhuma assinatura cadastrada.</div>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Parceiro</th>
+                                    <th>Plano</th>
+                                    <th>Método</th>
+                                    <th>Status</th>
+                                    <th>Pago até</th>
+                                    <th>Próx. cobrança</th>
+                                    <th class="text-end">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($todasAssinaturas as $a): ?>
+                                <?php
+                                    $si = $statusAssinaturaLabel[$a['status']] ?? ['label' => $a['status'], 'badge' => 'secondary'];
+                                    $temRecorrente = !empty($a['pagamento_subscription_id']) || !empty($a['efi_subscription_id']);
+                                    $subscriptionId = !empty($a['efi_subscription_id']) ? (string)$a['efi_subscription_id'] : (string)($a['pagamento_subscription_id'] ?? '');
+                                    $podecancelar = in_array($a['status'], ['ativa', 'pendente_pagamento', 'suspensa'], true);
+                                    $gateway = $gatewayLabel[$a['gateway_tipo'] ?? ''] ?? ($metodoLabel[$a['metodo_pagamento']] ?? '—');
+                                ?>
+                                <tr class="<?php echo $a['status'] === 'cancelada' ? 'text-muted' : ''; ?>">
+                                    <td>
+                                        <div class="fw-semibold"><?php echo sanitize((string)($a['usuario_nome'] ?? '')); ?></div>
+                                        <div class="small text-muted"><?php echo sanitize((string)($a['email'] ?? '')); ?></div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark"><?php echo ucfirst(sanitize($a['plano'])); ?></span>
+                                        <div class="small text-muted"><?php echo sanitize($a['periodicidade']); ?></div>
+                                    </td>
+                                    <td class="small">
+                                        <?php echo sanitize($gateway); ?>
+                                        <?php if ($subscriptionId !== '' && $subscriptionId !== '0'): ?>
+                                            <div class="text-muted" style="font-size:.75rem;">
+                                                <i class="bi bi-link-45deg"></i> Sub #<?php echo sanitize($subscriptionId); ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-<?php echo $si['badge']; ?>"><?php echo $si['label']; ?></span>
+                                        <?php if ($a['status'] === 'cancelada' && !empty($a['cancelada_em'])): ?>
+                                            <div class="small text-muted"><?php echo formatDateBR($a['cancelada_em']); ?></div>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="small">
+                                        <?php echo !empty($a['pago_ate']) ? formatDateBR($a['pago_ate']) : '—'; ?>
+                                    </td>
+                                    <td class="small">
+                                        <?php if (!empty($a['proxima_cobranca']) && $a['status'] === 'ativa'): ?>
+                                            <?php echo formatDateBR($a['proxima_cobranca']); ?>
+                                        <?php else: ?>
+                                            —
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-end" style="white-space:nowrap;">
+                                        <?php if (in_array($a['status'], ['ativa', 'pendente_pagamento', 'suspensa'], true)): ?>
+                                        <form method="POST"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Cancelar assinatura de <?php echo addslashes(sanitize((string)($a['usuario_nome'] ?? ''))); ?>?\n\nIsso irá:\n• Interromper cobranças futuras na EFI\n• Despublicar o perfil imediatamente\n• Notificar o parceiro por e-mail')">
+                                            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                                            <input type="hidden" name="acao" value="cancelar_assinatura">
+                                            <input type="hidden" name="usuario_id" value="<?php echo (int)$a['usuario_id']; ?>">
+                                            <button class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1" type="submit">
+                                                <i class="bi bi-x-circle"></i> Cancelar
+                                            </button>
+                                        </form>
+                                        <?php else: ?>
+                                            <span class="text-muted small fst-italic">—</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-warning d-flex gap-2 align-items-start mt-3 mb-0">
+                        <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+                        <div class="small">
+                            <strong>Cartão recorrente:</strong> cancelar aqui interrompe a assinatura na EFI Bank — nenhuma cobrança futura será feita.
+                            O parceiro mantém acesso ao sistema até o fim do período já pago (<em>pago até</em>).
+                            <br><strong>Pix / Cartão à vista:</strong> sem recorrência ativa. O cancelamento encerra a assinatura no sistema apenas.
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
     <?php endif; ?>
 </div>
 

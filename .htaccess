@@ -1,6 +1,10 @@
-# PetFinder - Apache Configuration
-# Subdomínio: petfinder.pageup.net.br
-# Diretório: /public_html/petfinder
+# Cadê Meu Pet? - Apache Configuration
+# Subdomínio: cademeupet.pageup.net.br
+# Diretório: /public_html/cademeupet
+
+# Forçar UTF-8 em todos os arquivos de texto
+AddDefaultCharset UTF-8
+AddCharset UTF-8 .php .html .htm .css .js .json .xml .txt
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
@@ -23,6 +27,9 @@
 
     # API primeiro (para não interferir com outras regras)
     RewriteRule ^api/efi-billing-notification/?$ api/efi-billing-notification.php [L,QSA]
+    RewriteRule ^api/efi-webhook/?$             api/efi-webhook.php [L,QSA]
+    RewriteRule ^api/webhook-pix-admin/?$       api/webhook-pix-admin.php [L,QSA]
+    RewriteRule ^api/status-doacao/?$           api/status-doacao.php [L,QSA]
 
     # Rotas administrativas
     RewriteRule ^admin/?$ views/admin.php [L,QSA]
@@ -43,6 +50,9 @@
     RewriteRule ^parceiro/pagamento/?$ parceiro-pagamento.php [L,QSA]
     RewriteRule ^parceiro/abrir-pagamento/?$ parceiro-abrir-pagamento.php [L,QSA]
     RewriteRule ^parceiro/pix/?$ parceiro-pix.php [L,QSA]
+    RewriteRule ^admin/parceiro-editar/?$ views/admin-parceiro-editar.php [L,QSA]
+    RewriteRule ^parceiro/contrato/?$ views/parceiro-contrato-aceite.php [L,QSA]
+    RewriteRule ^parceiro/contrato-pdf/?$ views/parceiro-contrato-pdf.php [L,QSA]
 
     # URL amigável para anúncios
     RewriteRule ^anuncio/(\d+)/?$ anuncio.php?id=$1 [L,QSA]

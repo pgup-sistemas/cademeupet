@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../config.php';
 
 $pageTitle = 'Editar Anúncio - Cadê Meu Pet?';
@@ -212,15 +212,6 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
 </div>
-
-<style>
-.cmp-map {
-    height: 280px;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid rgba(0,0,0,0.08);
-}
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {

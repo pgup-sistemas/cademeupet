@@ -295,8 +295,54 @@ class Efi
     }
 
     /**
+     * Registra (ou atualiza) a URL de webhook PIX para uma chave.
+     *
+     * @param array $params ['chave' => '<sua-chave-pix>']
+     * @param array $body   ['webhookUrl' => 'https://...']
+     */
+    public function pixConfigWebhook(array $params = [], array $body = []): array
+    {
+        try {
+            $response = $this->efiPay->pixConfigWebhook($params, $body);
+            return is_array($response) ? $response : [];
+        } catch (EfiException $e) {
+            throw new Exception('Erro ao registrar webhook PIX: ' . $e->getMessage(), (int)$e->getCode(), $e);
+        }
+    }
+
+    /**
+     * Consulta o webhook registrado para uma chave PIX.
+     *
+     * @param array $params ['chave' => '<sua-chave-pix>']
+     */
+    public function pixDetailWebhook(array $params = []): array
+    {
+        try {
+            $response = $this->efiPay->pixDetailWebhook($params);
+            return is_array($response) ? $response : [];
+        } catch (EfiException $e) {
+            throw new Exception('Erro ao consultar webhook PIX: ' . $e->getMessage(), (int)$e->getCode(), $e);
+        }
+    }
+
+    /**
+     * Remove o webhook registrado para uma chave PIX.
+     *
+     * @param array $params ['chave' => '<sua-chave-pix>']
+     */
+    public function pixDeleteWebhook(array $params = []): array
+    {
+        try {
+            $response = $this->efiPay->pixDeleteWebhook($params);
+            return is_array($response) ? $response : [];
+        } catch (EfiException $e) {
+            throw new Exception('Erro ao remover webhook PIX: ' . $e->getMessage(), (int)$e->getCode(), $e);
+        }
+    }
+
+    /**
      * Acesso direto à API EfiPay para chamadas customizadas
-     * 
+     *
      * @return EfiPay Instância da SDK
      */
     public function getEfiPay(): EfiPay
@@ -306,7 +352,7 @@ class Efi
 
     /**
      * Retorna a chave PIX configurada
-     * 
+     *
      * @return string Chave PIX
      */
     public function getPixKey(): string

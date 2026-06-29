@@ -1,0 +1,4 @@
+User-agent: *
+Disallow:
+
+Sitemap: https://petfinder.pageup.net.br/sitemap.xml

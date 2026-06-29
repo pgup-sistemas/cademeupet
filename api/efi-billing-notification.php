@@ -3,6 +3,9 @@ require_once __DIR__ . '/../config.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
+// ========================
+// VALIDAR TOKEN
+// ========================
 $tokenAuth = '';
 if (isset($_SERVER['HTTP_X_WEBHOOK_TOKEN'])) {
     $tokenAuth = (string)$_SERVER['HTTP_X_WEBHOOK_TOKEN'];
@@ -19,6 +22,9 @@ if ($expectedToken !== '' && !hash_equals($expectedToken, $tokenAuth)) {
     exit;
 }
 
+// ========================
+// OBTER NOTIFICATION TOKEN
+// ========================
 $notificationToken = '';
 
 if (isset($_POST['notification'])) {
@@ -32,36 +38,53 @@ if (isset($_POST['notification'])) {
 }
 
 $notificationToken = trim($notificationToken);
-if ($notificationToken === '') {
+if (empty($notificationToken)) {
     http_response_code(400);
     echo json_encode(['ok' => false, 'error' => 'missing_notification_token']);
     exit;
 }
 
+error_log('[efi-billing-notification] Notification token recebido: ' . $notificationToken);
+
+// ========================
+// PROCESSAR NOTIFICAÇÃO
+// ========================
 try {
     $pagamentoController = new PagamentoController();
-
     $efi = $pagamentoController->getApi();
 
+    // Obter detalhes da notificação
     $chargeNotification = $efi->getNotification(['token' => $notificationToken], []);
+    
     $dataList = $chargeNotification['data'] ?? [];
 
     if (!is_array($dataList) || empty($dataList)) {
+        http_response_code(200);
         echo json_encode(['ok' => true, 'status' => 'no_data']);
         exit;
     }
 
+    // Pegar o último evento
     $ultimo = $dataList[count($dataList) - 1];
     $statusAtual = strtoupper((string)($ultimo['status']['current'] ?? ''));
 
+    // Extrair IDs da transação
     $identifiers = (array)($ultimo['identifiers'] ?? []);
     $chargeId = $identifiers['charge_id'] ?? null;
     $subscriptionId = $identifiers['subscription_id'] ?? null;
 
+    error_log('[efi-billing-notification] Status: ' . $statusAtual . ', ChargeId: ' . ($chargeId ?? 'N/A') . ', SubscriptionId: ' . ($subscriptionId ?? 'N/A'));
+
+    // ========================
+    // PROCURAR PAGAMENTO/DOAÇÃO
+    // ========================
     $parceiroPagamentoModel = new ParceiroPagamento();
     $doacaoModel = new Doacao();
 
     $pagamento = null;
+    $doacao = null;
+
+    // Procurar pagamento de parceiro
     if (!empty($chargeId)) {
         $pagamento = $parceiroPagamentoModel->findByEfiChargeId((string)$chargeId);
     }
@@ -69,7 +92,7 @@ try {
         $pagamento = $parceiroPagamentoModel->findLastBySubscriptionId((string)$subscriptionId);
     }
 
-    $doacao = null;
+    // Procurar doação
     if (!$pagamento && !empty($chargeId)) {
         $doacao = $doacaoModel->findByEfiChargeId((string)$chargeId);
     }
@@ -79,17 +102,37 @@ try {
 
     if (empty($pagamento) && empty($doacao)) {
         http_response_code(404);
-        echo json_encode(['ok' => false, 'error' => 'transaction_not_found']);
+        error_log('[efi-billing-notification] Nenhuma transação encontrada para ChargeId: ' . ($chargeId ?? 'N/A'));
+        echo json_encode([
+            'ok' => false,
+            'error' => 'transaction_not_found',
+            'charge_id' => $chargeId,
+            'subscription_id' => $subscriptionId
+        ]);
         exit;
     }
 
+    // ========================
+    // MAPEAR STATUS
+    // ========================
     $novoStatus = null;
-    if (in_array($statusAtual, ['PAID', 'SETTLED'], true)) {
-        $novoStatus = 'aprovado';
-    } elseif (in_array($statusAtual, ['UNPAID', 'CANCELED', 'CANCELLED', 'REFUSED', 'REJECTED'], true)) {
-        $novoStatus = 'recusado';
-    }
+$statusEventType = strtoupper((string)($ultimo['status']['type'] ?? ''));
 
+if (in_array($statusAtual, ['PAID', 'SETTLED'], true)) {
+    $novoStatus = 'aprovado';
+} elseif (in_array($statusAtual, ['UNPAID', 'CANCELED', 'CANCELLED', 'REFUSED', 'REJECTED'], true)) {
+    $novoStatus = 'recusado';
+}
+
+// Log de event type para debug
+error_log('[efi-billing-notification] Event Type: ' . $statusEventType . ', Status Type: ' . ($ultimo['status']['type'] ?? 'N/A'));
+
+// Verificar se é webhook de assinatura
+$isSubscriptionEvent = !empty($subscriptionId) && (
+    strpos($statusEventType, 'SUBSCRIPTION') !== false || 
+    strpos($statusEventType, 'BILL') !== false ||
+    !empty($subscriptionId)
+);
     if ($novoStatus && !empty($pagamento)) {
         $update = [];
         if (!empty($chargeId)) {
@@ -110,8 +153,10 @@ try {
 
         if (!empty($update)) {
             $parceiroPagamentoModel->update((int)$pagamento['id'], $update);
+            error_log('[efi-billing-notification] Pagamento parceiro atualizado: ' . json_encode($update));
         }
 
+        // Se aprovado, atualizar assinatura
         if ($novoStatus === 'aprovado') {
             $assinaturaModel = new ParceiroAssinatura();
             $perfilModel = new ParceiroPerfil();
@@ -139,6 +184,9 @@ try {
         }
     }
 
+    // ========================
+    // ATUALIZAR DOAÇÃO
+    // ========================
     if ($novoStatus && !empty($doacao)) {
         $update = [];
         if (!empty($chargeId)) {
@@ -162,8 +210,10 @@ try {
 
         if (!empty($update)) {
             $doacaoModel->update((int)$doacao['id'], $update);
+            error_log('[efi-billing-notification] Doação atualizada: ' . json_encode($update));
         }
 
+        // Se aprovada, atualizar meta
         if (($update['status'] ?? '') === 'aprovada') {
             $doacaoAtual = $doacaoModel->findById((int)$doacao['id']);
             if (!empty($doacaoAtual)) {
@@ -172,6 +222,10 @@ try {
         }
     }
 
+    // ========================
+    // RESPOSTA SUCESSO
+    // ========================
+    http_response_code(200);
     echo json_encode([
         'ok' => true,
         'status' => $statusAtual,
@@ -182,9 +236,14 @@ try {
         'doacao_id' => $doacao['id'] ?? null,
     ]);
     exit;
+
 } catch (Exception $e) {
-    error_log('[efi-billing-notification] Falha: ' . $e->getMessage());
+    error_log('[efi-billing-notification] Exceção ao processar notificação: ' . $e->getMessage());
     http_response_code(502);
-    echo json_encode(['ok' => false, 'error' => 'notification_failed']);
+    echo json_encode([
+        'ok' => false,
+        'error' => 'processing_error',
+        'message' => $e->getMessage()
+    ]);
     exit;
 }

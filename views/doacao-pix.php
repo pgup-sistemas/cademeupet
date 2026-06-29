@@ -321,7 +321,7 @@ function atualizarStatusPix(autoPolling = false) {
         console.log('[PIX Polling] Resposta:', data);
         
         if (data.ok) {
-            if (data.status === 'aprovada') {
+            if (data.aprovada === true || data.status === 'aprovada') {
                 // Pagamento confirmado!
                 console.log('[PIX Polling] Pagamento confirmado!');
                 pararPolling();

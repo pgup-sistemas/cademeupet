@@ -1,0 +1,5 @@
+Starting production donation test at 2026-01-12T15:47:06-04:00
+Created doacao id: 39
+API Response: {"code":200,"data":{"charge_id":962389780,"status":"link","total":200,"custom_id":"DOACAO_39","payment_url":"https:\/\/pagamento.sejaefi.com.br\/a411243b-85e6-4e90-a7fe-3df0a2e8dd20","payment_method":"credit_card","conditional_discount_date":null,"request_delivery_address":false,"expire_at":"2026-01-19","created_at":"2026-01-12 16:47:08"}}
+Stored payment_url: https://pagamento.sejaefi.com.br/a411243b-85e6-4e90-a7fe-3df0a2e8dd20
+Finished at 2026-01-12T15:47:08-04:00

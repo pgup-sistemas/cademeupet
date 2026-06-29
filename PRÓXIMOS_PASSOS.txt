@@ -1,0 +1,56 @@
+📌 STATUS ATUAL DO SISTEMA
+
+✅ Código: 100% funcionando
+✅ Formulário: Validação corrigida
+✅ Controllers: Refatorados e prontos
+✅ Webhooks: Configurados
+
+❌ Bloqueio Atual: Certificado EFI incompatível
+
+═══════════════════════════════════════════════════════════
+
+🔧 O QUE VOCÊ PRECISA FAZER:
+
+1️⃣ ESCOLHA UM AMBIENTE:
+   └─ Opção A: PRODUÇÃO (pagamentos reais)
+   └─ Opção B: SANDBOX (testes sem dinheiro)
+
+2️⃣ PARA PRODUÇÃO:
+   └─ Acesse: https://dashboard.efipay.com.br
+   └─ Faça login com suas credenciais
+   └─ Verifique se o Client_Id matches o na config
+   └─ Baixe o CERTIFICADO correto em Segurança → Certificados
+   └─ Substitua o arquivo /producao-573055-petfinder.p12 pelo correto
+   └─ Teste com: php test_doacao_form.php
+
+3️⃣ PARA SANDBOX (RECOMENDADO PARA TESTES):
+   └─ Acesse: https://dashboard-sandbox.efipay.com.br
+   └─ Crie uma conta ou faça login
+   └─ Obtenha Client_Id e Client_Secret de SANDBOX
+   └─ Preencha em config.php
+   └─ Altere EFI_SANDBOX=true em config.php
+   └─ Baixe certificado de SANDBOX
+   └─ Teste com: php test_doacao_form.php
+
+═══════════════════════════════════════════════════════════
+
+📋 QUANDO TUDO ESTIVER PRONTO:
+
+1. php test_doacao_form.php → deve retornar "SUCESSO"
+2. Ir para https://petfinder.pageup.net.br/doar
+3. Preencher com:
+   - Valor: R$ 10 (ou qualquer valor)
+   - Método: PIX (ou cartão)
+   - Nome, Email
+4. Clicar "Doar agora"
+5. Será redirecionado para gerar QR Code PIX
+6. Em sandbox: sem necessidade de pagar
+7. Em produção: pagar com PIX ou cartão
+
+═══════════════════════════════════════════════════════════
+
+❓ DÚVIDAS?
+
+Ver arquivo: SOLUCAO_CERTIFICADO_EFI.md
+
+═══════════════════════════════════════════════════════════

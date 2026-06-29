@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../config.php';
 
 $pageTitle = 'Recuperar Senha - Cadê Meu Pet?';
@@ -28,94 +28,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$breadcrumbs = [
-    ['label' => 'Início',          'url' => BASE_URL],
-    ['label' => 'Recuperar Senha'],
-];
-include __DIR__ . '/../includes/header.php';
+include __DIR__ . '/../includes/auth-head.php';
 ?>
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-5 col-md-7">
-            <div class="card shadow-lg border-0">
-                <div class="card-body p-5">
-                    <div class="text-center mb-4">
-                        <div class="logo-icon-large mb-3"><i class="fa-solid fa-key"></i></div>
-                        <h2 class="fw-bold mb-2">Recuperar Senha</h2>
-                        <p class="text-muted">Enviaremos um link para redefinir sua senha</p>
-                    </div>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <a href="<?php echo BASE_URL; ?>" class="auth-brand">
+            <i class="fa-solid fa-paw"></i> Cadê Meu Pet?
+        </a>
+        <h1 class="auth-title">Recuperar senha</h1>
+        <p class="auth-subtitle">Enviaremos um link para redefinir sua senha</p>
 
-                    <?php if (!empty($errors)): ?>
-                        <div class="alert alert-danger">
-                            <ul class="mb-0">
-                                <?php foreach ($errors as $error): ?>
-                                    <li><?php echo sanitize($error); ?></li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
-                    <?php endif; ?>
+        <?php if (!empty($errors)): ?>
+            <div class="alert alert-danger py-2 small">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                <?php foreach ($errors as $error): echo sanitize($error); endforeach; ?>
+            </div>
+        <?php endif; ?>
 
-                    <?php if (!empty($successMessage)): ?>
-                        <div class="alert alert-success">
-                            <?php echo sanitize($successMessage); ?>
-                        </div>
-                    <?php endif; ?>
+        <?php if (!empty($successMessage)): ?>
+            <div class="alert alert-success py-2 small">
+                <i class="bi bi-check-circle me-1"></i><?php echo sanitize($successMessage); ?>
+            </div>
+        <?php endif; ?>
 
-                    <form method="POST" action="">
-                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+        <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
 
-                        <div class="mb-3">
-                            <label for="email" class="form-label">E-mail cadastrado</label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text">
-                                    <i class="bi bi-envelope"></i>
-                                </span>
-                                <input type="email"
-                                       class="form-control"
-                                       id="email"
-                                       name="email"
-                                       placeholder="seu@email.com"
-                                       required
-                                       autofocus>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
-                            <i class="bi bi-envelope"></i> Enviar Link de Recuperação
-                        </button>
-
-                        <div class="text-center">
-                            <a href="<?php echo BASE_URL; ?>/login/" class="text-decoration-none">
-                                <i class="bi bi-arrow-left"></i> Voltar ao Login
-                            </a>
-                        </div>
-                    </form>
+            <div class="mb-3">
+                <label for="email" class="form-label fw-semibold small mb-1">E-mail cadastrado</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                    <input type="email" class="form-control" id="email" name="email"
+                           placeholder="seu@email.com" required autofocus>
                 </div>
             </div>
-        </div>
+
+            <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                <i class="bi bi-send me-1"></i>Enviar link de recuperação
+            </button>
+        </form>
+
+        <div class="auth-divider"></div>
+
+        <a href="<?php echo BASE_URL; ?>/login/" class="btn btn-outline-secondary w-100">
+            <i class="bi bi-arrow-left me-1"></i>Voltar ao login
+        </a>
     </div>
 </div>
 
-<style>
-.logo-icon-large {
-    font-size: 4em;
-}
-.card {
-    border-radius: 15px;
-}
-.input-group-text {
-    background: white;
-}
-.form-control:focus {
-    border-color: #2196F3;
-    box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25);
-}
-.btn-lg {
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 600;
-}
-</style>
-
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/auth-foot.php'; ?>

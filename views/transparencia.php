@@ -45,7 +45,7 @@ include __DIR__ . '/../includes/header.php';
                     <h2 class="h5 fw-bold mb-3"><i class="fa-solid fa-circle-check text-success"></i> O que já temos</h2>
                     <ul class="mb-0">
                         <li>Plataforma web funcionando (cadastro, login, anúncios, busca, favoritos)</li>
-                        <li>Envio de e-mails via SMTP (PHPMailer)</li>
+                        <li>Envio de e-mails transacionais via Resend</li>
                         <li>Upload de fotos e exibição de anúncios</li>
                         <li>Integração de pagamento via Pix (Efí Bank)</li>
                         <li>Webhook para confirmação de pagamentos</li>

@@ -91,4 +91,34 @@ class ParceiroAssinatura
             [$days]
         );
     }
+
+    public function listAll(): array
+    {
+        return $this->db->fetchAll(
+            'SELECT a.*,
+                    u.nome AS usuario_nome, u.email,
+                    pp.efi_subscription_id AS pagamento_subscription_id,
+                    pp.gateway_tipo,
+                    pp.id AS pagamento_id
+             FROM parceiro_assinaturas a
+             JOIN usuarios u ON u.id = a.usuario_id
+             LEFT JOIN parceiro_pagamentos pp ON pp.usuario_id = a.usuario_id
+                 AND pp.status = "aprovado"
+                 AND pp.efi_subscription_id IS NOT NULL
+             ORDER BY FIELD(a.status,"ativa","pendente_pagamento","suspensa","cancelada"), u.nome ASC'
+        );
+    }
+
+    public function cancelar(int $usuarioId, string $canceladaEm = ''): void
+    {
+        if ($canceladaEm === '') {
+            $canceladaEm = date('Y-m-d H:i:s');
+        }
+        $this->db->update(
+            'parceiro_assinaturas',
+            ['status' => 'cancelada', 'cancelada_em' => $canceladaEm],
+            'usuario_id = ?',
+            [$usuarioId]
+        );
+    }
 }

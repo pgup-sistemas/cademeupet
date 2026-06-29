@@ -4,6 +4,14 @@
  * Arquivo principal de configuração do sistema
  */
 
+// Encoding UTF-8 em toda a aplicação
+ini_set('default_charset', 'UTF-8');
+mb_internal_encoding('UTF-8');
+mb_http_output('UTF-8');
+if (!headers_sent()) {
+    header('Content-Type: text/html; charset=UTF-8');
+}
+
 // Iniciar sessão
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -35,12 +43,41 @@ if ($_isLocal) {
 date_default_timezone_set('America/Porto_Velho');
 
 // ═══════════════════════════════════════════════
+// LEITOR DE VARIÁVEIS DE AMBIENTE (.env)
+// Definido aqui para estar disponível em todas as seções abaixo.
+// ═══════════════════════════════════════════════
+if (!function_exists('envValue')) {
+    function envValue(string $key, $default = '') {
+        static $vars = null;
+        if ($vars === null) {
+            $vars = [];
+            $envFile = __DIR__ . '/.env';
+            if (file_exists($envFile) && is_readable($envFile)) {
+                foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+                    $line = trim($line);
+                    if ($line === '' || $line[0] === '#' || strpos($line, '=') === false) continue;
+                    [$k, $v] = array_map('trim', explode('=', $line, 2));
+                    $v = preg_replace('/^"(.*)"$/s', '$1', $v);
+                    $v = preg_replace("/^'(.*)'$/s", '$1', $v);
+                    $vars[$k] = $v;
+                    @putenv("$k=$v");
+                    $_ENV[$k] = $v;
+                }
+            }
+        }
+        $fromEnv = getenv($key);
+        if ($fromEnv !== false) return $fromEnv;
+        return $vars[$key] ?? $default;
+    }
+}
+
+// ═══════════════════════════════════════════════
 // BANCO DE DADOS
 // ═══════════════════════════════════════════════
-define('DB_HOST',    $_isLocal ? 'localhost'                    : 'petfinder.mysql.dbaas.com.br');
-define('DB_NAME',    'cademeupet');
-define('DB_USER',    $_isLocal ? 'root'                         : 'petfinder');
-define('DB_PASS',    $_isLocal ? ''                             : 'Petfinder#2026');
+define('DB_HOST',    IS_LOCAL ? 'localhost'    : envValue('DB_HOST',    'petfinder.mysql.dbaas.com.br'));
+define('DB_NAME',    IS_LOCAL ? 'cademeupet'   : envValue('DB_NAME',    'cademeupet'));
+define('DB_USER',    IS_LOCAL ? 'root'         : envValue('DB_USER',    'petfinder'));
+define('DB_PASS',    IS_LOCAL ? ''             : envValue('DB_PASS',    ''));
 define('DB_CHARSET', 'utf8mb4');
 unset($_isLocal, $_httpHost);
 
@@ -53,7 +90,7 @@ define('EFI_SANDBOX', false); // true = Testes (Homologação), false = Produç�
 // CAMINHOS DO SISTEMA
 // ═══════════════════════════════════════════════
 define('BASE_PATH', __DIR__);
-define('BASE_URL', IS_LOCAL ? 'http://localhost/cademeupet' : 'https://petfinder.pageup.net.br');
+define('BASE_URL', IS_LOCAL ? 'http://localhost/cademeupet' : 'https://cademeupet.pageup.net.br');
 
 // Informações de SEO do site
 define('SITE_NAME', 'Cadê Meu Pet?');
@@ -87,30 +124,6 @@ define('MIN_DONATION_AMOUNT', 2.00);
 define('MERCADO_PAGO_PUBLIC_KEY', 'TEST-your-public-key');
 define('MERCADO_PAGO_ACCESS_TOKEN', 'TEST-your-access-token');
 
-// Helper para ler variáveis de ambiente (simples, usa getenv e .env local como fallback)
-if (!function_exists('envValue')) {
-    function envValue(string $key, $default = '') {
-        $val = getenv($key);
-        if ($val !== false) {
-            return $val;
-        }
-        // Fallback: parse .env se existir (linha simples KEY=VAL)
-        $envFile = __DIR__ . '/.env';
-        if (file_exists($envFile)) {
-            $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-            foreach ($lines as $line) {
-                $line = trim($line);
-                if ($line === '' || str_starts_with($line, '#')) continue;
-                $parts = explode('=', $line, 2);
-                if (count($parts) === 2 && trim($parts[0]) === $key) {
-                    return trim($parts[1], " \"'");
-                }
-            }
-        }
-        return $default;
-    }
-}
-
 // ═══════════════════════════════════════════════
 // CONFIGURAÇÕES EFI BANK - PRODUÇÃO (ROTACIONADAS)
 // As chaves de produção foram removidas deste arquivo para segurança.
@@ -121,9 +134,13 @@ define('EFI_CLIENT_SECRET', envValue('EFI_CLIENT_SECRET', ''));
 define('EFI_PIX_KEY', envValue('EFI_PIX_KEY', ''));
 define('EFI_WEBHOOK_TOKEN', envValue('EFI_WEBHOOK_TOKEN', ''));
 
-// CERTIFICADO: movido para `secrets/` e ignorado por VCS. Atualize EFI_CERTIFICATE_PATH via variável de ambiente se necessário.
-$__efiCertPath = (string)envValue('EFI_CERTIFICATE_PATH', __DIR__ . '/secrets/producao-573055-petfinder.pem');
-$__efiCertPath = trim($__efiCertPath);
+// CERTIFICADO em secrets/ (protegido por .htaccess, ignorado pelo git).
+// Nota: envValue retorna '' quando a chave existe mas está vazia no .env,
+// por isso checamos explicitamente e aplicamos o default manual.
+$__efiCertPath = trim((string)envValue('EFI_CERTIFICATE_PATH', ''));
+if ($__efiCertPath === '') {
+    $__efiCertPath = __DIR__ . DIRECTORY_SEPARATOR . 'secrets' . DIRECTORY_SEPARATOR . 'producao-573055-petfinder.pem';
+}
 
 // Normalizar caminho do certificado: se veio um path antigo/inválido, buscar na raiz do projeto.
 if ($__efiCertPath !== '' && !file_exists($__efiCertPath)) {
@@ -170,21 +187,23 @@ define('EFI_BASE_URL', EFI_SANDBOX === true
     : 'https://pix.api.efipay.com.br'         // Produção
 );
 
-define('EFI_PIX_DESCRIPTION', 'Doação para PetFinder');
-define('EFI_PIX_NOTIFICATION_URL', 'https://petfinder.pageup.net.br/api/efi-webhook.php');
+define('EFI_PIX_DESCRIPTION', envValue('EFI_PIX_DESCRIPTION', 'Doação para PetFinder'));
+// URL do webhook PIX: lida do .env, com fallback para BASE_URL + caminho padrão
+define('EFI_PIX_NOTIFICATION_URL', (function() {
+    $fromEnv = trim((string)envValue('EFI_PIX_NOTIFICATION_URL', ''));
+    if ($fromEnv !== '') return $fromEnv;
+    return rtrim(IS_LOCAL ? 'https://cademeupet.pageup.net.br' : BASE_URL, '/') . '/api/efi-webhook';
+})());
 
 define('DONATION_MODAL_TITLE', 'Ajude a manter o PetFinder ativo!');
 define('DONATION_MODAL_TEXT', 'Seja um apoiador e ajude a manter o PetFinder ativo!');
 
 // ═══════════════════════════════════════════════
-// EMAIL
+// EMAIL (Resend.com)
 // ═══════════════════════════════════════════════
-define('SMTP_HOST', 'smtp.gmail.com');
-define('SMTP_PORT', 587);
-define('SMTP_USER', 'pageupsistemas@gmail.com');
-define('SMTP_PASS', 'rsyh bqnh hboh ycgw');
-define('EMAIL_FROM', 'pageupsistemas@gmail.com');
-define('EMAIL_FROM_NAME', 'PetFinder');
+define('RESEND_API_KEY',  envValue('RESEND_API_KEY',  ''));
+define('EMAIL_FROM',      envValue('EMAIL_FROM',      'noreply@cademeupet.pageup.net.br'));
+define('EMAIL_FROM_NAME', envValue('EMAIL_FROM_NAME', 'Cadê Meu Pet?'));
 
 // ═══════════════════════════════════════════════
 // GOOGLE MAPS API

@@ -23,11 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/parceiros/inscricao');
     }
 
-    $categoria = (string)($_POST['categoria'] ?? '');
+    $categoria    = (string)($_POST['categoria'] ?? '');
     $nomeFantasia = trim((string)($_POST['nome_fantasia'] ?? ''));
-    $cidade = trim((string)($_POST['cidade'] ?? ($usuario['cidade'] ?? '')));
-    $estado = strtoupper(trim((string)($_POST['estado'] ?? ($usuario['estado'] ?? ''))));
-    $mensagem = trim((string)($_POST['mensagem'] ?? ''));
+    $cidade       = trim((string)($_POST['cidade'] ?? ($usuario['cidade'] ?? '')));
+    $estado       = strtoupper(trim((string)($_POST['estado'] ?? ($usuario['estado'] ?? ''))));
+    $mensagem     = trim((string)($_POST['mensagem'] ?? ''));
+    $telefone     = preg_replace('/\D/', '', (string)($_POST['telefone'] ?? ''));
 
     $errors = [];
     $validCategorias = ['petshop', 'clinica', 'hotel', 'adestrador', 'outro'];
@@ -51,7 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = 'Informe uma UF válida (ex.: SP, RJ, MG).';
         }
     }
-
+    if ($telefone === '' || strlen($telefone) < 10) {
+        $errors[] = 'Informe um telefone válido com DDD.';
+    }
     if ($mensagem !== '' && mb_strlen($mensagem) > 2000) {
         $errors[] = 'A mensagem é muito longa (máx. 2000 caracteres).';
     }
@@ -63,14 +66,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         $inscricaoModel->create([
-            'usuario_id' => $usuarioId,
-            'categoria' => $categoria,
+            'usuario_id'   => $usuarioId,
+            'categoria'    => $categoria,
             'nome_fantasia' => $nomeFantasia,
-            'cidade' => $cidade,
-            'estado' => $estado,
-            'mensagem' => $mensagem !== '' ? $mensagem : null,
-            'status' => 'pendente',
+            'cidade'       => $cidade,
+            'estado'       => $estado,
+            'telefone'     => $telefone,
+            'mensagem'     => $mensagem !== '' ? $mensagem : null,
+            'status'       => 'pendente',
         ]);
+
+        // Atualiza o telefone do perfil do usuário se estava vazio ou zerado
+        $telAtual = preg_replace('/\D/', '', (string)($usuario['telefone'] ?? ''));
+        if ($telAtual === '' || preg_match('/^0+$/', $telAtual)) {
+            $usuarioModel->update($usuarioId, ['telefone' => $telefone]);
+        }
 
         $userEmail = (string)($usuario['email'] ?? '');
         $userName = (string)($usuario['nome'] ?? '');
@@ -184,6 +194,15 @@ include __DIR__ . '/../includes/header.php';
                                 <div class="col-md-6">
                                     <label class="form-label">Estado (UF)</label>
                                     <input type="text" name="estado" class="form-control" maxlength="2" value="<?php echo sanitize((string)($usuario['estado'] ?? '')); ?>" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Telefone / WhatsApp <span class="text-danger">*</span></label>
+                                    <?php
+                                    $telPerfil = (string)($usuario['telefone'] ?? '');
+                                    $telPrefill = preg_match('/^0+$/', $telPerfil) ? '' : $telPerfil;
+                                    ?>
+                                    <input type="tel" name="telefone" class="form-control" placeholder="(69) 99999-9999"
+                                           value="<?php echo sanitize($telPrefill); ?>" required>
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label">Sobre / serviços (opcional)</label>

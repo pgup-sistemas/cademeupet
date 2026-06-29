@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../config.php';
 
 $pageTitle = 'Publicar Anúncio - Cadê Meu Pet?';
@@ -527,8 +527,15 @@ include __DIR__ . '/../includes/header.php';
                                 
                                 <!-- Data -->
                                 <div class="mb-3">
-                                    <label for="data_ocorrido" class="form-label fw-bold">
-                                        Quando? <span class="text-danger">*</span>
+                                    <label for="data_ocorrido" id="labelDataOcorrido" class="form-label fw-bold">
+                                        <?php
+                                        $tipoLabel = [
+                                            'perdido'    => 'Quando foi perdido?',
+                                            'encontrado' => 'Quando foi encontrado?',
+                                            'doacao'     => 'Data de disponibilização',
+                                        ];
+                                        echo ($tipoLabel[$formData['tipo'] ?? ''] ?? 'Quando?');
+                                        ?> <span class="text-danger">*</span>
                                     </label>
                                     <?php $dataOcorridoValue = $formData['data_ocorrido'] ?? date('Y-m-d'); ?>
                                     <input type="date" 
@@ -676,8 +683,8 @@ include __DIR__ . '/../includes/header.php';
                                            value="<?php echo sanitize($formData['email_contato'] ?? ''); ?>">
                                 </div>
                                 
-                                <!-- Recompensa -->
-                                <div class="mb-4">
+                                <!-- Recompensa (só para 'perdido') -->
+                                <div class="mb-4" id="recompensaWrapper">
                                     <label for="recompensa" class="form-label">Oferece Recompensa?</label>
                                     <input type="text" 
                                            class="form-control" 
@@ -706,255 +713,55 @@ include __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
-<style>
-#doacaoFields {
-    display: none;
-}
-
-#doacaoFields[style*="display: block"],
-#doacaoFields[style*="display:block"] {
-    display: block !important;
-}
-
-.stepper {
-    position: relative;
-}
-
-.stepper::before {
-    content: '';
-    position: absolute;
-    top: 30px;
-    left: 25%;
-    right: 25%;
-    height: 2px;
-    background: #e0e0e0;
-    z-index: 0;
-}
-
-.step {
-    text-align: center;
-    position: relative;
-    z-index: 1;
-}
-
-.step-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: white;
-    border: 3px solid #e0e0e0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 10px;
-    font-size: 1.5em;
-    font-weight: bold;
-    color: #999;
-}
-
-.step.active .step-icon {
-    background: #2196F3;
-    border-color: #2196F3;
-    color: white;
-}
-
-.step.completed .step-icon {
-    background: #4CAF50;
-    border-color: #4CAF50;
-    color: white;
-}
-
-.btn-tipo {
-    height: 180px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-}
-
-.btn-tipo:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-}
-
-.tipo-icon {
-    font-size: 3em;
-    margin-bottom: 10px;
-}
-
-.upload-area {
-    border: 2px dashed #ddd;
-    border-radius: 10px;
-    padding: 20px;
-    text-align: center;
-    transition: all 0.3s;
-}
-
-.upload-area:hover {
-    border-color: #2196F3;
-    background: #f8f9fa;
-}
-
-.upload-placeholder {
-    cursor: pointer;
-    padding: 40px;
-}
-
-.upload-placeholder i {
-    font-size: 3em;
-    color: #2196F3;
-    display: block;
-    margin-bottom: 15px;
-}
-
-.preview-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.preview-item {
-    position: relative;
-    aspect-ratio: 1;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.preview-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.preview-item .remove-btn {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: rgba(255,0,0,0.8);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
-}
-
-.btn-group-especies,
-.btn-group-tamanhos {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.btn-group-especies .btn,
-.btn-group-tamanhos .btn {
-    flex: 1;
-    min-width: 120px;
-}
-
-.cmp-map {
-    height: 280px;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid rgba(0,0,0,0.08);
-}
-</style>
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('DOM carregado, configurando campos de adoção...');
-    
     const tipoInputs = document.querySelectorAll('input[name="tipo"]');
 
     function getTipoSelecionado() {
         const selectedRadio = document.querySelector('input[name="tipo"]:checked');
-        if (selectedRadio && selectedRadio.value) {
-            return selectedRadio.value;
-        }
+        if (selectedRadio && selectedRadio.value) return selectedRadio.value;
 
         const hiddenTipo = document.querySelector('input[name="tipo"]#tipo_hidden');
-        if (hiddenTipo && hiddenTipo.value) {
-            return hiddenTipo.value;
-        }
+        if (hiddenTipo && hiddenTipo.value) return hiddenTipo.value;
 
         return '';
     }
-    
-    function refreshDoacaoFields() {
-        console.log('Atualizando campos de adoção...');
 
+    function refreshTipoFields() {
+        const tipo = getTipoSelecionado();
+        const isDoacao  = tipo === 'doacao';
+        const isPerdido = tipo === 'perdido';
+
+        // Passo 2: campos extras de adoção
         const doacaoFields = document.getElementById('doacaoFields');
-        if (!doacaoFields) {
-            // O bloco de campos de adoção só existe no passo 2.
-            return;
+        if (doacaoFields) {
+            doacaoFields.style.display = isDoacao ? 'block' : 'none';
         }
-        
-        const tipoSelecionado = getTipoSelecionado();
-        console.log('Tipo selecionado:', tipoSelecionado || 'nenhum');
-        
-        // Verifica se o tipo selecionado é 'doacao'
-        const isDoacao = tipoSelecionado === 'doacao';
-        console.log('É doação?', isDoacao);
-        
-        // Atualiza a visibilidade dos campos de doação
-        if (isDoacao) {
-            doacaoFields.style.display = 'block';
-            doacaoFields.style.visibility = 'visible';
-            doacaoFields.style.opacity = '1';
-            doacaoFields.style.height = 'auto';
-            doacaoFields.style.overflow = 'visible';
-        } else {
-            doacaoFields.style.display = 'none';
-            doacaoFields.style.visibility = 'hidden';
-            doacaoFields.style.opacity = '0';
-            doacaoFields.style.height = '0';
-            doacaoFields.style.overflow = 'hidden';
+
+        // Passo 3: recompensa só faz sentido para anúncios de pet perdido
+        const recompensaWrapper = document.getElementById('recompensaWrapper');
+        if (recompensaWrapper) {
+            recompensaWrapper.style.display = isPerdido ? 'block' : 'none';
         }
-        
-        console.log('Visibilidade dos campos de doação:', doacaoFields.style.display);
+
+        // Passo 3: label da data varia conforme o tipo
+        const labelData = document.getElementById('labelDataOcorrido');
+        if (labelData) {
+            const labels = {
+                perdido:    'Quando foi perdido?',
+                encontrado: 'Quando foi encontrado?',
+                doacao:     'Data de disponibilização',
+            };
+            const text = labels[tipo] || 'Quando?';
+            labelData.innerHTML = text + ' <span class="text-danger">*</span>';
+        }
     }
 
-    // Adiciona o evento de mudança a todos os radios de tipo
     tipoInputs.forEach(function (el) {
-        el.addEventListener('change', function () {
-            console.log('Tipo alterado para:', this.value);
-            refreshDoacaoFields();
-        });
+        el.addEventListener('change', refreshTipoFields);
     });
-    
-    // Força uma atualização inicial
-    console.log('Forçando atualização inicial dos campos de doação...');
-    refreshDoacaoFields();
-    
-    // Adiciona um listener para o evento de submit do formulário
-    const form = document.getElementById('anuncioForm');
-    if (form) {
-        form.addEventListener('submit', function() {
-            const formData = new FormData(form);
-            console.log('=== DADOS DO FORMULÁRIO ===');
-            console.log('Tipo selecionado:', getTipoSelecionado() || 'nenhum');
-            console.log('Todos os dados do formulário:');
-            
-            // Exibe todos os pares chave/valor do formulário
-            for (let [key, value] of formData.entries()) {
-                console.log(`${key}: ${value}`);
-            }
-            
-            // Verifica se o tipo é 'doacao' e se os campos de doação estão preenchidos
-            const tipo = formData.get('tipo');
-            if (tipo === 'doacao') {
-                console.log('=== CAMPOS DE DOAÇÃO ===');
-                console.log('Idade:', formData.get('idade'));
-                console.log('Castrado:', formData.get('castrado'));
-                console.log('Vacinas:', formData.get('vacinas'));
-                console.log('Termo de responsabilidade:', formData.get('necessita_termo_responsabilidade'));
-            }
-            
-            console.log('==========================');
-        });
-    }
+
+    refreshTipoFields();
 
     if (document.getElementById('mapPicker') && window.CadeMeuPetMap) {
         window.__petfinderMapPicker = window.CadeMeuPetMap.init({
@@ -1043,11 +850,7 @@ async function buscarCEPForm() {
     const cepInput = document.getElementById('cep');
     const cepButton = document.getElementById('btn-buscar-cep');
     
-    // Verifica se os elementos existem
-    if (!cepInput || !cepButton) {
-        console.error('Elementos do CEP não encontrados');
-        return;
-    }
+    if (!cepInput || !cepButton) return;
     
     const cep = (cepInput.value || '').replace(/\D/g, '');
 

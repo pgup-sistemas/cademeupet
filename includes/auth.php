@@ -347,7 +347,7 @@ class Auth {
         
         $sent = sendEmail($email, $subject, $message);
         if (!$sent) {
-            error_log('[Auth] Falha ao enviar email de confirmação para: ' . $email . ' | SMTP_HOST=' . (defined('SMTP_HOST') ? SMTP_HOST : 'N/A'));
+            error_log('[Auth] Falha ao enviar email de confirmação para: ' . $email);
             // Salva flag em sessão para exibir alerta ao admin
             if (isAdmin()) {
                 $_SESSION['alert_email_fail'] = 'Falha ao enviar e-mail de confirmação para: ' . $email;

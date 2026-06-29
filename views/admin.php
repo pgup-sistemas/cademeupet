@@ -1,56 +1,19 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../config.php';
 
 requireAdmin();
 
 $pageTitle = 'Painel Admin - Cadê Meu Pet?';
 
-$db = getDB();
-
-// KPIs principais
-$stats = $db->fetchOne('SELECT * FROM view_estatisticas') ?: [];
-
-// Tendências hoje
-$hoje = $db->fetchOne("
-    SELECT
-        (SELECT COUNT(*) FROM usuarios  WHERE DATE(data_cadastro)   = CURDATE()) AS usuarios_hoje,
-        (SELECT COUNT(*) FROM anuncios  WHERE DATE(data_publicacao) = CURDATE()) AS anuncios_hoje,
-        (SELECT COUNT(*) FROM anuncios  WHERE DATE(resolvido_em)    = CURDATE()) AS reunioes_hoje,
-        (SELECT COUNT(*) FROM anuncios  WHERE moderacao_status = 'pendente')     AS pendentes_moderacao
-") ?: [];
-
-// Tendências mês
-$mes = $db->fetchOne("
-    SELECT
-        (SELECT COUNT(*) FROM usuarios
-          WHERE MONTH(data_cadastro) = MONTH(NOW()) AND YEAR(data_cadastro) = YEAR(NOW())) AS usuarios_mes,
-        (SELECT COUNT(*) FROM anuncios
-          WHERE status = 'resolvido'
-            AND MONTH(resolvido_em) = MONTH(NOW()) AND YEAR(resolvido_em) = YEAR(NOW()))    AS reunioes_mes
-") ?: [];
-
-// Últimos usuários cadastrados
-$ultimosUsuarios = $db->fetchAll("
-    SELECT id, nome, email, data_cadastro, ativo
-    FROM usuarios ORDER BY data_cadastro DESC LIMIT 5
-");
-
-// Últimos anúncios publicados
-$ultimosAnuncios = $db->fetchAll("
-    SELECT a.id, a.nome_pet, a.especie, a.tipo, a.status, a.cidade, a.estado,
-           a.moderacao_status, a.data_publicacao, u.nome AS autor
-    FROM anuncios a
-    JOIN usuarios u ON a.usuario_id = u.id
-    ORDER BY a.data_publicacao DESC LIMIT 8
-");
-
-// Últimas doações
-$ultimasDoacoes = $db->fetchAll("
-    SELECT d.id, d.valor, d.status, d.data_doacao, u.nome AS doador
-    FROM doacoes d
-    LEFT JOIN usuarios u ON d.usuario_id = u.id
-    ORDER BY d.data_doacao DESC LIMIT 5
-");
+$adminCtrl = new AdminController();
+[
+    'stats'           => $stats,
+    'hoje'            => $hoje,
+    'mes'             => $mes,
+    'ultimosUsuarios' => $ultimosUsuarios,
+    'ultimosAnuncios' => $ultimosAnuncios,
+    'ultimasDoacoes'  => $ultimasDoacoes,
+] = $adminCtrl->getDashboardData();
 
 $breadcrumbs = [
     ['label' => 'Início', 'url' => BASE_URL],
@@ -60,59 +23,12 @@ $breadcrumbs = [
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<style>
-.admin-nav { background: #1A1A2E; min-height: calc(100vh - 56px); }
-.admin-nav .nav-link { color: rgba(255,255,255,.7); border-radius: 8px; padding: .5rem .875rem; }
-.admin-nav .nav-link:hover,
-.admin-nav .nav-link.active { color: #fff; background: rgba(255,255,255,.1); }
-.admin-nav .nav-link i { width: 20px; }
-.kpi-card { border-radius: 16px; border: none; transition: transform .15s; }
-.kpi-card:hover { transform: translateY(-2px); }
-.kpi-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
-</style>
+<div class="admin-layout">
 
-<div class="container-fluid px-0">
-    <div class="row g-0">
+    <?php include __DIR__ . '/../includes/admin-sidebar.php'; ?>
 
-        <!-- Sidebar -->
-        <div class="col-lg-2 admin-nav py-3 d-none d-lg-block">
-            <div class="px-3 mb-3">
-                <span class="text-white fw-bold">Admin</span>
-            </div>
-            <nav class="nav flex-column px-2 gap-1">
-                <a class="nav-link active" href="<?php echo BASE_URL; ?>/admin">
-                    <i class="fa-solid fa-gauge me-2"></i>Dashboard
-                </a>
-                <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/usuarios">
-                    <i class="fa-solid fa-users me-2"></i>Usuários
-                </a>
-                <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/anuncios">
-                    <i class="fa-solid fa-list me-2"></i>Anúncios
-                </a>
-                <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/moderacao">
-                    <i class="fa-solid fa-shield-halved me-2"></i>Moderação
-                    <?php if ((int)($hoje['pendentes_moderacao'] ?? 0) > 0): ?>
-                        <span class="badge bg-warning text-dark ms-1"><?php echo (int)$hoje['pendentes_moderacao']; ?></span>
-                    <?php endif; ?>
-                </a>
-                <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/financeiro">
-                    <i class="fa-solid fa-chart-line me-2"></i>Financeiro
-                </a>
-                <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/parceiros">
-                    <i class="fa-solid fa-handshake me-2"></i>Parceiros
-                </a>
-                <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/config">
-                    <i class="fa-solid fa-gear me-2"></i>Configurações
-                </a>
-                <hr style="border-color:rgba(255,255,255,.15);">
-                <a class="nav-link" href="<?php echo BASE_URL; ?>">
-                    <i class="fa-solid fa-arrow-left me-2"></i>Voltar ao site
-                </a>
-            </nav>
-        </div>
-
-        <!-- Conteúdo -->
-        <div class="col-lg-10 py-4 px-4">
+    <!-- Conteúdo -->
+    <div class="admin-main py-4 px-4">
 
             <!-- Topbar mobile -->
             <div class="d-flex d-lg-none align-items-center gap-2 mb-4 flex-wrap">
@@ -199,28 +115,62 @@ include __DIR__ . '/../includes/header.php';
             <!-- KPIs secundários -->
             <div class="row g-3 mb-4">
                 <div class="col-6 col-md-3">
-                    <div class="card border-0 bg-danger bg-opacity-10 text-center py-3">
-                        <div class="fw-bold fs-5 text-danger"><?php echo number_format((int)($stats['perdidos_ativos'] ?? 0)); ?></div>
-                        <div class="small text-muted">Perdidos ativos</div>
-                    </div>
+                    <a href="<?php echo BASE_URL; ?>/admin/anuncios?tipo=perdido" class="text-decoration-none">
+                        <div class="card kpi-card shadow-sm h-100">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <div class="kpi-icon" style="background:#fdecea;color:#e53935;">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold fs-4 lh-1 text-dark"><?php echo number_format((int)($stats['perdidos_ativos'] ?? 0)); ?></div>
+                                    <div class="text-muted small">Perdidos ativos</div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
                 <div class="col-6 col-md-3">
-                    <div class="card border-0 bg-success bg-opacity-10 text-center py-3">
-                        <div class="fw-bold fs-5 text-success"><?php echo number_format((int)($stats['encontrados_ativos'] ?? 0)); ?></div>
-                        <div class="small text-muted">Encontrados ativos</div>
-                    </div>
+                    <a href="<?php echo BASE_URL; ?>/admin/anuncios?tipo=encontrado" class="text-decoration-none">
+                        <div class="card kpi-card shadow-sm h-100">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <div class="kpi-icon" style="background:#e8f5e9;color:#43a047;">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold fs-4 lh-1 text-dark"><?php echo number_format((int)($stats['encontrados_ativos'] ?? 0)); ?></div>
+                                    <div class="text-muted small">Encontrados ativos</div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
                 <div class="col-6 col-md-3">
-                    <div class="card border-0 bg-primary bg-opacity-10 text-center py-3">
-                        <div class="fw-bold fs-5 text-primary"><?php echo number_format((int)($stats['doacoes_ativas'] ?? 0)); ?></div>
-                        <div class="small text-muted">Para adoção</div>
-                    </div>
+                    <a href="<?php echo BASE_URL; ?>/admin/anuncios?tipo=doacao" class="text-decoration-none">
+                        <div class="card kpi-card shadow-sm h-100">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <div class="kpi-icon" style="background:#e3f2fd;color:#1e88e5;">
+                                    <i class="fa-solid fa-hand-holding-heart"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold fs-4 lh-1 text-dark"><?php echo number_format((int)($stats['doacoes_ativas'] ?? 0)); ?></div>
+                                    <div class="text-muted small">Para adoção</div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
                 <div class="col-6 col-md-3">
                     <a href="<?php echo BASE_URL; ?>/admin/moderacao" class="text-decoration-none">
-                        <div class="card border-0 bg-warning bg-opacity-10 text-center py-3">
-                            <div class="fw-bold fs-5 text-warning"><?php echo (int)($hoje['pendentes_moderacao'] ?? 0); ?></div>
-                            <div class="small text-muted">Pend. moderação</div>
+                        <div class="card kpi-card shadow-sm h-100">
+                            <div class="card-body d-flex align-items-center gap-3">
+                                <div class="kpi-icon" style="background:#fff8e1;color:#f57f17;">
+                                    <i class="fa-solid fa-clock"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold fs-4 lh-1 text-dark"><?php echo (int)($hoje['pendentes_moderacao'] ?? 0); ?></div>
+                                    <div class="text-muted small">Pend. moderação</div>
+                                </div>
+                            </div>
                         </div>
                     </a>
                 </div>
@@ -301,9 +251,17 @@ include __DIR__ . '/../includes/header.php';
                                             <tr>
                                                 <td class="ps-3 py-2">
                                                     <div class="fw-semibold small"><?php echo sanitize($d['doador'] ?? 'Anônimo'); ?></div>
-                                                    <div class="text-muted" style="font-size:.75rem;"><?php echo timeAgo($d['data_doacao']); ?></div>
+                                                    <div class="text-muted" style="font-size:.75rem;">
+                                                        <?php if (!empty($d['email_doador'])): ?>
+                                                            <?php echo sanitize($d['email_doador']); ?> &middot;
+                                                        <?php endif; ?>
+                                                        <?php echo timeAgo($d['data_doacao']); ?>
+                                                        <?php if (!empty($d['metodo_pagamento'])): ?>
+                                                            &middot; <span class="text-uppercase"><?php echo sanitize($d['metodo_pagamento']); ?></span>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 </td>
-                                                <td class="pe-3 text-end">
+                                                <td class="pe-3 text-end" style="white-space:nowrap;">
                                                     <span class="fw-bold text-success small"><?php echo formatMoney((float)$d['valor']); ?></span>
                                                     <br>
                                                     <span class="badge bg-<?php echo $d['status'] === 'aprovada' ? 'success' : ($d['status'] === 'pendente' ? 'warning text-dark' : 'secondary'); ?>" style="font-size:.65rem;"><?php echo sanitize($d['status']); ?></span>
@@ -346,6 +304,6 @@ include __DIR__ . '/../includes/header.php';
             </div>
         </div>
     </div>
-</div>
+</div><!-- /.admin-layout -->
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

@@ -54,41 +54,6 @@ function generateCSRFToken() {
     return $_SESSION[CSRF_TOKEN_NAME];
 }
 
-/**
- * Lê variáveis de ambiente do arquivo .env (cacheado) e retorna um valor.
- * Uso: envValue('KEY', 'default')
- */
-if (!function_exists('envValue')) {
-    function envValue($key, $default = null) {
-        static $vars = null;
-        if ($vars === null) {
-            $vars = [];
-            $envFile = defined('BASE_PATH') ? BASE_PATH . '/.env' : __DIR__ . '/../.env';
-            if (file_exists($envFile) && is_readable($envFile)) {
-                $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-                foreach ($lines as $line) {
-                    $line = trim($line);
-                    if ($line === '' || $line[0] === '#') {
-                        continue;
-                    }
-                    if (strpos($line, '=') === false) {
-                        continue;
-                    }
-                    [$k, $v] = array_map('trim', explode('=', $line, 2));
-                    // Remove quotes
-                    $v = preg_replace('/^"(.*)"$/', '$1', $v);
-                    $v = preg_replace("/^'(.*)'$/", '$1', $v);
-                    $vars[$k] = $v;
-                    // Export to environment variables so getenv() works
-                    @putenv("$k=$v");
-                    $_ENV[$k] = $v;
-                }
-            }
-        }
-        return array_key_exists($key, $vars) ? $vars[$key] : (getenv($key) !== false ? getenv($key) : $default);
-    }
-}
-
 function generateDeterministicToken($seed)
 {
     return hash('sha256', (string)$seed);
@@ -566,55 +531,85 @@ function getAddressByCEP($cep) {
 // ═══════════════════════════════════════════════
 
 /**
- * Envia email via PHPMailer com SMTP
+ * Envia email via Resend API (https://resend.com).
+ * Em localhost apenas loga — não tenta envio real.
  */
-function sendEmail($to, $subject, $message, $from = EMAIL_FROM) {
-    try {
-        // Incluir PHPMailer simplificado
-        require_once __DIR__ . '/PHPMailer.php';
-
-        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-        
-        // Configurações SMTP
-        $mail->isSMTP();
-        $mail->Host = SMTP_HOST;
-        $mail->SMTPAuth = true;
-        $mail->Username = SMTP_USER;
-        $mail->Password = SMTP_PASS;
-        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = SMTP_PORT;
-        
-        // Remetente e destinatário
-        $mail->setFrom($from, EMAIL_FROM_NAME);
-        $mail->addAddress($to);
-        
-        // Conteúdo
-        $mail->isHTML(true);
-        $mail->Subject = $subject;
-        $mail->Body = $message;
-        
-        // Enviar
-        return $mail->send();
-        
-    } catch (Exception $e) {
-        error_log("Erro ao enviar email: " . $e->getMessage());
-        
-        // Fallback para mail()
-        $headers = [
-            'From' => $from,
-            'Reply-To' => $from,
-            'X-Mailer' => 'PHP/' . phpversion(),
-            'MIME-Version' => '1.0',
-            'Content-type' => 'text/html; charset=UTF-8'
-        ];
-        
-        $headerString = '';
-        foreach ($headers as $key => $value) {
-            $headerString .= "{$key}: {$value}\r\n";
-        }
-        
-        return mail($to, $subject, $message, $headerString);
+function sendEmail(string $to, string $subject, string $message, string $from = EMAIL_FROM): bool
+{
+    if (defined('IS_LOCAL') && IS_LOCAL) {
+        error_log("[DEV EMAIL] Para: {$to} | Assunto: {$subject}");
+        return true;
     }
+
+    $apiKey = defined('RESEND_API_KEY') ? RESEND_API_KEY : '';
+    if ($apiKey === '') {
+        error_log('[Email] RESEND_API_KEY não configurado em .env');
+        return false;
+    }
+
+    $fromName    = defined('EMAIL_FROM_NAME') ? EMAIL_FROM_NAME : 'Cadê Meu Pet?';
+    $fromAddress = ($from !== '' && $from !== EMAIL_FROM) ? $from : EMAIL_FROM;
+
+    $payload = json_encode([
+        'from'    => "{$fromName} <{$fromAddress}>",
+        'to'      => [$to],
+        'subject' => $subject,
+        'html'    => $message,
+    ], JSON_UNESCAPED_UNICODE);
+
+    $ch = curl_init('https://api.resend.com/emails');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $payload,
+        CURLOPT_HTTPHEADER     => [
+            'Authorization: Bearer ' . $apiKey,
+            'Content-Type: application/json',
+        ],
+        CURLOPT_TIMEOUT        => 10,
+        CURLOPT_CONNECTTIMEOUT => 5,
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlErr  = curl_error($ch);
+    curl_close($ch);
+
+    if ($curlErr !== '') {
+        error_log('[Email] cURL error enviando para ' . $to . ': ' . $curlErr);
+        return false;
+    }
+
+    if ($httpCode !== 200 && $httpCode !== 201) {
+        error_log('[Email] Resend HTTP ' . $httpCode . ' para ' . $to . ': ' . $response);
+        return false;
+    }
+
+    return true;
+}
+
+// ═══════════════════════════════════════════════
+// CONFIGURAÇÕES DO BANCO
+// ═══════════════════════════════════════════════
+
+/**
+ * Lê um valor da tabela `configuracoes` com cache estático por request.
+ */
+function getConfig(string $key, string $default = ''): string
+{
+    static $cache = null;
+    if ($cache === null) {
+        try {
+            $rows  = getDB()->fetchAll('SELECT chave, valor FROM configuracoes');
+            $cache = [];
+            foreach ($rows as $row) {
+                $cache[$row['chave']] = $row['valor'];
+            }
+        } catch (Throwable $e) {
+            $cache = [];
+        }
+    }
+    return isset($cache[$key]) ? (string)$cache[$key] : $default;
 }
 
 // ═══════════════════════════════════════════════

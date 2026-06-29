@@ -7,9 +7,10 @@ $pageTitle = 'Minha Conta - Cadê Meu Pet?';
 $usuarioId = (int)getUserId();
 
 $db = getDB();
+$usuarioModel = new Usuario();
 
 // Carrega dados do usuário
-$usuario = $db->fetchOne('SELECT * FROM usuarios WHERE id = ?', [$usuarioId]);
+$usuario = $usuarioModel->findById($usuarioId);
 
 // Aba ativa
 $aba = $_GET['aba'] ?? 'anuncios';

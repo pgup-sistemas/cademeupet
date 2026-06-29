@@ -111,12 +111,13 @@ class AnuncioController
         $offset = ($page - 1) * RESULTS_PER_PAGE;
 
         $filters = $this->normalizeSearchFilters($params);
-        $results = $this->anuncioModel->search($filters, RESULTS_PER_PAGE, $offset);
+        $searchResult = $this->anuncioModel->search($filters, RESULTS_PER_PAGE, $offset);
 
         return [
-            'results' => $results,
+            'results' => $searchResult['results'],
+            'total'   => $searchResult['total'],
             'filters' => $filters,
-            'page' => $page,
+            'page'    => $page,
         ];
     }
 
@@ -602,6 +603,11 @@ class AnuncioController
 
         if (!empty($params['data_ate'])) {
             $filters['data_ate'] = $params['data_ate'];
+        }
+
+        $validTamanhos = ['pequeno', 'medio', 'grande', 'gigante'];
+        if (!empty($params['tamanho']) && in_array($params['tamanho'], $validTamanhos, true)) {
+            $filters['tamanho'] = $params['tamanho'];
         }
 
         return $filters;

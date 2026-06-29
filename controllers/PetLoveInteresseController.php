@@ -144,7 +144,7 @@ class PetLoveInteresseController {
                  . "{$interessado['nome']} demonstrou interesse no cruzamento com {$petNome}.\n\n"
                  . "Acesse sua conta para aceitar ou recusar: " . BASE_URL . "/minha-conta/petlove\n\n"
                  . "Equipe Cadê Meu Pet?";
-        @sendEmail($dono['email'], $dono['nome'], $assunto, nl2br(htmlspecialchars($corpo)));
+        @sendEmail($dono['email'], $assunto, nl2br(htmlspecialchars($corpo)));
     }
 
     private function notificarInteressadoAceito(int $interessadoId, string $petNome, int $donoId): void {
@@ -158,6 +158,6 @@ class PetLoveInteresseController {
                  . "Contato do tutor: {$dono['telefone']}\n\n"
                  . "Acesse sua conta para ver os detalhes: " . BASE_URL . "/minha-conta/petlove\n\n"
                  . "Equipe Cadê Meu Pet?";
-        @sendEmail($interessado['email'], $interessado['nome'], $assunto, nl2br(htmlspecialchars($corpo)));
+        @sendEmail($interessado['email'], $assunto, nl2br(htmlspecialchars($corpo)));
     }
 }

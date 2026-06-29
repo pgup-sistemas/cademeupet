@@ -32,8 +32,8 @@ class ParceiroPerfil
         $params = [];
 
         if ($cidade !== null && trim($cidade) !== '') {
-            $where[] = 'pp.cidade = ?';
-            $params[] = trim($cidade);
+            $where[] = 'LOWER(pp.cidade) LIKE LOWER(?)';
+            $params[] = '%' . trim($cidade) . '%';
         }
 
         if ($categoria !== null && trim($categoria) !== '') {
@@ -58,6 +58,11 @@ class ParceiroPerfil
     public function update(int $id, array $data)
     {
         return $this->db->update('parceiro_perfis', $data, 'id = ?', [$id]);
+    }
+
+    public function updateForUser(int $usuarioId, array $data)
+    {
+        return $this->db->update('parceiro_perfis', $data, 'usuario_id = ?', [$usuarioId]);
     }
 
     public function publishForUser(int $usuarioId, bool $publish): void

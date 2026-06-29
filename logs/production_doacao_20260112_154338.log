@@ -1,0 +1,5 @@
+Starting production donation test at 2026-01-12T15:43:38-04:00
+Created doacao id: 37
+ERROR: Erro ao criar link de pagamento: Certificado EFI não encontrado em: __DIR__/producao-573055-petfinder.p12
+Trace: #0 C:\xampp\htdocs\petfinder\scripts\production_create_doacao_cartao.php(44): PagamentoController->criarLinkPagamentoDoacao(37, 2.0, 'cartao_avista')
+#1 {main}

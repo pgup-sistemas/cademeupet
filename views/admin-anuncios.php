@@ -3,103 +3,38 @@ require_once __DIR__ . '/../config.php';
 
 requireAdmin();
 
-$pageTitle = 'Admin - Anúncios - Cadê Meu Pet?';
-$db = getDB();
+$pageTitle  = 'Admin - Anúncios - Cadê Meu Pet?';
+$adminCtrl  = new AdminController();
 
-// Processar ação
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
         setFlashMessage('Erro de validação. Recarregue a página.', MSG_ERROR);
         redirect('/admin/anuncios');
     }
-
     $anuncioId = (int)($_POST['anuncio_id'] ?? 0);
-    $acao      = $_POST['acao'] ?? '';
-
     if ($anuncioId > 0) {
-        if ($acao === 'desativar') {
-            $db->update('anuncios', ['status' => STATUS_INATIVO], 'id = ?', [$anuncioId]);
-            setFlashMessage('Anúncio desativado com sucesso.', MSG_SUCCESS);
-        } elseif ($acao === 'ativar') {
-            $db->update('anuncios', ['status' => STATUS_ATIVO], 'id = ?', [$anuncioId]);
-            setFlashMessage('Anúncio reativado com sucesso.', MSG_SUCCESS);
-        } elseif ($acao === 'excluir') {
-            // Apagar fotos associadas
-            $fotos = $db->fetchAll('SELECT nome_arquivo FROM fotos_anuncios WHERE anuncio_id = ?', [$anuncioId]);
-            foreach ($fotos as $foto) {
-                $caminho = __DIR__ . '/../uploads/anuncios/' . $foto['nome_arquivo'];
-                if (file_exists($caminho)) {
-                    @unlink($caminho);
-                }
-            }
-            $db->delete('fotos_anuncios', 'anuncio_id = ?', [$anuncioId]);
-            $db->delete('anuncios', 'id = ?', [$anuncioId]);
-            setFlashMessage('Anúncio excluído permanentemente.', MSG_SUCCESS);
-        }
+        $adminCtrl->processarAcaoAnuncio($anuncioId, $_POST['acao'] ?? '');
     }
-
     redirect('/admin/anuncios');
 }
 
-// Filtros
-$filtroStatus = $_GET['status'] ?? 'todos';
-$filtroBusca  = trim($_GET['busca'] ?? '');
-$filtroTipo   = $_GET['tipo'] ?? '';
-$pagina       = max(1, (int)($_GET['pagina'] ?? 1));
-$porPagina    = 25;
-$offset       = ($pagina - 1) * $porPagina;
+$filtros  = [
+    'status' => $_GET['status'] ?? 'todos',
+    'tipo'   => $_GET['tipo']   ?? '',
+    'busca'  => $_GET['busca']  ?? '',
+];
+$pagina   = max(1, (int)($_GET['pagina'] ?? 1));
 
-$where  = [];
-$params = [];
+[
+    'anuncios'     => $anuncios,
+    'total'        => $totalRows,
+    'contagens'    => $contagens,
+    'totalPaginas' => $totalPaginas,
+] = $adminCtrl->listarAnuncios($filtros, $pagina);
 
-if ($filtroStatus !== 'todos') {
-    $where[]  = 'a.status = ?';
-    $params[] = $filtroStatus;
-}
-if (!empty($filtroTipo)) {
-    $where[]  = 'a.tipo = ?';
-    $params[] = $filtroTipo;
-}
-if (!empty($filtroBusca)) {
-    $where[]  = '(a.nome_pet LIKE ? OR a.cidade LIKE ? OR u.nome LIKE ? OR u.email LIKE ?)';
-    $like     = '%' . $filtroBusca . '%';
-    $params   = array_merge($params, [$like, $like, $like, $like]);
-}
-
-$whereSQL = $where ? 'WHERE ' . implode(' AND ', $where) : '';
-
-$totalRows = $db->fetchOne("
-    SELECT COUNT(*) AS total
-    FROM anuncios a
-    JOIN usuarios u ON a.usuario_id = u.id
-    $whereSQL
-", $params)['total'] ?? 0;
-
-$totalPaginas = max(1, (int)ceil($totalRows / $porPagina));
-
-$anuncios = $db->fetchAll("
-    SELECT a.id, a.nome_pet, a.tipo, a.especie, a.status, a.moderacao_status,
-           a.cidade, a.estado, a.data_publicacao, a.data_expiracao,
-           a.visualizacoes,
-           u.nome AS autor_nome, u.email AS autor_email,
-           (SELECT nome_arquivo FROM fotos_anuncios WHERE anuncio_id = a.id ORDER BY ordem LIMIT 1) AS foto
-    FROM anuncios a
-    JOIN usuarios u ON a.usuario_id = u.id
-    $whereSQL
-    ORDER BY a.data_publicacao DESC
-    LIMIT $porPagina OFFSET $offset
-", $params);
-
-// Contagens por status
-$contagens = $db->fetchOne("
-    SELECT
-        COUNT(*)                          AS total,
-        SUM(status = 'ativo')             AS ativos,
-        SUM(status = 'inativo')           AS inativos,
-        SUM(status = 'resolvido')         AS resolvidos,
-        SUM(status = 'expirado')          AS expirados
-    FROM anuncios
-") ?: [];
+$filtroStatus = $filtros['status'];
+$filtroBusca  = $filtros['busca'];
+$filtroTipo   = $filtros['tipo'];
 
 $breadcrumbs = [
     ['label' => 'Início',   'url' => BASE_URL],

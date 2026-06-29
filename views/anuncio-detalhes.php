@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../config.php';
 
 $pageTitle = 'Detalhes do Anúncio - Cadê Meu Pet?';
@@ -357,72 +357,6 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
 </div>
-
-<style>
-
-.carousel-item {
-    background: #111;
-    position: relative;
-    overflow: hidden;
-}
-
-.carousel-blur-bg {
-    position: absolute;
-    inset: 0;
-    background-size: cover;
-    background-position: center;
-    filter: blur(18px);
-    transform: scale(1.12);
-    opacity: 0.95;
-    border-radius: inherit;
-}
-
-.carousel-photo {
-    position: relative;
-    z-index: 1;
-}
-
-.carousel-item img {
-    height: 420px;
-    width: 100%;
-    object-fit: contain;
-    object-position: center;
-    background: transparent;
-}
-
-@media (max-width: 768px) {
-    .carousel-item img {
-        height: 300px;
-    }
-}
-
-.info-box {
-    background: #f8f9fa;
-    border-radius: 10px;
-    padding: 12px 16px;
-}
-
-.info-label {
-    display: block;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    color: #6c757d;
-    letter-spacing: 0.05em;
-}
-
-.info-value {
-    font-weight: 600;
-    color: #333;
-}
-
-.cmp-map {
-    height: 280px;
-    border-bottom-left-radius: 0.375rem;
-    border-bottom-right-radius: 0.375rem;
-    overflow: hidden;
-    border-top: 1px solid rgba(0,0,0,0.08);
-}
-</style>
 
 <script>
 document.getElementById('btnCopyLink')?.addEventListener('click', async function () {

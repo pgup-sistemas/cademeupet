@@ -22,7 +22,8 @@ class ParceiroInscricao
     public function listByStatus(string $status): array
     {
         return $this->db->fetchAll(
-            'SELECT pi.*, u.nome as usuario_nome, u.email, u.telefone
+            'SELECT pi.*, u.nome as usuario_nome, u.email,
+                    COALESCE(NULLIF(pi.telefone, ""), NULLIF(u.telefone, ""), "") AS telefone
              FROM parceiro_inscricoes pi
              JOIN usuarios u ON u.id = pi.usuario_id
              WHERE pi.status = ?
@@ -70,5 +71,25 @@ class ParceiroInscricao
              WHERE pi.id = ? LIMIT 1',
             [$id]
         );
+    }
+
+    public function reopen(int $inscricaoId, int $adminId): void
+    {
+        $this->db->update(
+            'parceiro_inscricoes',
+            [
+                'status'       => 'pendente',
+                'recusada_em'  => null,
+                'aprovada_em'  => null,
+                'analisada_por' => $adminId,
+            ],
+            'id = ?',
+            [$inscricaoId]
+        );
+    }
+
+    public function delete(int $inscricaoId): void
+    {
+        $this->db->fetchAll('DELETE FROM parceiro_inscricoes WHERE id = ?', [$inscricaoId]);
     }
 }

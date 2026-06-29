@@ -1,7 +1,7 @@
-<?php
+﻿<?php
 /**
  * Corrigir estrutura da tabela doacoes para compatibilidade
- * Execute este arquivo diretamente no servidor: https://petfinder.pageup.net.br/fix_doacoes_table.php
+ * Execute este arquivo diretamente no servidor: https://cademeupet.pageup.net.br/fix_doacoes_table.php
  */
 
 require_once 'config.php';
@@ -58,3 +58,4 @@ try {
 
 echo "\n=== FIM ===\n";
 ?>
+

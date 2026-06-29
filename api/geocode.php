@@ -193,7 +193,7 @@ function petfinder_reverseGeocodeNominatim(float $lat, float $lng): array
         CURLOPT_SSL_VERIFYHOST => 2,
         CURLOPT_HTTPHEADER => [
             'Accept: application/json',
-            'User-Agent: PetFinder/1.0 (+https://github.com/pgup-sistemas/PetFinder)'
+            'User-Agent: CadeMeuPet/1.0 (+https://cademeupet.pageup.net.br)'
         ],
     ]);
 

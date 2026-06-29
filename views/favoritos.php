@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../config.php';
 
 requireLogin();
@@ -78,34 +78,5 @@ include __DIR__ . '/../includes/header.php';
         </div>
     <?php endif; ?>
 </div>
-
-<style>
-.anuncio-card {
-    border: none;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-    transition: transform .2s ease, box-shadow .2s ease;
-    cursor: pointer;
-}
-
-.anuncio-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
-}
-
-.anuncio-card img {
-    height: 200px;
-    object-fit: cover;
-    object-position: top center;
-}
-
-.tipo-badge {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    padding: 0.4rem 0.75rem;
-    font-weight: 600;
-    border-radius: 999px;
-}
-</style>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

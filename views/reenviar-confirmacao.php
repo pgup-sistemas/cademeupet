@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../config.php';
 
 $pageTitle = 'Reenviar Confirmação - Cadê Meu Pet?';
@@ -94,26 +94,5 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
 </div>
-
-<style>
-.logo-icon-large {
-    font-size: 4em;
-}
-.card {
-    border-radius: 15px;
-}
-.input-group-text {
-    background: white;
-}
-.form-control:focus {
-    border-color: #2196F3;
-    box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25);
-}
-.btn-lg {
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 600;
-}
-</style>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

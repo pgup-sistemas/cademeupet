@@ -22,14 +22,26 @@ if (!$inscricao || $inscricao['status'] !== 'aprovada') {
     redirect('/parceiro/painel');
 }
 
-$defaultPlano = $assinatura['plano'] ?? 'basico';
+$defaultPlano         = $assinatura['plano'] ?? 'basico';
 $defaultPeriodicidade = $assinatura['periodicidade'] ?? 'mensal';
-$defaultValorBasico = (float)envValue('PARTNER_PLAN_BASIC_PRICE', 79.90);
-$defaultValorDestaque = (float)envValue('PARTNER_PLAN_HIGHLIGHT_PRICE', 129.90);
-
+$defaultValorBasico   = (float)getConfig('parceiro_plano_basico_mensal',   '79.90');
+$defaultValorDestaque = (float)getConfig('parceiro_plano_destaque_mensal', '129.90');
 $defaultMetodoPagamento = 'pix';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // No POST, verifica se o contrato foi aceito para a combinação plano+periodicidade enviada
+    $postPlano         = in_array($_POST['plano'] ?? '', ['basico','destaque'], true) ? $_POST['plano'] : $defaultPlano;
+    $postMetodo        = in_array($_POST['metodo_pagamento'] ?? '', ['pix','cartao_avista','cartao_recorrente'], true) ? $_POST['metodo_pagamento'] : $defaultMetodoPagamento;
+    $postPeriodicidade = in_array($_POST['periodicidade'] ?? '', ['mensal','anual'], true) ? $_POST['periodicidade'] : $defaultPeriodicidade;
+    if ($postMetodo === 'pix')               $postPeriodicidade = 'anual';
+    if ($postMetodo === 'cartao_recorrente') $postPeriodicidade = 'mensal';
+
+    $contratoModel = new ParceiroContrato();
+    if (!$contratoModel->findAceiteAtivo($usuarioId, $postPlano, $postPeriodicidade)) {
+        // Ainda não aceitou — redireciona para leitura do contrato
+        redirect('/parceiro/contrato?plano=' . urlencode($postPlano) . '&periodicidade=' . urlencode($postPeriodicidade) . '&metodo=' . urlencode($postMetodo));
+    }
+
     if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
         setFlashMessage('Falha na validação do formulário. Recarregue e tente novamente.', MSG_ERROR);
         redirect('/parceiro/pagamento');
@@ -137,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception('Não foi possível gerar o link de pagamento do cartão recorrente.');
         }
 
-        $resp = $pagamentoController->criarLinkPagamentoParceiro((int)$pagamentoId, (float)$valor, $metodoPagamento);
+        $resp = $pagamentoController->criarLinkPagamentoParceiro((int)$pagamentoId, (float)$valor, $metodoPagamento, $periodicidade);
         $paymentUrl = (string)($resp['data']['payment_url'] ?? ($resp['payment_url'] ?? ''));
         $chargeId = (string)($resp['data']['charge_id'] ?? ($resp['data']['charge']['id'] ?? ''));
 

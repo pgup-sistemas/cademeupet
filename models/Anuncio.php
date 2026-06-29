@@ -261,10 +261,10 @@ class Anuncio
     /**
      * Busca paginada com filtros diversos.
      */
-    public function search(array $filtros, int $limit = RESULTS_PER_PAGE, int $offset = 0)
+    public function search(array $filtros, int $limit = RESULTS_PER_PAGE, int $offset = 0): array
     {
         $query = [
-            'SELECT a.*, u.nome AS usuario_nome,',
+            'SELECT SQL_CALC_FOUND_ROWS a.*, u.nome AS usuario_nome,',
             '       (SELECT nome_arquivo FROM fotos_anuncios f WHERE f.anuncio_id = a.id ORDER BY ordem LIMIT 1) AS foto',
             'FROM anuncios a',
             'JOIN usuarios u ON a.usuario_id = u.id'
@@ -325,6 +325,11 @@ class Anuncio
             $params[] = $filtros['data_ate'];
         }
 
+        if (!empty($filtros['tamanho'])) {
+            $where[] = 'a.tamanho = ?';
+            $params[] = $filtros['tamanho'];
+        }
+
         if (!empty($filtros['lat']) && !empty($filtros['lng']) && !empty($filtros['raio'])) {
             $where[] = 'a.latitude IS NOT NULL AND a.longitude IS NOT NULL';
         }
@@ -358,7 +363,11 @@ class Anuncio
         $params[] = $limit;
         $params[] = $offset;
 
-        return $this->db->fetchAll(implode("\n", $query), $params);
+        $results = $this->db->fetchAll(implode("\n", $query), $params);
+        $totalRow = $this->db->fetchOne('SELECT FOUND_ROWS() AS total');
+        $total = $totalRow ? (int)$totalRow['total'] : count($results);
+
+        return ['results' => $results, 'total' => $total];
     }
 
     private function buildFulltextQuery(string $termo): string

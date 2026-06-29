@@ -3,103 +3,120 @@
     <!-- Footer -->
     <footer class="footer bg-dark text-white mt-5">
         <div class="container py-5">
-            <div class="row">
+            <div class="row g-4">
+
                 <!-- Sobre -->
-                <div class="col-lg-4 col-md-6 mb-4">
+                <div class="col-lg-3 col-md-6">
                     <h5 class="mb-3">
                         <i class="fa-solid fa-paw logo-icon"></i> Cadê Meu Pet?
                     </h5>
-                    <p class="text-light-gray">
+                    <p class="text-light-gray small">
                         Ajudamos a reunir pets perdidos com suas famílias desde 2025.
                         Cada contribuição mantém a plataforma gratuita e disponível para todos.
                     </p>
-                    <div class="social-links mt-3">
-                        <a href="#" class="text-white me-3"><i class="bi bi-facebook"></i></a>
-                        <a href="#" class="text-white me-3"><i class="bi bi-instagram"></i></a>
-                        <a href="#" class="text-white me-3"><i class="bi bi-twitter"></i></a>
-                        <a href="#" class="text-white"><i class="bi bi-whatsapp"></i></a>
+                    <div class="social-links mt-3 d-flex gap-3">
+                        <a href="#" class="text-white fs-5" title="Facebook"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-white fs-5" title="Instagram"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-white fs-5" title="Twitter/X"><i class="bi bi-twitter-x"></i></a>
+                        <a href="https://wa.me/5569993882222" target="_blank" rel="noopener noreferrer" class="text-white fs-5" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
                     </div>
                 </div>
-                
+
                 <!-- Links Rápidos -->
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <h6 class="mb-3">Links Rápidos</h6>
-                    <ul class="list-unstyled">
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h6 class="mb-3 text-white-50 text-uppercase" style="font-size:.7rem;letter-spacing:.08em;">Plataforma</h6>
+                    <ul class="list-unstyled mb-0">
                         <li class="mb-2">
-                            <a href="<?php echo BASE_URL; ?>/" class="text-light-gray text-decoration-none">
-                                Início
-                            </a>
+                            <a href="<?php echo BASE_URL; ?>/" class="text-light-gray text-decoration-none small">Início</a>
                         </li>
                         <li class="mb-2">
-                            <a href="<?php echo BASE_URL; ?>/busca" class="text-light-gray text-decoration-none">
-                                Buscar Pets
-                            </a>
+                            <a href="<?php echo BASE_URL; ?>/busca" class="text-light-gray text-decoration-none small">Buscar Pets</a>
                         </li>
                         <li class="mb-2">
-                            <a href="<?php echo BASE_URL; ?>/novo-anuncio" class="text-light-gray text-decoration-none">
-                                Publicar Anúncio
-                            </a>
+                            <a href="<?php echo BASE_URL; ?>/busca?tipo=perdido" class="text-light-gray text-decoration-none small">Pets Perdidos</a>
                         </li>
                         <li class="mb-2">
-                            <a href="<?php echo BASE_URL; ?>/doar" class="text-light-gray text-decoration-none">
-                                Doar
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                
-                <!-- Links Legais -->
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h6 class="mb-3">Informações Legais</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-2">
-                            <a href="<?php echo BASE_URL; ?>/politica-privacidade" class="text-light-gray text-decoration-none">
-                                Política de Privacidade
-                            </a>
+                            <a href="<?php echo BASE_URL; ?>/busca?tipo=encontrado" class="text-light-gray text-decoration-none small">Pets Encontrados</a>
                         </li>
                         <li class="mb-2">
-                            <a href="<?php echo BASE_URL; ?>/termos-uso" class="text-light-gray text-decoration-none">
-                                Termos de Uso
-                            </a>
+                            <a href="<?php echo BASE_URL; ?>/petlove" class="text-light-gray text-decoration-none small">Pet Love</a>
                         </li>
                         <li class="mb-2">
-                            <a href="<?php echo BASE_URL; ?>/politica-cookies" class="text-light-gray text-decoration-none">
-                                Política de Cookies
-                            </a>
+                            <a href="<?php echo BASE_URL; ?>/novo-anuncio" class="text-light-gray text-decoration-none small">Publicar Anúncio</a>
                         </li>
                         <li class="mb-2">
-                            <a href="<?php echo BASE_URL; ?>/lgpd" class="text-light-gray text-decoration-none">
-                                LGPD - Lei de Proteção de Dados
-                            </a>
+                            <a href="<?php echo BASE_URL; ?>/transparencia" class="text-light-gray text-decoration-none small">Transparência</a>
                         </li>
                         <li class="mb-2">
-                            <a href="<?php echo BASE_URL; ?>/contato-dpo" class="text-light-gray text-decoration-none">
-                                Contato do DPO
-                            </a>
+                            <a href="<?php echo BASE_URL; ?>/doar" class="text-light-gray text-decoration-none small">Fazer Doação</a>
                         </li>
                     </ul>
                 </div>
 
-                <!-- Precisa de Ajuda? -->
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h6 class="mb-3">Precisa de Ajuda?</h6>
-                    <ul class="list-unstyled text-light-gray">
-                        <li class="mb-2"><i class="bi bi-envelope me-2"></i> suporte@cademeupet.com.br</li>
-                        <li class="mb-2"><i class="bi bi-whatsapp me-2"></i> (69) 99388-2222</li>
-                        <li class="mb-2"><i class="bi bi-clock me-2"></i> Seg - Sex, 9h às 18h</li>
+                <!-- Para Empresas (Parceiros) -->
+                <div class="col-lg-3 col-md-6 col-6">
+                    <h6 class="mb-3 text-white-50 text-uppercase" style="font-size:.7rem;letter-spacing:.08em;">Para Empresas</h6>
+                    <ul class="list-unstyled mb-3">
+                        <li class="mb-2">
+                            <a href="<?php echo BASE_URL; ?>/parceiros" class="text-light-gray text-decoration-none small">
+                                <i class="bi bi-grid me-1 opacity-75"></i>Diretório de Parceiros
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="<?php echo BASE_URL; ?>/parceiros/inscricao" class="text-light-gray text-decoration-none small">
+                                <i class="bi bi-briefcase me-1 opacity-75"></i>Quero ser Parceiro
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="<?php echo BASE_URL; ?>/parceiros#quero-ser-parceiro" class="text-light-gray text-decoration-none small">
+                                <i class="bi bi-rocket-takeoff me-1 opacity-75"></i>Planos e Benefícios
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="<?php echo BASE_URL; ?>/parceiros#categorias" class="text-light-gray text-decoration-none small">
+                                <i class="bi bi-tags me-1 opacity-75"></i>Categorias de Serviço
+                            </a>
+                        </li>
                     </ul>
-                </div>
-
-                <!-- Transparência -->
-                <div class="col-lg-3 col-md-6">
-                    <h6 class="mb-3">Transparência</h6>
-                    <p class="text-light-gray mb-3">
-                        Acompanhe nossas metas financeiras e veja como sua doação ajuda a manter o Cadê Meu Pet? vivo.
-                    </p>
-                    <a href="<?php echo BASE_URL; ?>/transparencia.php" class="btn btn-outline-light btn-sm">
-                        Ver relatório financeiro
+                    <!-- CTA destaque -->
+                    <a href="<?php echo BASE_URL; ?>/parceiros/inscricao" class="btn btn-sm btn-outline-warning fw-semibold">
+                        <i class="bi bi-star me-1"></i>Anuncie seu pet shop
                     </a>
                 </div>
+
+                <!-- Legal + Contato -->
+                <div class="col-lg-4 col-md-6">
+                    <h6 class="mb-3 text-white-50 text-uppercase" style="font-size:.7rem;letter-spacing:.08em;">Legal &amp; Contato</h6>
+                    <div class="row g-0">
+                        <div class="col-6">
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2">
+                                    <a href="<?php echo BASE_URL; ?>/politica-privacidade" class="text-light-gray text-decoration-none small">Privacidade</a>
+                                </li>
+                                <li class="mb-2">
+                                    <a href="<?php echo BASE_URL; ?>/termos-uso" class="text-light-gray text-decoration-none small">Termos de Uso</a>
+                                </li>
+                                <li class="mb-2">
+                                    <a href="<?php echo BASE_URL; ?>/politica-cookies" class="text-light-gray text-decoration-none small">Cookies</a>
+                                </li>
+                                <li class="mb-2">
+                                    <a href="<?php echo BASE_URL; ?>/lgpd" class="text-light-gray text-decoration-none small">LGPD</a>
+                                </li>
+                                <li class="mb-2">
+                                    <a href="<?php echo BASE_URL; ?>/contato-dpo" class="text-light-gray text-decoration-none small">Contato DPO</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-6">
+                            <ul class="list-unstyled mb-0 text-light-gray small">
+                                <li class="mb-2"><i class="bi bi-envelope me-1 opacity-75"></i> suporte@cademeupet.com.br</li>
+                                <li class="mb-2"><i class="bi bi-whatsapp me-1 opacity-75"></i> (69) 99388-2222</li>
+                                <li class="mb-2"><i class="bi bi-clock me-1 opacity-75"></i> Seg–Sex, 9h–18h</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
         <div class="bg-black text-center py-3">

@@ -8,53 +8,22 @@ class PagamentoController
             throw new Exception('SDK Efí simplificada não encontrada em includes/efi.php.');
         }
 
-        $clientId = (string)EFI_CLIENT_ID;
+        $clientId     = (string)EFI_CLIENT_ID;
         $clientSecret = (string)EFI_CLIENT_SECRET;
-
-        $certificate = (string)EFI_CERTIFICATE_PATH;
-        $certificate = trim($certificate);
-
-        // Normalizar caminho do certificado (evitar paths antigos como C:/xampp/htdocs/...)
-        // Prioridade: PEM válido -> P12 válido -> fallback para raiz do projeto com mesmo basename
-        if ($certificate !== '' && !file_exists($certificate)) {
-            $baseName = basename(str_replace('\\', '/', $certificate));
-            $rootCandidate = rtrim((string)BASE_PATH, '/\\') . DIRECTORY_SEPARATOR . $baseName;
-            if (file_exists($rootCandidate)) {
-                $certificate = $rootCandidate;
-            }
-        }
-
-        // Se apontar para .p12 e existir um .pem equivalente, preferir .pem
-        if ($certificate !== '' && str_ends_with(strtolower($certificate), '.p12')) {
-            $pemCandidate = preg_replace('/\.p12$/i', '.pem', $certificate);
-            if (is_string($pemCandidate) && file_exists($pemCandidate)) {
-                $certificate = $pemCandidate;
-            } else {
-                $pemInRoot = rtrim((string)BASE_PATH, '/\\') . DIRECTORY_SEPARATOR . basename($pemCandidate);
-                if (is_string($pemInRoot) && file_exists($pemInRoot)) {
-                    $certificate = $pemInRoot;
-                }
-            }
-        }
-
-        // Se apontar para .pem e não existir, tentar .pem na raiz com mesmo basename
-        if ($certificate !== '' && str_ends_with(strtolower($certificate), '.pem') && !file_exists($certificate)) {
-            $pemInRoot = rtrim((string)BASE_PATH, '/\\') . DIRECTORY_SEPARATOR . basename($certificate);
-            if (file_exists($pemInRoot)) {
-                $certificate = $pemInRoot;
-            }
-        }
 
         if ($clientId === '' || $clientSecret === '') {
             throw new Exception('Credenciais da Efí não configuradas (EFI_CLIENT_ID/EFI_CLIENT_SECRET).');
         }
 
+        // EFI_CERTIFICATE_PATH já resolvido pelo config.php (secrets/ como default)
+        $certificate = trim((string)EFI_CERTIFICATE_PATH);
+
         $options = [
-            'client_id' => $clientId,
+            'client_id'     => $clientId,
             'client_secret' => $clientSecret,
-            'certificate' => $certificate,
-            'sandbox' => (bool)EFI_SANDBOX,
-            'base_url' => (string)EFI_BASE_URL,
+            'certificate'   => $certificate,
+            'sandbox'       => (bool)EFI_SANDBOX,
+            'base_url'      => (string)EFI_BASE_URL,
         ];
 
         return new Efi($options);
@@ -197,7 +166,7 @@ class PagamentoController
         return date('Y-m-d', strtotime('+7 days'));
     }
 
-    public function criarLinkPagamentoParceiro(int $pagamentoId, float $valor, string $gatewayTipo)
+    public function criarLinkPagamentoParceiro(int $pagamentoId, float $valor, string $gatewayTipo, string $periodicidade = 'mensal')
     {
         $valorCentavos = (int)round($valor * 100);
         if ($valorCentavos < 1) {
@@ -221,16 +190,16 @@ class PagamentoController
         $body = [
             'items' => [
                 [
-                    'name' => 'Assinatura Parceiro Cadê Meu Pet?',
+                    'name'   => 'Assinatura Parceiro Cadê Meu Pet?',
                     'amount' => 1,
-                    'value' => $valorCentavos,
+                    'value'  => $valorCentavos,
                 ],
             ],
             'metadata' => $metadata,
             'settings' => [
-                'payment_method' => $paymentMethod,
+                'payment_method'           => $paymentMethod,
                 'request_delivery_address' => false,
-                'expire_at' => $this->getBillingExpireAt(),
+                'expire_at'                => $this->getBillingExpireAt(),
             ],
         ];
 
@@ -305,99 +274,21 @@ class PagamentoController
 
     public function criarCobrancaPix(array $doacao, string $descricao = 'Doação Cadê Meu Pet?', ?array $split = null)
     {
-        $pixKey = (string)(defined('EFI_PIX_KEY') ? EFI_PIX_KEY : '');
-        if ($pixKey === '') {
-            throw new Exception('Chave Pix não configurada (EFI_PIX_KEY).');
-        }
-
         $valor = number_format((float)($doacao['valor'] ?? 0), 2, '.', '');
 
-        $body = [
-            'calendario' => [
-                'expiracao' => 3600,  // 1 hora em segundos
-            ],
-            'valor' => [
-                'original' => (string)$valor,
-            ],
-            'chave' => $pixKey,
-            'solicitacaoPagador' => $descricao,
-            'infoAdicionais' => [
-                [
-                    'nome' => 'Aplicacao',
-                    'valor' => 'Cadê Meu Pet?',
-                ],
-                [
-                    'nome' => 'DoacaoID',
-                    'valor' => (string)($doacao['id'] ?? ''),
-                ],
-            ],
+        $infoAdicionais = [
+            ['nome' => 'Aplicacao', 'valor' => 'Cadê Meu Pet?'],
+            ['nome' => 'DoacaoID',  'valor' => (string)($doacao['id'] ?? '')],
         ];
 
-        // Se o split estiver habilitado via configuração e foi fornecido, anexar ao body
-        if (defined('EFI_SPLIT_ENABLED') && EFI_SPLIT_ENABLED === true && !empty($split) && is_array($split)) {
-            // Não validar regra de negócio aqui - assumir que o integrador forneceu estrutura correta
-            $body['split'] = $split;
-            error_log('[PagamentoController] anexando split ao criar cobrança PIX: ' . json_encode($split));
-        }
-
-        // Adicionar informações do devedor se disponíveis
-        $cpf = preg_replace('/[^0-9]/', '', (string)($doacao['cpf_doador'] ?? ''));
+        $extraBody = [];
+        $cpf  = preg_replace('/[^0-9]/', '', (string)($doacao['cpf_doador'] ?? ''));
         $nome = trim((string)($doacao['nome_doador'] ?? ''));
         if ($cpf !== '' && strlen($cpf) === 11 && $nome !== '') {
-            $body['devedor'] = [
-                'cpf' => $cpf,
-                'nome' => $nome,
-            ];
+            $extraBody['devedor'] = ['cpf' => $cpf, 'nome' => $nome];
         }
 
-        try {
-            $api = $this->getApi();
-            
-            // Criar cobrança PIX imediata
-            $responsePix = $api->pixCreateImmediateCharge([], $body);
-
-            if (empty($responsePix['txid'])) {
-                throw new Exception('Resposta inválida da Efí: txid não fornecido.');
-            }
-
-            if (empty($responsePix['loc']['id']) && empty($responsePix['loc_id'])) {
-                throw new Exception('Resposta inválida da Efí: location ID não fornecido.');
-            }
-
-            $locId = $responsePix['loc']['id'] ?? $responsePix['loc_id'] ?? null;
-
-            // Gerar QR Code
-            $paramsQr = ['id' => $locId];
-            $responseQr = $api->pixGenerateQRCode($paramsQr);
-
-            // Validar resposta QR Code
-            $qrImageBase64 = $responseQr['imagemQrcode'] ?? $responseQr['imagem_qrcode'] ?? null;
-            $qrText = $responseQr['qrcode'] ?? $responseQr['qrcodeText'] ?? $responseQr['qrCodeText'] ?? null;
-
-            if (empty($qrImageBase64) && empty($qrText)) {
-                throw new Exception('Resposta inválida da Efí ao gerar QR Code.');
-            }
-
-            $qrImageDataUrl = '';
-            if (!empty($qrImageBase64) && is_string($qrImageBase64)) {
-                $img = trim($qrImageBase64);
-                $qrImageDataUrl = str_starts_with($img, 'data:image') ? $img : ('data:image/png;base64,' . $img);
-            }
-
-            return [
-                'txid' => $responsePix['txid'],
-                'qrcode' => [
-                    'imagemQrcode' => $qrImageDataUrl,
-                    'qrcode' => is_string($qrText) ? trim($qrText) : '',
-                    'raw' => $responseQr,
-                ],
-                'charge' => $responsePix,
-                'split' => $split ?? null,
-            ];
-        } catch (Exception $e) {
-            error_log('[PagamentoController] Erro ao criar cobrança PIX: ' . $e->getMessage());
-            throw new Exception('Erro ao criar cobrança PIX: ' . $e->getMessage());
-        }
+        return $this->emitirCobrancaPixInterna($valor, $descricao, $infoAdicionais, $split, $extraBody, 'doação');
     }
 
     public function detalharCobrancaPix(string $txid): array
@@ -462,7 +353,7 @@ class PagamentoController
 
             // Considerar variações que significam pagamento confirmado
             if ($hasPixPayment || str_contains($statusCobranca, 'CONCLUIDA') || str_contains($statusCobranca, 'LIQUI') || str_contains($statusCobranca, 'PAGO') || str_contains($statusCobranca, 'RECEB')) {
-                $doacaoModel->updateStatus((int)$doacaoId, 'aprovado', ['ultimo_pagamento_em' => date('Y-m-d H:i:s')]);
+                $doacaoModel->updateStatus((int)$doacaoId, 'aprovada', ['ultimo_pagamento_em' => date('Y-m-d H:i:s')]);
                 $doacaoModel->updateGoalProgress((float)($doacao['valor'] ?? 0));
 
                 // Enviar e-mail de agradecimento (se disponível)
@@ -478,7 +369,7 @@ class PagamentoController
                 }
 
             } elseif (str_starts_with($statusCobranca, 'REMOVIDA')) {
-                $doacaoModel->updateStatus((int)$doacaoId, 'cancelado', ['cancelada_em' => date('Y-m-d H:i:s')]);
+                $doacaoModel->updateStatus((int)$doacaoId, 'cancelada', ['cancelada_em' => date('Y-m-d H:i:s')]);
             }
 
             return $doacaoModel->findById($doacaoId);
@@ -490,41 +381,47 @@ class PagamentoController
 
     public function criarCobrancaPixParceiro(int $pagamentoId, float $valor, string $descricao, ?array $split = null)
     {
+        $valorFormatado = number_format((float)$valor, 2, '.', '');
+
+        $infoAdicionais = [
+            ['nome' => 'Tipo',       'valor' => 'Parceiro'],
+            ['nome' => 'PagamentoID','valor' => (string)$pagamentoId],
+        ];
+
+        return $this->emitirCobrancaPixInterna($valorFormatado, $descricao, $infoAdicionais, $split, [], 'parceiro');
+    }
+
+    /**
+     * Núcleo da emissão PIX — reutilizado por doação e parceiro.
+     */
+    private function emitirCobrancaPixInterna(
+        string $valor,
+        string $descricao,
+        array  $infoAdicionais,
+        ?array $split,
+        array  $extraBody,
+        string $contexto
+    ): array {
         $pixKey = (string)(defined('EFI_PIX_KEY') ? EFI_PIX_KEY : '');
         if ($pixKey === '') {
             throw new Exception('Chave Pix não configurada (EFI_PIX_KEY).');
         }
 
-        $valorFormatado = number_format((float)$valor, 2, '.', '');
-
-        $body = [
-            'calendario' => [
-                'expiracao' => 3600,
-            ],
-            'valor' => [
-                'original' => (string)$valorFormatado,
-            ],
-            'chave' => $pixKey,
+        $body = array_merge([
+            'calendario'       => ['expiracao' => 3600],
+            'valor'            => ['original' => $valor],
+            'chave'            => $pixKey,
             'solicitacaoPagador' => $descricao,
-            'infoAdicionais' => [
-                [
-                    'nome' => 'Tipo',
-                    'valor' => 'Parceiro',
-                ],
-                [
-                    'nome' => 'PagamentoID',
-                    'valor' => (string)$pagamentoId,
-                ],
-            ],
-        ];
+            'infoAdicionais'   => $infoAdicionais,
+        ], $extraBody);
 
-        if (defined('EFI_SPLIT_ENABLED') && EFI_SPLIT_ENABLED === true && !empty($split) && is_array($split)) {
+        if (defined('EFI_SPLIT_ENABLED') && EFI_SPLIT_ENABLED === true && !empty($split)) {
             $body['split'] = $split;
-            error_log('[PagamentoController] anexando split ao criar cobrança PIX parceiro: ' . json_encode($split));
+            error_log("[PagamentoController] split anexado ({$contexto}): " . json_encode($split));
         }
 
         try {
-            $api = $this->getApi();
+            $api        = $this->getApi();
             $responsePix = $api->pixCreateImmediateCharge([], $body);
 
             if (empty($responsePix['txid'])) {
@@ -536,11 +433,9 @@ class PagamentoController
                 throw new Exception('Resposta inválida da Efí: location ID não fornecido.');
             }
 
-            $paramsQr = ['id' => $locId];
-            $responseQr = $api->pixGenerateQRCode($paramsQr);
-
-            $qrImageBase64 = $responseQr['imagemQrcode'] ?? $responseQr['imagem_qrcode'] ?? null;
-            $qrText = $responseQr['qrcode'] ?? $responseQr['qrcodeText'] ?? $responseQr['qrCodeText'] ?? null;
+            $responseQr     = $api->pixGenerateQRCode(['id' => $locId]);
+            $qrImageBase64  = $responseQr['imagemQrcode'] ?? $responseQr['imagem_qrcode'] ?? null;
+            $qrText         = $responseQr['qrcode'] ?? $responseQr['qrcodeText'] ?? $responseQr['qrCodeText'] ?? null;
 
             if (empty($qrImageBase64) && empty($qrText)) {
                 throw new Exception('Resposta inválida da Efí ao gerar QR Code.');
@@ -553,17 +448,17 @@ class PagamentoController
             }
 
             return [
-                'txid' => $responsePix['txid'],
+                'txid'   => $responsePix['txid'],
                 'qrcode' => [
                     'imagemQrcode' => $qrImageDataUrl,
-                    'qrcode' => is_string($qrText) ? trim($qrText) : '',
-                    'raw' => $responseQr,
+                    'qrcode'       => is_string($qrText) ? trim($qrText) : '',
+                    'raw'          => $responseQr,
                 ],
                 'charge' => $responsePix,
-                'split' => $split ?? null,
+                'split'  => $split ?? null,
             ];
         } catch (Exception $e) {
-            error_log('[PagamentoController] Erro ao criar cobrança PIX (parceiro): ' . $e->getMessage());
+            error_log("[PagamentoController] Erro ao criar cobrança PIX ({$contexto}): " . $e->getMessage());
             throw new Exception('Erro ao criar cobrança PIX: ' . $e->getMessage());
         }
     }

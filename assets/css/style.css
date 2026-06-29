@@ -7,22 +7,22 @@
 /* VARIÁVEIS GLOBAIS */
 /* ═══════════════════════════════════════════════ */
 :root {
-    /* Cores Principais */
-    --primary: #2196F3;
-    --primary-dark: #1976D2;
-    --success: #00CC66;
-    --success-dark: #00994D;
-    --danger: #FF4444;
-    --danger-dark: #CC0000;
-    --warning: #FF9800;
-    --info: #00BCD4;
-    
+    /* Cores — ponte para variáveis legadas usadas em views antigas */
+    --primary: var(--cmp-primary, #E85D2B);
+    --primary-dark: var(--cmp-primary-dk, #C44A1D);
+    --success: var(--cmp-success, #059669);
+    --success-dark: #047857;
+    --danger: var(--cmp-danger, #DC2626);
+    --danger-dark: #B91C1C;
+    --warning: var(--cmp-warning, #D97706);
+    --info: var(--cmp-info, #0284C7);
+
     /* Cores Neutras */
-    --dark: #333333;
-    --gray: #666666;
-    --light-gray: #999999;
-    --border: #E0E0E0;
-    --bg-light: #F5F5F5;
+    --dark: var(--cmp-text, #1E293B);
+    --gray: var(--cmp-muted, #64748B);
+    --light-gray: #94A3B8;
+    --border: var(--cmp-border, #E2E8F0);
+    --bg-light: var(--cmp-bg, #F8FAFC);
     
     /* Tipografia */
     --font-main: 'Poppins', 'Segoe UI', sans-serif;
@@ -81,97 +81,17 @@ body {
 }
 
 /* ═══════════════════════════════════════════════ */
-/* NAVBAR */
+/* NAVBAR — gerenciado por cademeupet.css         */
 /* ═══════════════════════════════════════════════ */
-.navbar {
-    background: white !important;
-    box-shadow: var(--shadow-sm);
-    padding: 12px 0;
-}
-
-.navbar-brand {
-    font-weight: 700;
-    font-size: 1.5em;
-    color: var(--primary) !important;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.logo-icon {
-    font-size: 1.3em;
-}
-
-.logo-text {
-    background: linear-gradient(135deg, var(--primary), var(--success));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.nav-link {
-    color: var(--gray) !important;
-    font-weight: 500;
-    padding: 8px 16px !important;
-    border-radius: var(--radius-md);
-    transition: all var(--transition-fast);
-}
-
-.nav-link:hover {
-    color: var(--primary) !important;
-    background: rgba(33, 150, 243, 0.1);
-}
-
-.nav-link i {
-    margin-right: 5px;
-}
-
-.btn-publish {
-    background: var(--warning);
-    color: white !important;
-    font-weight: 600;
-}
-
-.btn-publish:hover {
-    background: #F57C00;
-    transform: translateY(-2px);
-}
-
-.btn-register {
-    background: var(--success);
-    color: white !important;
-    border-radius: var(--radius-md);
-    padding: 8px 20px !important;
-    font-weight: 600;
-}
-
-.btn-register:hover {
-    background: var(--success-dark);
-}
+.btn-publish  { background: var(--warning);  color: #fff !important; font-weight: 600; }
+.btn-publish:hover { background: #b45309; }
+.btn-register { background: var(--success);  color: #fff !important; font-weight: 600; }
+.btn-register:hover { background: var(--success-dark); }
 
 /* ═══════════════════════════════════════════════ */
-/* HERO SECTION */
+/* HERO — gerenciado por cademeupet.css           */
 /* ═══════════════════════════════════════════════ */
-.hero-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 60px 0;
-}
-
-.hero-title {
-    letter-spacing: -0.02em;
-    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-}
-
-.hero-section h1 {
-    font-weight: 700;
-    margin-bottom: 20px;
-}
-
-.hero-section .lead {
-    font-size: 1.2em;
-    opacity: 0.9;
-}
+.hero-title { letter-spacing: -0.02em; }
 
 /* ═══════════════════════════════════════════════ */
 /* SEARCH BOX */
@@ -677,7 +597,7 @@ body {
 }
 
 .partners-cta-home {
-    background: linear-gradient(135deg, #00BCD4 0%, #2196F3 100%);
+    background: linear-gradient(135deg, var(--cmp-navy, #1E293B) 0%, var(--cmp-dark, #0F172A) 100%);
     color: white;
 }
 
@@ -687,49 +607,22 @@ body {
 }
 
 /* ═══════════════════════════════════════════════ */
-/* BOTÕES */
+/* BOTÕES — tamanhos base; cores gerenciadas por  */
+/*           cademeupet.css                       */
 /* ═══════════════════════════════════════════════ */
 .btn {
     border-radius: var(--radius-md);
-    padding: 10px 25px;
+    padding: 6px 16px;
+    font-size: .875rem;
     font-weight: 600;
     transition: all var(--transition-fast);
     border: 1px solid transparent;
 }
-
-.btn-primary {
-    background: var(--primary);
-    color: white;
-}
-
-.btn-primary:hover {
-    background: var(--primary-dark);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.btn-success {
-    background: var(--success);
-    color: white;
-}
-
-.btn-success:hover {
-    background: var(--success-dark);
-}
-
-.btn-danger {
-    background: var(--danger);
-    color: white;
-}
-
-.btn-danger:hover {
-    background: var(--danger-dark);
-}
-
-.btn-lg {
-    padding: 12px 35px;
-    font-size: 1.1em;
-}
+.btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+.btn-success:hover { background: var(--success-dark); border-color: var(--success-dark); color: #fff; }
+.btn-danger  { background: var(--danger);  color: #fff; border-color: var(--danger); }
+.btn-danger:hover  { background: var(--danger-dark);  border-color: var(--danger-dark);  color: #fff; }
+.btn-lg { padding: 10px 24px; font-size: .95rem; }
 
 /* ═══════════════════════════════════════════════ */
 /* FORMULÁRIOS */

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../config.php';
 
 $pageTitle = 'Doar - Cadê Meu Pet?';
@@ -239,53 +239,6 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
 </div>
-
-<style>
-.btn-outline-success,
-.btn-outline-primary {
-    border-radius: 12px;
-}
-
-.btn-outline-success:hover,
-.btn-outline-success:checked,
-.btn-check:checked + .btn-outline-success {
-    color: #fff;
-    background-color: #00a86b;
-    border-color: #00a86b;
-}
-
-.btn-outline-primary:hover,
-.btn-check:checked + .btn-outline-primary {
-    color: #fff;
-    background-color: #2196F3;
-    border-color: #2196F3;
-}
-
-.card {
-    border-radius: 16px;
-}
-
-/* Mural de Doadores - estilos customizados */
-.donor-card {
-    border-radius: 12px;
-    background: #ffffff;
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.03);
-}
-.donor-highlight {
-    background: linear-gradient(90deg, #e9f7f1 0%, #ffffff 100%);
-    border: 1px solid rgba(0,160,107,0.12);
-}
-.avatar-circle {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: #f1f5f4;
-    color: #006a45;
-    font-weight: 700;
-    display: inline-flex;
-    font-size: 18px;
-}
-</style>
 
 <script>
 (() => {

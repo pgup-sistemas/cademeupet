@@ -1,7 +1,7 @@
-<?php
+﻿<?php
 /**
  * Script para criar tabelas ausentes em PRODUÇÃO
- * Execute este arquivo diretamente no servidor: https://petfinder.pageup.net.br/create_production_tables.php
+ * Execute este arquivo diretamente no servidor: https://cademeupet.pageup.net.br/create_production_tables.php
  */
 
 require_once 'config.php';
@@ -156,3 +156,4 @@ try {
     echo "✗ Erro geral: " . $e->getMessage() . "\n";
 }
 ?>
+

@@ -3,20 +3,8 @@ require_once __DIR__ . '/../config.php';
 
 $includeMapAssets = true;
 
-// Buscar últimos anúncios
-$db = getDB();
-$anunciosRecentes = $db->fetchAll("
-    SELECT a.*, u.nome as autor_nome,
-           (SELECT nome_arquivo FROM fotos_anuncios WHERE anuncio_id = a.id ORDER BY ordem LIMIT 1) as foto
-    FROM anuncios a
-    JOIN usuarios u ON a.usuario_id = u.id
-    WHERE a.status = 'ativo'
-    ORDER BY a.data_publicacao DESC
-    LIMIT 8
-");
-
-// Estatísticas
-$stats = $db->fetchOne("SELECT * FROM view_estatisticas");
+$homeCtrl = new HomeController();
+['anunciosRecentes' => $anunciosRecentes, 'stats' => $stats] = $homeCtrl->getHomeData();
 
 include __DIR__ . '/../includes/header.php';
 ?>
@@ -231,21 +219,21 @@ include __DIR__ . '/../includes/header.php';
             <div class="col-md-4 mb-4">
                 <div class="step-card">
                     <div class="step-icon"><i class="fa-solid fa-file-pen"></i></div>
-                    <h4>1. Publique</h4>
+                    <h4>Publique</h4>
                     <p>Cadastre o pet perdido ou encontrado com foto e localização</p>
                 </div>
             </div>
             <div class="col-md-4 mb-4">
                 <div class="step-card">
                     <div class="step-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
-                    <h4>2. Busque</h4>
+                    <h4>Busque</h4>
                     <p>Pessoas procuram por pets na sua região</p>
                 </div>
             </div>
             <div class="col-md-4 mb-4">
                 <div class="step-card">
-                    <div class="step-icon"><i class="fa-solid fa-heart text-danger"></i></div>
-                    <h4>3. Reúna</h4>
+                    <div class="step-icon"><i class="fa-solid fa-heart"></i></div>
+                    <h4>Reúna</h4>
                     <p>Conecte pets com suas famílias novamente!</p>
                 </div>
             </div>

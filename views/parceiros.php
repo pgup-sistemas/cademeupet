@@ -157,35 +157,69 @@ include __DIR__ . '/../includes/header.php';
     </div>
 </section>
 
+<?php
+$filtroAtivo = ($cidadeFiltro !== null && $cidadeFiltro !== '') || ($categoriaFiltro !== null && $categoriaFiltro !== '');
+
+// Labels legíveis para a categoria selecionada
+$categoriaLabels = [
+    'petshop'    => 'Pet Shop',
+    'clinica'    => 'Clínica Veterinária',
+    'hotel'      => 'Hotel / Creche',
+    'adestrador' => 'Adestrador',
+    'outro'      => 'Outro',
+];
+?>
 <section class="partners-directory py-5" id="lista">
     <div class="container">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4">
             <div>
                 <h2 class="h3 fw-bold mb-1">Diretório</h2>
-                <p class="text-muted mb-0">Exemplos de como os perfis vão aparecer (em breve).</p>
+                <?php if ($filtroAtivo): ?>
+                    <p class="text-muted mb-0">
+                        Mostrando resultados para
+                        <?php if ($categoriaFiltro !== null && $categoriaFiltro !== ''): ?>
+                            <strong><?php echo sanitize($categoriaLabels[$categoriaFiltro] ?? $categoriaFiltro); ?></strong>
+                        <?php endif; ?>
+                        <?php if ($cidadeFiltro !== null && $cidadeFiltro !== ''): ?>
+                            em <strong><?php echo sanitize($cidadeFiltro); ?></strong>
+                        <?php endif; ?>
+                        &mdash; <a href="<?php echo BASE_URL; ?>/parceiros" class="text-decoration-none small">Limpar filtros</a>
+                    </p>
+                <?php else: ?>
+                    <p class="text-muted mb-0"><?php echo !empty($perfis) ? count($perfis) . ' parceiro(s) cadastrado(s).' : 'Seja o primeiro parceiro na sua região!'; ?></p>
+                <?php endif; ?>
             </div>
             <div class="partners-filter-placeholder">
                 <form method="GET" class="w-100">
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
-                        <input type="text" class="form-control" name="cidade" placeholder="Cidade" value="<?php echo sanitize((string)($cidadeFiltro ?? '')); ?>">
+                        <input type="text" class="form-control" name="cidade" placeholder="Cidade"
+                               value="<?php echo sanitize((string)($cidadeFiltro ?? '')); ?>">
                         <select class="form-select" name="categoria">
                             <option value="">Todas as categorias</option>
-                            <option value="petshop" <?php echo $categoriaFiltro === 'petshop' ? 'selected' : ''; ?>>Pet Shop</option>
-                            <option value="clinica" <?php echo $categoriaFiltro === 'clinica' ? 'selected' : ''; ?>>Clínica</option>
-                            <option value="hotel" <?php echo $categoriaFiltro === 'hotel' ? 'selected' : ''; ?>>Hotel/Creche</option>
+                            <option value="petshop"    <?php echo $categoriaFiltro === 'petshop'    ? 'selected' : ''; ?>>Pet Shop</option>
+                            <option value="clinica"    <?php echo $categoriaFiltro === 'clinica'    ? 'selected' : ''; ?>>Clínica</option>
+                            <option value="hotel"      <?php echo $categoriaFiltro === 'hotel'      ? 'selected' : ''; ?>>Hotel/Creche</option>
                             <option value="adestrador" <?php echo $categoriaFiltro === 'adestrador' ? 'selected' : ''; ?>>Adestrador</option>
-                            <option value="outro" <?php echo $categoriaFiltro === 'outro' ? 'selected' : ''; ?>>Outro</option>
+                            <option value="outro"      <?php echo $categoriaFiltro === 'outro'      ? 'selected' : ''; ?>>Outro</option>
                         </select>
-                        <button class="btn btn-primary" type="submit">Filtrar</button>
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search me-1"></i>Filtrar
+                        </button>
+                        <?php if ($filtroAtivo): ?>
+                            <a href="<?php echo BASE_URL; ?>/parceiros" class="btn btn-outline-secondary" title="Limpar filtros">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        <?php endif; ?>
                     </div>
-                    <div class="small text-muted mt-1">Mostrando apenas perfis publicados.</div>
+                    <div class="small text-muted mt-1">Mostrando apenas perfis publicados e aprovados.</div>
                 </form>
             </div>
         </div>
 
         <div class="row g-4">
             <?php if (!empty($perfis)): ?>
+
                 <?php foreach ($perfis as $p): ?>
                     <div class="col-md-6 col-lg-4">
                         <div class="partner-card <?php echo !empty($p['destaque']) ? 'partner-card-highlight' : ''; ?>">
@@ -200,17 +234,16 @@ include __DIR__ . '/../includes/header.php';
                                         <?php endif; ?>
                                         <?php echo sanitize($p['nome_fantasia']); ?>
                                     </div>
-                                    <div class="partner-card-subtitle"><?php echo sanitize($p['categoria']); ?> • <?php echo sanitize($p['cidade']); ?> - <?php echo sanitize($p['estado']); ?></div>
+                                    <div class="partner-card-subtitle">
+                                        <?php echo sanitize($categoriaLabels[$p['categoria']] ?? $p['categoria']); ?>
+                                        &bull; <?php echo sanitize($p['cidade']); ?> - <?php echo sanitize($p['estado']); ?>
+                                    </div>
                                 </div>
                                 <span class="badge partner-badge <?php echo !empty($p['destaque']) ? 'partner-badge-highlight' : ''; ?>">
                                     <?php
-                                        if (!empty($p['destaque'])) {
-                                            echo 'Destaque';
-                                        } elseif (!empty($p['verificado'])) {
-                                            echo 'Verificado';
-                                        } else {
-                                            echo 'Parceiro';
-                                        }
+                                        if (!empty($p['destaque']))       echo 'Destaque';
+                                        elseif (!empty($p['verificado'])) echo 'Verificado';
+                                        else                               echo 'Parceiro';
                                     ?>
                                 </span>
                             </div>
@@ -232,45 +265,74 @@ include __DIR__ . '/../includes/header.php';
                                 </div>
                             </div>
                             <div class="partner-card-footer">
-                                <a class="btn btn-outline-primary w-100" href="<?php echo BASE_URL; ?>/parceiro/<?php echo sanitize($p['slug']); ?>">
+                                <a class="btn btn-outline-primary w-100"
+                                   href="<?php echo BASE_URL; ?>/parceiro/<?php echo sanitize($p['slug']); ?>">
                                     Ver perfil
                                 </a>
                             </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
+
+            <?php elseif ($filtroAtivo): ?>
+
+                <!-- Nenhum resultado para o filtro ativo -->
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <div class="mb-3" style="font-size:3rem;">🔍</div>
+                        <h4 class="fw-bold mb-2">Nenhum parceiro encontrado</h4>
+                        <p class="text-muted mb-4">
+                            Não há parceiros cadastrados para
+                            <?php if ($categoriaFiltro): ?>
+                                a categoria <strong><?php echo sanitize($categoriaLabels[$categoriaFiltro] ?? $categoriaFiltro); ?></strong>
+                            <?php endif; ?>
+                            <?php if ($cidadeFiltro): ?>
+                                em <strong><?php echo sanitize($cidadeFiltro); ?></strong>
+                            <?php endif; ?>
+                            ainda.
+                        </p>
+                        <div class="d-flex justify-content-center gap-2 flex-wrap">
+                            <a href="<?php echo BASE_URL; ?>/parceiros" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>Ver todos os parceiros
+                            </a>
+                            <a href="<?php echo BASE_URL; ?>/parceiros/inscricao" class="btn btn-primary">
+                                <i class="bi bi-briefcase me-1"></i>Seja o primeiro aqui
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
             <?php else: ?>
+
+                <!-- Sem parceiros cadastrados + preview de como ficará -->
+                <div class="col-12 mb-2">
+                    <div class="alert alert-info d-flex align-items-center gap-2 border-0" role="alert">
+                        <i class="bi bi-info-circle-fill fs-5 flex-shrink-0"></i>
+                        <span>Ainda não temos parceiros cadastrados. Veja abaixo como seu negócio vai aparecer aqui e <a href="<?php echo BASE_URL; ?>/parceiros/inscricao" class="fw-semibold">solicite seu cadastro</a>.</span>
+                    </div>
+                </div>
                 <?php foreach ($cards as $card): ?>
                     <div class="col-md-6 col-lg-4">
-                        <div class="partner-card">
+                        <div class="partner-card" style="opacity:.7;">
                             <div class="partner-card-header">
                                 <div>
                                     <div class="partner-card-title"><?php echo sanitize($card['title']); ?></div>
-                                    <div class="partner-card-subtitle"><?php echo sanitize($card['category']); ?> • <?php echo sanitize($card['city']); ?></div>
+                                    <div class="partner-card-subtitle"><?php echo sanitize($card['category']); ?> &bull; <?php echo sanitize($card['city']); ?></div>
                                 </div>
                                 <span class="badge partner-badge"><?php echo sanitize($card['badge']); ?></span>
                             </div>
                             <div class="partner-card-body">
                                 <p class="text-muted mb-3"><?php echo sanitize($card['desc']); ?></p>
-                                <div class="partner-contact">
-                                    <div class="partner-contact-item">
-                                        <i class="bi bi-telephone"></i>
-                                        <span><?php echo sanitize($card['phone']); ?></span>
-                                    </div>
-                                    <div class="partner-contact-item">
-                                        <i class="bi bi-whatsapp"></i>
-                                        <span><?php echo sanitize($card['whatsapp']); ?></span>
-                                    </div>
-                                </div>
                             </div>
                             <div class="partner-card-footer">
                                 <a class="btn btn-outline-secondary w-100" href="<?php echo BASE_URL; ?>/parceiros/inscricao">
-                                    Quero aparecer aqui
+                                    <i class="bi bi-plus me-1"></i>Quero aparecer aqui
                                 </a>
                             </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
+
             <?php endif; ?>
         </div>
     </div>
