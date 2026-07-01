@@ -151,17 +151,25 @@ class AdminController
     // MODERAÇÃO
     // ─────────────────────────────────────────────
 
-    public function listarFilaModeracaoAnuncios(string $filtro = 'pendente'): array
+    public function listarFilaModeracaoAnuncios(string $filtro = 'pendente', int $pagina = 1, int $porPagina = 24): array
     {
         $filtrosValidos = ['pendente', 'aprovado', 'rejeitado'];
         if (!in_array($filtro, $filtrosValidos, true)) $filtro = 'pendente';
+
+        $pagina    = max(1, $pagina);
+        $porPagina = max(1, $porPagina);
+        $offset    = ($pagina - 1) * $porPagina;
+
+        $total = (int)($this->db->fetchOne("
+            SELECT COUNT(*) AS total FROM anuncios WHERE moderacao_status = ?
+        ", [$filtro])['total'] ?? 0);
 
         $anuncios = $this->db->fetchAll("
             SELECT a.*, u.nome AS autor_nome, u.email AS autor_email,
                    (SELECT nome_arquivo FROM fotos_anuncios WHERE anuncio_id = a.id ORDER BY ordem LIMIT 1) AS foto
             FROM anuncios a JOIN usuarios u ON a.usuario_id = u.id
             WHERE a.moderacao_status = ?
-            ORDER BY a.data_publicacao DESC LIMIT 100
+            ORDER BY a.data_publicacao DESC LIMIT $porPagina OFFSET $offset
         ", [$filtro]);
 
         $contagens = $this->db->fetchOne("
@@ -171,7 +179,9 @@ class AdminController
             FROM anuncios
         ") ?: [];
 
-        return compact('anuncios', 'contagens');
+        $totalPaginas = (int)ceil($total / $porPagina);
+
+        return compact('anuncios', 'contagens', 'total', 'totalPaginas');
     }
 
     public function processarModeracaoAnuncio(int $anuncioId, string $acao, string $motivo = ''): void

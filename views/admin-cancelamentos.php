@@ -67,10 +67,26 @@ $breadcrumbs = [
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="container-fluid py-4">
+<div class="admin-layout">
+
+    <?php include __DIR__ . '/../includes/admin-sidebar.php'; ?>
+
+    <div class="admin-main py-4 px-4">
+
+    <!-- Topbar mobile -->
+    <div class="d-flex d-lg-none align-items-center gap-2 mb-3 flex-wrap">
+        <a href="<?php echo BASE_URL; ?>/admin"            class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-gauge"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/usuarios"   class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-users"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/anuncios"   class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-list"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/moderacao"  class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-shield-halved"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/financeiro" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-chart-line"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/parceiros"  class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-handshake"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/config"     class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-gear"></i></a>
+    </div>
+
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
-            <h1 class="h3 fw-bold mb-1">Cancelamentos</h1>
+            <h1 class="h4 fw-bold mb-1">Cancelamentos</h1>
             <p class="text-muted mb-0">Gerencie e acompanhe os cancelamentos do sistema.</p>
         </div>
         <div>
@@ -275,6 +291,8 @@ include __DIR__ . '/../includes/header.php';
             <?php endif; ?>
         </div>
     </div>
-</div>
+
+    </div><!-- /.admin-main -->
+</div><!-- /.admin-layout -->
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

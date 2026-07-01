@@ -73,6 +73,18 @@ function __adminNavActive(string $path, string $uri): string {
             <i class="fa-solid fa-handshake me-2"></i><span class="nav-label">Parceiros</span>
         </a>
 
+        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/admin/denuncias', $__uri); ?>"
+           href="<?php echo BASE_URL; ?>/admin/denuncias"
+           title="Denúncias">
+            <i class="fa-solid fa-flag me-2"></i><span class="nav-label">Denúncias</span>
+        </a>
+
+        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/admin/cancelamentos', $__uri); ?>"
+           href="<?php echo BASE_URL; ?>/admin/cancelamentos"
+           title="Cancelamentos">
+            <i class="fa-solid fa-ban me-2"></i><span class="nav-label">Cancelamentos</span>
+        </a>
+
         <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/admin/config', $__uri); ?>"
            href="<?php echo BASE_URL; ?>/admin/config"
            title="Configurações">

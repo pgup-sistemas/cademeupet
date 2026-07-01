@@ -26,7 +26,36 @@ class ParceiroPerfil
         );
     }
 
-    public function listPublic(?string $cidade = null, ?string $categoria = null): array
+    public function listPublic(?string $cidade = null, ?string $categoria = null, int $limit = 12, int $offset = 0): array
+    {
+        $limit  = max(1, $limit);
+        $offset = max(0, $offset);
+
+        [$whereSql, $params] = $this->buildPublicFilter($cidade, $categoria);
+
+        $sql =
+            'SELECT pp.*
+             FROM parceiro_perfis pp
+             WHERE ' . $whereSql .
+            ' ORDER BY pp.destaque DESC, pp.verificado DESC, pp.nome_fantasia ASC
+             LIMIT ' . $limit . ' OFFSET ' . $offset;
+
+        return $this->db->fetchAll($sql, $params);
+    }
+
+    public function countPublic(?string $cidade = null, ?string $categoria = null): int
+    {
+        [$whereSql, $params] = $this->buildPublicFilter($cidade, $categoria);
+
+        $row = $this->db->fetchOne(
+            'SELECT COUNT(*) AS total FROM parceiro_perfis pp WHERE ' . $whereSql,
+            $params
+        );
+
+        return (int)($row['total'] ?? 0);
+    }
+
+    private function buildPublicFilter(?string $cidade, ?string $categoria): array
     {
         $where = ['pp.publicado = 1'];
         $params = [];
@@ -41,13 +70,7 @@ class ParceiroPerfil
             $params[] = trim($categoria);
         }
 
-        $sql =
-            'SELECT pp.*
-             FROM parceiro_perfis pp
-             WHERE ' . implode(' AND ', $where) .
-            ' ORDER BY pp.destaque DESC, pp.verificado DESC, pp.nome_fantasia ASC';
-
-        return $this->db->fetchAll($sql, $params);
+        return [implode(' AND ', $where), $params];
     }
 
     public function create(array $data): int

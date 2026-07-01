@@ -55,10 +55,26 @@ $breadcrumbs = [
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="container-fluid py-4 px-4">
+<div class="admin-layout">
+
+    <?php include __DIR__ . '/../includes/admin-sidebar.php'; ?>
+
+    <div class="admin-main py-4 px-4">
+
+    <!-- Topbar mobile -->
+    <div class="d-flex d-lg-none align-items-center gap-2 mb-3 flex-wrap">
+        <a href="<?php echo BASE_URL; ?>/admin"            class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-gauge"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/usuarios"   class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-users"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/anuncios"   class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-list"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/moderacao"  class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-shield-halved"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/financeiro" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-chart-line"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/parceiros"  class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-handshake"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/config"     class="btn btn-sm btn-primary"><i class="fa-solid fa-gear"></i></a>
+    </div>
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h4 fw-bold mb-0"><i class="fa-solid fa-gear me-2"></i>Configurações do Sistema</h1>
-        <a href="<?php echo BASE_URL; ?>/admin" class="btn btn-outline-secondary btn-sm">
+        <a href="<?php echo BASE_URL; ?>/admin" class="btn btn-outline-secondary btn-sm d-none d-lg-inline-flex">
             <i class="fa-solid fa-arrow-left me-1"></i>Voltar ao Admin
         </a>
     </div>
@@ -303,7 +319,9 @@ include __DIR__ . '/../includes/header.php';
             </div>
         </div>
     </div>
-</div>
+
+    </div><!-- /.admin-main -->
+</div><!-- /.admin-layout -->
 
 <script>
 const csrfToken = '<?php echo generateCSRFToken(); ?>';

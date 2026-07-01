@@ -92,8 +92,11 @@ class ParceiroAssinatura
         );
     }
 
-    public function listAll(): array
+    public function listAll(int $limit = 20, int $offset = 0): array
     {
+        $limit  = max(1, $limit);
+        $offset = max(0, $offset);
+
         return $this->db->fetchAll(
             'SELECT a.*,
                     u.nome AS usuario_nome, u.email,
@@ -105,8 +108,16 @@ class ParceiroAssinatura
              LEFT JOIN parceiro_pagamentos pp ON pp.usuario_id = a.usuario_id
                  AND pp.status = "aprovado"
                  AND pp.efi_subscription_id IS NOT NULL
-             ORDER BY FIELD(a.status,"ativa","pendente_pagamento","suspensa","cancelada"), u.nome ASC'
+             ORDER BY FIELD(a.status,"ativa","pendente_pagamento","suspensa","cancelada"), u.nome ASC
+             LIMIT ' . $limit . ' OFFSET ' . $offset
         );
+    }
+
+    public function countAll(): int
+    {
+        $row = $this->db->fetchOne('SELECT COUNT(*) AS total FROM parceiro_assinaturas');
+
+        return (int)($row['total'] ?? 0);
     }
 
     public function cancelar(int $usuarioId, string $canceladaEm = ''): void

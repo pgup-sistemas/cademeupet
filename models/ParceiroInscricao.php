@@ -19,17 +19,31 @@ class ParceiroInscricao
         return $this->db->insert('parceiro_inscricoes', $data);
     }
 
-    public function listByStatus(string $status): array
+    public function listByStatus(string $status, int $limit = 20, int $offset = 0): array
     {
+        $limit  = max(1, $limit);
+        $offset = max(0, $offset);
+
         return $this->db->fetchAll(
             'SELECT pi.*, u.nome as usuario_nome, u.email,
                     COALESCE(NULLIF(pi.telefone, ""), NULLIF(u.telefone, ""), "") AS telefone
              FROM parceiro_inscricoes pi
              JOIN usuarios u ON u.id = pi.usuario_id
              WHERE pi.status = ?
-             ORDER BY pi.data_criacao DESC',
+             ORDER BY pi.data_criacao DESC
+             LIMIT ' . $limit . ' OFFSET ' . $offset,
             [$status]
         );
+    }
+
+    public function countByStatus(string $status): int
+    {
+        $row = $this->db->fetchOne(
+            'SELECT COUNT(*) AS total FROM parceiro_inscricoes WHERE status = ?',
+            [$status]
+        );
+
+        return (int)($row['total'] ?? 0);
     }
 
     public function approve(int $inscricaoId, int $adminId): void

@@ -17,10 +17,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $filtro = $_GET['filtro'] ?? 'pendente';
+$pagina = max(1, (int)($_GET['pagina'] ?? 1));
 [
-    'anuncios'  => $anuncios,
-    'contagens' => $contagens,
-] = $adminCtrl->listarFilaModeracaoAnuncios($filtro);
+    'anuncios'     => $anuncios,
+    'contagens'    => $contagens,
+    'totalPaginas' => $totalPaginas,
+] = $adminCtrl->listarFilaModeracaoAnuncios($filtro, $pagina);
 
 $breadcrumbs = [
     ['label' => 'Início',    'url' => BASE_URL],
@@ -30,10 +32,26 @@ $breadcrumbs = [
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="container-fluid py-4 px-4">
+<div class="admin-layout">
+
+    <?php include __DIR__ . '/../includes/admin-sidebar.php'; ?>
+
+    <div class="admin-main py-4 px-4">
+
+    <!-- Topbar mobile -->
+    <div class="d-flex d-lg-none align-items-center gap-2 mb-3 flex-wrap">
+        <a href="<?php echo BASE_URL; ?>/admin"            class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-gauge"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/usuarios"   class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-users"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/anuncios"   class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-list"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/moderacao"  class="btn btn-sm btn-primary"><i class="fa-solid fa-shield-halved"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/financeiro" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-chart-line"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/parceiros"  class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-handshake"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/config"     class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-gear"></i></a>
+    </div>
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h4 fw-bold mb-0"><i class="fa-solid fa-shield-halved me-2"></i>Fila de Moderação</h1>
-        <a href="<?php echo BASE_URL; ?>/admin" class="btn btn-outline-secondary btn-sm">
+        <a href="<?php echo BASE_URL; ?>/admin" class="btn btn-outline-secondary btn-sm d-none d-lg-inline-flex">
             <i class="fa-solid fa-arrow-left me-1"></i>Voltar ao Admin
         </a>
     </div>
@@ -160,8 +178,28 @@ include __DIR__ . '/../includes/header.php';
                 </div>
             <?php endforeach; ?>
         </div>
+
+        <?php if ($totalPaginas > 1): ?>
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item <?php echo $pagina <= 1 ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="?filtro=<?php echo $filtro; ?>&pagina=<?php echo $pagina - 1; ?>">Anterior</a>
+                    </li>
+                    <?php for ($p = max(1, $pagina - 2); $p <= min($totalPaginas, $pagina + 2); $p++): ?>
+                        <li class="page-item <?php echo $p === $pagina ? 'active' : ''; ?>">
+                            <a class="page-link" href="?filtro=<?php echo $filtro; ?>&pagina=<?php echo $p; ?>"><?php echo $p; ?></a>
+                        </li>
+                    <?php endfor; ?>
+                    <li class="page-item <?php echo $pagina >= $totalPaginas ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="?filtro=<?php echo $filtro; ?>&pagina=<?php echo $pagina + 1; ?>">Próxima</a>
+                    </li>
+                </ul>
+            </nav>
+        <?php endif; ?>
     <?php endif; ?>
-</div>
+
+    </div><!-- /.admin-main -->
+</div><!-- /.admin-layout -->
 
 <!-- Modal Rejeitar -->
 <div class="modal fade" id="modalRejeitar" tabindex="-1" aria-hidden="true">

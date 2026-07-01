@@ -302,11 +302,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$inscricoesPendentes = $inscricaoModel->listByStatus('pendente');
-$inscricoesAprovadas = $inscricaoModel->listByStatus('aprovada');
-$inscricoesRecusadas = $inscricaoModel->listByStatus('recusada');
-$pagamentosPendentes = $pagamentoModel->listByStatus('pendente');
-$todasAssinaturas    = $assinaturaModel->listAll();
+$porPagina = 20;
+$pagPi = max(1, (int)($_GET['pi'] ?? 1));
+$pagPa = max(1, (int)($_GET['pa'] ?? 1));
+$pagPr = max(1, (int)($_GET['pr'] ?? 1));
+$pagPp = max(1, (int)($_GET['pp'] ?? 1));
+$pagAs = max(1, (int)($_GET['as'] ?? 1));
+
+$countInscricoesPendentes = $inscricaoModel->countByStatus('pendente');
+$countInscricoesAprovadas = $inscricaoModel->countByStatus('aprovada');
+$countInscricoesRecusadas = $inscricaoModel->countByStatus('recusada');
+$countPagamentosPendentes = $pagamentoModel->countByStatus('pendente');
+$countAssinaturas         = $assinaturaModel->countAll();
+
+$totalPaginasPi = (int)ceil($countInscricoesPendentes / $porPagina);
+$totalPaginasPa = (int)ceil($countInscricoesAprovadas / $porPagina);
+$totalPaginasPr = (int)ceil($countInscricoesRecusadas / $porPagina);
+$totalPaginasPp = (int)ceil($countPagamentosPendentes / $porPagina);
+$totalPaginasAs = (int)ceil($countAssinaturas / $porPagina);
+
+$inscricoesPendentes = $inscricaoModel->listByStatus('pendente', $porPagina, ($pagPi - 1) * $porPagina);
+$inscricoesAprovadas = $inscricaoModel->listByStatus('aprovada', $porPagina, ($pagPa - 1) * $porPagina);
+$inscricoesRecusadas = $inscricaoModel->listByStatus('recusada', $porPagina, ($pagPr - 1) * $porPagina);
+$pagamentosPendentes = $pagamentoModel->listByStatus('pendente', $porPagina, ($pagPp - 1) * $porPagina);
+$todasAssinaturas    = $assinaturaModel->listAll($porPagina, ($pagAs - 1) * $porPagina);
 
 $breadcrumbs = [
     ['label' => 'Início',    'url' => BASE_URL],
@@ -316,13 +335,28 @@ $breadcrumbs = [
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="container py-5">
+<div class="admin-layout">
+
+    <?php include __DIR__ . '/../includes/admin-sidebar.php'; ?>
+
+    <div class="admin-main py-4 px-4">
+
+    <!-- Topbar mobile -->
+    <div class="d-flex d-lg-none align-items-center gap-2 mb-3 flex-wrap">
+        <a href="<?php echo BASE_URL; ?>/admin"            class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-gauge"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/usuarios"   class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-users"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/anuncios"   class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-list"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/moderacao"  class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-shield-halved"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/financeiro" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-chart-line"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/parceiros"  class="btn btn-sm btn-primary"><i class="fa-solid fa-handshake"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/config"     class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-gear"></i></a>
+    </div>
+
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
-            <h1 class="h3 fw-bold mb-1">Admin - Parceiros</h1>
+            <h1 class="h4 fw-bold mb-1">Admin - Parceiros</h1>
             <p class="text-muted mb-0">Aprovar inscrições, validar pagamentos e publicar perfis.</p>
         </div>
-        <a class="btn btn-outline-primary" href="<?php echo BASE_URL; ?>/admin">Voltar</a>
     </div>
 
     <ul class="nav nav-tabs mb-3">
@@ -330,8 +364,8 @@ include __DIR__ . '/../includes/header.php';
             <a class="nav-link <?php echo $tab === 'inscricoes' ? 'active' : ''; ?>"
                href="<?php echo BASE_URL; ?>/admin/parceiros?tab=inscricoes">
                 Inscrições
-                <?php if (count($inscricoesPendentes) > 0): ?>
-                    <span class="badge bg-warning text-dark ms-1"><?php echo count($inscricoesPendentes); ?></span>
+                <?php if ($countInscricoesPendentes > 0): ?>
+                    <span class="badge bg-warning text-dark ms-1"><?php echo $countInscricoesPendentes; ?></span>
                 <?php endif; ?>
             </a>
         </li>
@@ -339,8 +373,8 @@ include __DIR__ . '/../includes/header.php';
             <a class="nav-link <?php echo $tab === 'pagamentos' ? 'active' : ''; ?>"
                href="<?php echo BASE_URL; ?>/admin/parceiros?tab=pagamentos">
                 Pagamentos
-                <?php if (count($pagamentosPendentes) > 0): ?>
-                    <span class="badge bg-warning text-dark ms-1"><?php echo count($pagamentosPendentes); ?></span>
+                <?php if ($countPagamentosPendentes > 0): ?>
+                    <span class="badge bg-warning text-dark ms-1"><?php echo $countPagamentosPendentes; ?></span>
                 <?php endif; ?>
             </a>
         </li>
@@ -422,16 +456,29 @@ include __DIR__ . '/../includes/header.php';
                             </tbody>
                         </table>
                     </div>
+                    <?php if ($totalPaginasPi > 1): ?>
+                        <nav class="mt-3">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                                <li class="page-item <?php echo $pagPi <= 1 ? 'disabled' : ''; ?>">
+                                    <a class="page-link" href="?tab=inscricoes&pi=<?php echo $pagPi - 1; ?>">Anterior</a>
+                                </li>
+                                <li class="page-item disabled"><span class="page-link"><?php echo $pagPi; ?> / <?php echo $totalPaginasPi; ?></span></li>
+                                <li class="page-item <?php echo $pagPi >= $totalPaginasPi ? 'disabled' : ''; ?>">
+                                    <a class="page-link" href="?tab=inscricoes&pi=<?php echo $pagPi + 1; ?>">Próxima</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
         </div>
 
-        <?php if (!empty($inscricoesRecusadas)): ?>
+        <?php if ($countInscricoesRecusadas > 0): ?>
         <div class="card shadow-sm border-0 border-danger mb-3" style="border-left: 4px solid #dc3545 !important;">
             <div class="card-body p-4">
                 <h2 class="h6 fw-bold mb-3 text-danger">
                     <i class="bi bi-x-circle me-1"></i>Inscrições recusadas
-                    <span class="badge bg-danger ms-1"><?php echo count($inscricoesRecusadas); ?></span>
+                    <span class="badge bg-danger ms-1"><?php echo $countInscricoesRecusadas; ?></span>
                 </h2>
                 <div class="table-responsive">
                     <table class="table align-middle">
@@ -501,6 +548,19 @@ include __DIR__ . '/../includes/header.php';
                         </tbody>
                     </table>
                 </div>
+                <?php if ($totalPaginasPr > 1): ?>
+                    <nav class="mt-3">
+                        <ul class="pagination pagination-sm justify-content-center mb-0">
+                            <li class="page-item <?php echo $pagPr <= 1 ? 'disabled' : ''; ?>">
+                                <a class="page-link" href="?tab=inscricoes&pr=<?php echo $pagPr - 1; ?>">Anterior</a>
+                            </li>
+                            <li class="page-item disabled"><span class="page-link"><?php echo $pagPr; ?> / <?php echo $totalPaginasPr; ?></span></li>
+                            <li class="page-item <?php echo $pagPr >= $totalPaginasPr ? 'disabled' : ''; ?>">
+                                <a class="page-link" href="?tab=inscricoes&pr=<?php echo $pagPr + 1; ?>">Próxima</a>
+                            </li>
+                        </ul>
+                    </nav>
+                <?php endif; ?>
             </div>
         </div>
         <?php endif; ?>
@@ -540,6 +600,19 @@ include __DIR__ . '/../includes/header.php';
                             </tbody>
                         </table>
                     </div>
+                    <?php if ($totalPaginasPa > 1): ?>
+                        <nav class="mt-3">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                                <li class="page-item <?php echo $pagPa <= 1 ? 'disabled' : ''; ?>">
+                                    <a class="page-link" href="?tab=inscricoes&pa=<?php echo $pagPa - 1; ?>">Anterior</a>
+                                </li>
+                                <li class="page-item disabled"><span class="page-link"><?php echo $pagPa; ?> / <?php echo $totalPaginasPa; ?></span></li>
+                                <li class="page-item <?php echo $pagPa >= $totalPaginasPa ? 'disabled' : ''; ?>">
+                                    <a class="page-link" href="?tab=inscricoes&pa=<?php echo $pagPa + 1; ?>">Próxima</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
         </div>
@@ -590,6 +663,19 @@ include __DIR__ . '/../includes/header.php';
                             </tbody>
                         </table>
                     </div>
+                    <?php if ($totalPaginasPp > 1): ?>
+                        <nav class="mt-3">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                                <li class="page-item <?php echo $pagPp <= 1 ? 'disabled' : ''; ?>">
+                                    <a class="page-link" href="?tab=pagamentos&pp=<?php echo $pagPp - 1; ?>">Anterior</a>
+                                </li>
+                                <li class="page-item disabled"><span class="page-link"><?php echo $pagPp; ?> / <?php echo $totalPaginasPp; ?></span></li>
+                                <li class="page-item <?php echo $pagPp >= $totalPaginasPp ? 'disabled' : ''; ?>">
+                                    <a class="page-link" href="?tab=pagamentos&pp=<?php echo $pagPp + 1; ?>">Próxima</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    <?php endif; ?>
                 <?php endif; ?>
 
                 <div class="alert alert-info mt-3 mb-0">
@@ -705,6 +791,20 @@ include __DIR__ . '/../includes/header.php';
                         </table>
                     </div>
 
+                    <?php if ($totalPaginasAs > 1): ?>
+                        <nav class="mt-3">
+                            <ul class="pagination pagination-sm justify-content-center mb-0">
+                                <li class="page-item <?php echo $pagAs <= 1 ? 'disabled' : ''; ?>">
+                                    <a class="page-link" href="?tab=assinaturas&as=<?php echo $pagAs - 1; ?>">Anterior</a>
+                                </li>
+                                <li class="page-item disabled"><span class="page-link"><?php echo $pagAs; ?> / <?php echo $totalPaginasAs; ?></span></li>
+                                <li class="page-item <?php echo $pagAs >= $totalPaginasAs ? 'disabled' : ''; ?>">
+                                    <a class="page-link" href="?tab=assinaturas&as=<?php echo $pagAs + 1; ?>">Próxima</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    <?php endif; ?>
+
                     <div class="alert alert-warning d-flex gap-2 align-items-start mt-3 mb-0">
                         <i class="bi bi-exclamation-triangle-fill mt-1"></i>
                         <div class="small">
@@ -718,6 +818,8 @@ include __DIR__ . '/../includes/header.php';
         </div>
 
     <?php endif; ?>
-</div>
+
+    </div><!-- /.admin-main -->
+</div><!-- /.admin-layout -->
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

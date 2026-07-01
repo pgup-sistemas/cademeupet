@@ -159,7 +159,24 @@ $breadcrumbs = [
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="container py-4" style="max-width: 860px;">
+<div class="admin-layout">
+
+    <?php include __DIR__ . '/../includes/admin-sidebar.php'; ?>
+
+    <div class="admin-main py-4 px-4">
+
+    <!-- Topbar mobile -->
+    <div class="d-flex d-lg-none align-items-center gap-2 mb-3 flex-wrap">
+        <a href="<?php echo BASE_URL; ?>/admin"            class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-gauge"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/usuarios"   class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-users"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/anuncios"   class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-list"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/moderacao"  class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-shield-halved"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/financeiro" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-chart-line"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/parceiros"  class="btn btn-sm btn-primary"><i class="fa-solid fa-handshake"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/config"     class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-gear"></i></a>
+    </div>
+
+    <div class="mx-auto" style="max-width: 860px;">
 
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
         <div>
@@ -209,28 +226,28 @@ include __DIR__ . '/../includes/header.php';
                 <input type="hidden" name="secao" value="usuario">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label">Nome completo</label>
-                        <input type="text" name="nome" class="form-control"
+                        <label for="u-nome" class="form-label">Nome completo</label>
+                        <input type="text" id="u-nome" name="nome" class="form-control"
                                value="<?php echo sanitize((string)($usuario['nome'] ?? '')); ?>" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">E-mail</label>
-                        <input type="email" name="email" class="form-control"
+                        <label for="u-email" class="form-label">E-mail</label>
+                        <input type="email" id="u-email" name="email" class="form-control"
                                value="<?php echo sanitize((string)($usuario['email'] ?? '')); ?>" required>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Telefone</label>
-                        <input type="text" name="telefone" class="form-control"
+                        <label for="u-telefone" class="form-label">Telefone</label>
+                        <input type="text" id="u-telefone" name="telefone" class="form-control"
                                value="<?php echo sanitize(cleanTel($usuario['telefone'] ?? null)); ?>"
                                placeholder="DDD + número">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Cidade</label>
-                        <input type="text" class="form-control" value="<?php echo sanitize((string)($usuario['cidade'] ?? '')); ?>" readonly disabled>
+                        <label for="u-cidade" class="form-label">Cidade</label>
+                        <input type="text" id="u-cidade" class="form-control" value="<?php echo sanitize((string)($usuario['cidade'] ?? '')); ?>" readonly disabled>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Tipo</label>
-                        <input type="text" class="form-control" value="<?php echo sanitize((string)($usuario['tipo_usuario'] ?? '')); ?>" readonly disabled>
+                        <label for="u-tipo" class="form-label">Tipo</label>
+                        <input type="text" id="u-tipo" class="form-control" value="<?php echo sanitize((string)($usuario['tipo_usuario'] ?? '')); ?>" readonly disabled>
                     </div>
                 </div>
                 <div class="mt-3">
@@ -255,13 +272,13 @@ include __DIR__ . '/../includes/header.php';
                 <input type="hidden" name="secao" value="inscricao">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label">Nome fantasia / Razão social</label>
-                        <input type="text" name="nome_fantasia" class="form-control"
+                        <label for="insc-nome-fantasia" class="form-label">Nome fantasia / Razão social</label>
+                        <input type="text" id="insc-nome-fantasia" name="nome_fantasia" class="form-control"
                                value="<?php echo sanitize((string)($inscricao['nome_fantasia'] ?? '')); ?>" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Categoria</label>
-                        <select name="categoria" class="form-select">
+                        <label for="insc-categoria" class="form-label">Categoria</label>
+                        <select id="insc-categoria" name="categoria" class="form-select">
                             <?php foreach ($categorias as $cat): ?>
                             <option value="<?php echo $cat; ?>" <?php echo ($inscricao['categoria'] ?? '') === $cat ? 'selected' : ''; ?>>
                                 <?php echo ucfirst($cat); ?>
@@ -270,19 +287,19 @@ include __DIR__ . '/../includes/header.php';
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Telefone de contato</label>
-                        <input type="text" name="telefone" class="form-control"
+                        <label for="insc-telefone" class="form-label">Telefone de contato</label>
+                        <input type="text" id="insc-telefone" name="telefone" class="form-control"
                                value="<?php echo sanitize(cleanTel($inscricao['telefone'] ?? null)); ?>"
                                placeholder="DDD + número">
                     </div>
                     <div class="col-md-5">
-                        <label class="form-label">Cidade</label>
-                        <input type="text" name="cidade" class="form-control"
+                        <label for="insc-cidade" class="form-label">Cidade</label>
+                        <input type="text" id="insc-cidade" name="cidade" class="form-control"
                                value="<?php echo sanitize((string)($inscricao['cidade'] ?? '')); ?>" required>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Estado</label>
-                        <select name="estado" class="form-select">
+                        <label for="insc-estado" class="form-label">Estado</label>
+                        <select id="insc-estado" name="estado" class="form-select">
                             <?php foreach ($estados as $uf): ?>
                             <option value="<?php echo $uf; ?>" <?php echo ($inscricao['estado'] ?? '') === $uf ? 'selected' : ''; ?>>
                                 <?php echo $uf; ?>
@@ -291,8 +308,8 @@ include __DIR__ . '/../includes/header.php';
                         </select>
                     </div>
                     <div class="col-12">
-                        <label class="form-label">Mensagem / Observação</label>
-                        <textarea name="mensagem" class="form-control" rows="3"><?php echo sanitize((string)($inscricao['mensagem'] ?? '')); ?></textarea>
+                        <label for="insc-mensagem" class="form-label">Mensagem / Observação</label>
+                        <textarea id="insc-mensagem" name="mensagem" class="form-control" rows="3"><?php echo sanitize((string)($inscricao['mensagem'] ?? '')); ?></textarea>
                     </div>
                 </div>
                 <div class="mt-3">
@@ -324,13 +341,13 @@ include __DIR__ . '/../includes/header.php';
                 <input type="hidden" name="secao" value="perfil">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label">Nome fantasia (público)</label>
-                        <input type="text" name="nome_fantasia" class="form-control"
+                        <label for="perf-nome-fantasia" class="form-label">Nome fantasia (público)</label>
+                        <input type="text" id="perf-nome-fantasia" name="nome_fantasia" class="form-control"
                                value="<?php echo sanitize((string)($perfil['nome_fantasia'] ?? $inscricao['nome_fantasia'] ?? '')); ?>" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Categoria</label>
-                        <select name="categoria" class="form-select">
+                        <label for="perf-categoria" class="form-label">Categoria</label>
+                        <select id="perf-categoria" name="categoria" class="form-select">
                             <?php foreach ($categorias as $cat): ?>
                             <option value="<?php echo $cat; ?>"
                                 <?php echo ($perfil['categoria'] ?? $inscricao['categoria'] ?? '') === $cat ? 'selected' : ''; ?>>
@@ -340,56 +357,56 @@ include __DIR__ . '/../includes/header.php';
                         </select>
                     </div>
                     <div class="col-12">
-                        <label class="form-label">Descrição / Apresentação</label>
-                        <textarea name="descricao" class="form-control" rows="4"
+                        <label for="perf-descricao" class="form-label">Descrição / Apresentação</label>
+                        <textarea id="perf-descricao" name="descricao" class="form-control" rows="4"
                                   placeholder="Descreva os serviços, diferenciais..."><?php echo sanitize((string)($perfil['descricao'] ?? '')); ?></textarea>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Telefone</label>
-                        <input type="text" name="telefone" class="form-control"
+                        <label for="perf-telefone" class="form-label">Telefone</label>
+                        <input type="text" id="perf-telefone" name="telefone" class="form-control"
                                value="<?php echo sanitize(cleanTel($perfil['telefone'] ?? null)); ?>">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">WhatsApp</label>
-                        <input type="text" name="whatsapp" class="form-control"
+                        <label for="perf-whatsapp" class="form-label">WhatsApp</label>
+                        <input type="text" id="perf-whatsapp" name="whatsapp" class="form-control"
                                value="<?php echo sanitize(cleanTel($perfil['whatsapp'] ?? null)); ?>">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">E-mail de contato</label>
-                        <input type="email" name="email_contato" class="form-control"
+                        <label for="perf-email-contato" class="form-label">E-mail de contato</label>
+                        <input type="email" id="perf-email-contato" name="email_contato" class="form-control"
                                value="<?php echo sanitize((string)($perfil['email_contato'] ?? '')); ?>">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Site</label>
-                        <input type="url" name="site" class="form-control"
+                        <label for="perf-site" class="form-label">Site</label>
+                        <input type="url" id="perf-site" name="site" class="form-control"
                                value="<?php echo sanitize((string)($perfil['site'] ?? '')); ?>"
                                placeholder="https://...">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Instagram</label>
-                        <input type="text" name="instagram" class="form-control"
+                        <label for="perf-instagram" class="form-label">Instagram</label>
+                        <input type="text" id="perf-instagram" name="instagram" class="form-control"
                                value="<?php echo sanitize((string)($perfil['instagram'] ?? '')); ?>"
                                placeholder="@usuario ou URL">
                     </div>
                     <div class="col-12">
-                        <label class="form-label">Endereço</label>
-                        <input type="text" name="endereco" class="form-control"
+                        <label for="perf-endereco" class="form-label">Endereço</label>
+                        <input type="text" id="perf-endereco" name="endereco" class="form-control"
                                value="<?php echo sanitize((string)($perfil['endereco'] ?? '')); ?>"
                                placeholder="Rua, número">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Bairro</label>
-                        <input type="text" name="bairro" class="form-control"
+                        <label for="perf-bairro" class="form-label">Bairro</label>
+                        <input type="text" id="perf-bairro" name="bairro" class="form-control"
                                value="<?php echo sanitize((string)($perfil['bairro'] ?? '')); ?>">
                     </div>
                     <div class="col-md-5">
-                        <label class="form-label">Cidade</label>
-                        <input type="text" name="cidade" class="form-control"
+                        <label for="perf-cidade" class="form-label">Cidade</label>
+                        <input type="text" id="perf-cidade" name="cidade" class="form-control"
                                value="<?php echo sanitize((string)($perfil['cidade'] ?? $inscricao['cidade'] ?? '')); ?>" required>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Estado</label>
-                        <select name="estado" class="form-select">
+                        <label for="perf-estado" class="form-label">Estado</label>
+                        <select id="perf-estado" name="estado" class="form-select">
                             <?php foreach ($estados as $uf): ?>
                             <option value="<?php echo $uf; ?>"
                                 <?php echo ($perfil['estado'] ?? $inscricao['estado'] ?? '') === $uf ? 'selected' : ''; ?>>
@@ -463,6 +480,9 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </div>
 
-</div>
+    </div><!-- /.mx-auto -->
+
+    </div><!-- /.admin-main -->
+</div><!-- /.admin-layout -->
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

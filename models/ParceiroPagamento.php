@@ -88,14 +88,18 @@ class ParceiroPagamento
         );
     }
 
-    public function listByStatus(string $status): array
+    public function listByStatus(string $status, int $limit = 20, int $offset = 0): array
     {
+        $limit  = max(1, $limit);
+        $offset = max(0, $offset);
+
         return $this->db->fetchAll(
             'SELECT p.*, u.email, u.nome as usuario_nome
              FROM parceiro_pagamentos p
              JOIN usuarios u ON u.id = p.usuario_id
              WHERE p.status = ?
-             ORDER BY p.data_criacao DESC',
+             ORDER BY p.data_criacao DESC
+             LIMIT ' . $limit . ' OFFSET ' . $offset,
             [$status]
         );
     }

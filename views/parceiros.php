@@ -11,13 +11,19 @@ $perfilModel = new ParceiroPerfil();
 $cidadeFiltro = isset($_GET['cidade']) ? trim((string)$_GET['cidade']) : null;
 $categoriaFiltro = isset($_GET['categoria']) ? trim((string)$_GET['categoria']) : null;
 
+$pagina = max(1, (int)($_GET['pagina'] ?? 1));
+$porPagina = 12;
+
 $perfis = [];
+$totalPerfis = 0;
 try {
-    $perfis = $perfilModel->listPublic($cidadeFiltro, $categoriaFiltro);
+    $totalPerfis = $perfilModel->countPublic($cidadeFiltro, $categoriaFiltro);
+    $perfis = $perfilModel->listPublic($cidadeFiltro, $categoriaFiltro, $porPagina, ($pagina - 1) * $porPagina);
 } catch (Throwable $e) {
     error_log('[Parceiros] listPublic: ' . $e->getMessage());
     $perfis = [];
 }
+$totalPaginas = (int)ceil($totalPerfis / $porPagina);
 
 $categorias = [
     [
@@ -186,7 +192,7 @@ $categoriaLabels = [
                         &mdash; <a href="<?php echo BASE_URL; ?>/parceiros" class="text-decoration-none small">Limpar filtros</a>
                     </p>
                 <?php else: ?>
-                    <p class="text-muted mb-0"><?php echo !empty($perfis) ? count($perfis) . ' parceiro(s) cadastrado(s).' : 'Seja o primeiro parceiro na sua região!'; ?></p>
+                    <p class="text-muted mb-0"><?php echo $totalPerfis > 0 ? $totalPerfis . ' parceiro(s) cadastrado(s).' : 'Seja o primeiro parceiro na sua região!'; ?></p>
                 <?php endif; ?>
             </div>
             <div class="partners-filter-placeholder">
@@ -273,6 +279,33 @@ $categoriaLabels = [
                         </div>
                     </div>
                 <?php endforeach; ?>
+
+                <?php if ($totalPaginas > 1): ?>
+                    <div class="col-12">
+                        <?php
+                        $qBase = http_build_query(array_filter([
+                            'cidade'    => $cidadeFiltro ?: null,
+                            'categoria' => $categoriaFiltro ?: null,
+                        ]));
+                        $qBase = $qBase ? '&' . $qBase : '';
+                        ?>
+                        <nav class="mt-2">
+                            <ul class="pagination justify-content-center mb-0">
+                                <li class="page-item <?php echo $pagina <= 1 ? 'disabled' : ''; ?>">
+                                    <a class="page-link" href="?pagina=<?php echo $pagina - 1; ?><?php echo $qBase; ?>">Anterior</a>
+                                </li>
+                                <?php for ($p = max(1, $pagina - 2); $p <= min($totalPaginas, $pagina + 2); $p++): ?>
+                                    <li class="page-item <?php echo $p === $pagina ? 'active' : ''; ?>">
+                                        <a class="page-link" href="?pagina=<?php echo $p; ?><?php echo $qBase; ?>"><?php echo $p; ?></a>
+                                    </li>
+                                <?php endfor; ?>
+                                <li class="page-item <?php echo $pagina >= $totalPaginas ? 'disabled' : ''; ?>">
+                                    <a class="page-link" href="?pagina=<?php echo $pagina + 1; ?><?php echo $qBase; ?>">Próxima</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                <?php endif; ?>
 
             <?php elseif ($filtroAtivo): ?>
 

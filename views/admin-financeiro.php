@@ -125,7 +125,23 @@ try {
 
 ?>
 
-<div class="container py-5">
+<div class="admin-layout">
+
+    <?php include __DIR__ . '/../includes/admin-sidebar.php'; ?>
+
+    <div class="admin-main py-4 px-4">
+
+    <!-- Topbar mobile -->
+    <div class="d-flex d-lg-none align-items-center gap-2 mb-3 flex-wrap">
+        <a href="<?php echo BASE_URL; ?>/admin"            class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-gauge"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/usuarios"   class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-users"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/anuncios"   class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-list"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/moderacao"  class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-shield-halved"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/financeiro" class="btn btn-sm btn-primary"><i class="fa-solid fa-chart-line"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/parceiros"  class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-handshake"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/config"     class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-gear"></i></a>
+    </div>
+
     <?php if (! $efiAvailable): ?>
         <div class="alert alert-warning">
             <strong>Atenção:</strong> A integração com o gateway EFI parece estar indisponível (SDK, credenciais ou certificado ausente). Pagamentos por cartão podem falhar. Verifique a instalação do Composer, as credenciais `EFI_CLIENT_ID` / `EFI_CLIENT_SECRET` e o caminho `EFI_CERTIFICATE_PATH`.
@@ -135,10 +151,6 @@ try {
         <div>
             <h1 class="h4 fw-bold mb-1">Admin · Financeiro</h1>
             <p class="text-muted mb-0">Meta mensal, doações e pagamentos de parceiros.</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="<?php echo BASE_URL; ?>/admin" class="btn btn-outline-secondary">Voltar</a>
-            <a href="<?php echo BASE_URL; ?>/admin/usuarios" class="btn btn-outline-primary">Usuários</a>
         </div>
     </div>
 
@@ -282,25 +294,25 @@ try {
                     <input type="hidden" name="meta_id" value="<?php echo (int)($metaAtual['id'] ?? 0); ?>">
 
                     <div class="col-md-3">
-                        <label class="form-label">Valor meta</label>
-                        <input type="number" step="0.01" name="valor_meta" class="form-control" value="<?php echo sanitize((string)($metaAtual['valor_meta'] ?? 0)); ?>">
+                        <label for="meta-valor" class="form-label">Valor meta</label>
+                        <input type="number" id="meta-valor" step="0.01" name="valor_meta" class="form-control" value="<?php echo sanitize((string)($metaAtual['valor_meta'] ?? 0)); ?>">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Custos servidor</label>
-                        <input type="number" step="0.01" name="custos_servidor" class="form-control" value="<?php echo sanitize((string)($metaAtual['custos_servidor'] ?? 0)); ?>">
+                        <label for="meta-servidor" class="form-label">Custos servidor</label>
+                        <input type="number" id="meta-servidor" step="0.01" name="custos_servidor" class="form-control" value="<?php echo sanitize((string)($metaAtual['custos_servidor'] ?? 0)); ?>">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Custos manutenção</label>
-                        <input type="number" step="0.01" name="custos_manutencao" class="form-control" value="<?php echo sanitize((string)($metaAtual['custos_manutencao'] ?? 0)); ?>">
+                        <label for="meta-manutencao" class="form-label">Custos manutenção</label>
+                        <input type="number" id="meta-manutencao" step="0.01" name="custos_manutencao" class="form-control" value="<?php echo sanitize((string)($metaAtual['custos_manutencao'] ?? 0)); ?>">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Custos outros</label>
-                        <input type="number" step="0.01" name="custos_outros" class="form-control" value="<?php echo sanitize((string)($metaAtual['custos_outros'] ?? 0)); ?>">
+                        <label for="meta-outros" class="form-label">Custos outros</label>
+                        <input type="number" id="meta-outros" step="0.01" name="custos_outros" class="form-control" value="<?php echo sanitize((string)($metaAtual['custos_outros'] ?? 0)); ?>">
                     </div>
 
                     <div class="col-12">
-                        <label class="form-label">Descrição</label>
-                        <textarea name="descricao" class="form-control" rows="2"><?php echo sanitize((string)($metaAtual['descricao'] ?? '')); ?></textarea>
+                        <label for="meta-descricao" class="form-label">Descrição</label>
+                        <textarea id="meta-descricao" name="descricao" class="form-control" rows="2"><?php echo sanitize((string)($metaAtual['descricao'] ?? '')); ?></textarea>
                     </div>
 
                     <div class="col-12 d-grid d-md-flex justify-content-end">
@@ -539,6 +551,8 @@ try {
             <?php endif; ?>
         </div>
     </div>
-</div>
+
+    </div><!-- /.admin-main -->
+</div><!-- /.admin-layout -->
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

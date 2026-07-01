@@ -70,6 +70,13 @@ foreach (['pendente', 'procedente', 'improcedente'] as $s) {
     $contagens[$s] = (int)($row['n'] ?? 0);
 }
 
+$pagina = max(1, (int)($_GET['pagina'] ?? 1));
+$limite = 20;
+$offset = ($pagina - 1) * $limite;
+
+$totalDenuncias = $contagens[$filtro] ?? 0;
+$totalPaginas   = (int)ceil($totalDenuncias / $limite);
+
 $denuncias = $db->fetchAll(
     "SELECT d.*, a.nome_pet, a.especie, a.tipo, u.nome AS denunciante_nome, u.email AS denunciante_email
      FROM denuncias d
@@ -77,7 +84,7 @@ $denuncias = $db->fetchAll(
      LEFT JOIN usuarios u ON u.id = d.usuario_id
      WHERE d.status = ?
      ORDER BY d.data_denuncia DESC
-     LIMIT 100",
+     LIMIT $limite OFFSET $offset",
     [$filtro]
 ) ?: [];
 
@@ -91,10 +98,26 @@ include __DIR__ . '/../includes/header.php';
 $flashMsg = getFlashMessage();
 ?>
 
-<div class="container-fluid py-4 px-4">
+<div class="admin-layout">
+
+    <?php include __DIR__ . '/../includes/admin-sidebar.php'; ?>
+
+    <div class="admin-main py-4 px-4">
+
+    <!-- Topbar mobile -->
+    <div class="d-flex d-lg-none align-items-center gap-2 mb-3 flex-wrap">
+        <a href="<?php echo BASE_URL; ?>/admin"            class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-gauge"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/usuarios"   class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-users"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/anuncios"   class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-list"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/moderacao"  class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-shield-halved"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/financeiro" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-chart-line"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/parceiros"  class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-handshake"></i></a>
+        <a href="<?php echo BASE_URL; ?>/admin/config"     class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-gear"></i></a>
+    </div>
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h4 fw-bold mb-0"><i class="fa-solid fa-flag me-2 text-danger"></i>Denúncias</h1>
-        <a href="<?php echo BASE_URL; ?>/admin" class="btn btn-outline-secondary btn-sm">
+        <a href="<?php echo BASE_URL; ?>/admin" class="btn btn-outline-secondary btn-sm d-none d-lg-inline-flex">
             <i class="fa-solid fa-arrow-left me-1"></i>Voltar ao Admin
         </a>
     </div>
@@ -200,7 +223,27 @@ $flashMsg = getFlashMessage();
                 </tbody>
             </table>
         </div>
+
+        <?php if ($totalPaginas > 1): ?>
+            <nav class="mt-3">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item <?php echo $pagina <= 1 ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="?filtro=<?php echo $filtro; ?>&pagina=<?php echo $pagina - 1; ?>">Anterior</a>
+                    </li>
+                    <?php for ($p = max(1, $pagina - 2); $p <= min($totalPaginas, $pagina + 2); $p++): ?>
+                        <li class="page-item <?php echo $p === $pagina ? 'active' : ''; ?>">
+                            <a class="page-link" href="?filtro=<?php echo $filtro; ?>&pagina=<?php echo $p; ?>"><?php echo $p; ?></a>
+                        </li>
+                    <?php endfor; ?>
+                    <li class="page-item <?php echo $pagina >= $totalPaginas ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="?filtro=<?php echo $filtro; ?>&pagina=<?php echo $pagina + 1; ?>">Próxima</a>
+                    </li>
+                </ul>
+            </nav>
+        <?php endif; ?>
     <?php endif; ?>
-</div>
+
+    </div><!-- /.admin-main -->
+</div><!-- /.admin-layout -->
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
