@@ -156,6 +156,7 @@ $breadcrumbs = [
     ['label' => 'Parceiros', 'url' => BASE_URL . '/admin/parceiros?tab=inscricoes'],
     ['label' => 'Editar'],
 ];
+$suppressBreadcrumbBar = true;
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -177,6 +178,8 @@ include __DIR__ . '/../includes/header.php';
     </div>
 
     <div class="mx-auto" style="max-width: 860px;">
+
+    <?php include __DIR__ . '/../includes/admin-breadcrumb.php'; ?>
 
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
         <div>

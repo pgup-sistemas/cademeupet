@@ -332,6 +332,7 @@ $breadcrumbs = [
     ['label' => 'Admin',     'url' => BASE_URL . '/admin'],
     ['label' => 'Parceiros'],
 ];
+$suppressBreadcrumbBar = true;
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -351,6 +352,8 @@ include __DIR__ . '/../includes/header.php';
         <a href="<?php echo BASE_URL; ?>/admin/parceiros"  class="btn btn-sm btn-primary"><i class="fa-solid fa-handshake"></i></a>
         <a href="<?php echo BASE_URL; ?>/admin/config"     class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-gear"></i></a>
     </div>
+
+    <?php include __DIR__ . '/../includes/admin-breadcrumb.php'; ?>
 
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>

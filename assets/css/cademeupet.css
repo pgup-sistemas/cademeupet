@@ -235,6 +235,16 @@ a:hover { color: var(--cmp-primary-dk); }
 .breadcrumb-bar .breadcrumb-item + .breadcrumb-item::before { color: var(--cmp-border); }
 .breadcrumb-bar .breadcrumb-item.active { color: var(--cmp-muted); font-size: .8rem; }
 
+/* Breadcrumb interno das páginas admin — dentro do .admin-main, ao lado do sidebar */
+.admin-breadcrumb .breadcrumb-item a {
+  color: var(--cmp-primary);
+  text-decoration: none;
+  font-size: .78rem;
+}
+.admin-breadcrumb .breadcrumb-item a:hover { color: var(--cmp-primary-dk); text-decoration: underline; }
+.admin-breadcrumb .breadcrumb-item + .breadcrumb-item::before { color: var(--cmp-border); }
+.admin-breadcrumb .breadcrumb-item.active { color: var(--cmp-muted); font-size: .78rem; }
+
 /* ═══════════════════════════════════════════════════════════
    HERO
    ═══════════════════════════════════════════════════════════ */
@@ -593,7 +603,7 @@ a:hover { color: var(--cmp-primary-dk); }
    ═══════════════════════════════════════════════════════════ */
 .admin-nav {
   background: var(--cmp-dark);
-  min-height: calc(100vh - 52px);
+  min-height: 100%;
   border-right: 1px solid rgba(255,255,255,.05);
 }
 .admin-nav .nav-link {
@@ -615,10 +625,13 @@ a:hover { color: var(--cmp-primary-dk); }
    ADMIN SIDEBAR — COLAPSÁVEL
    ═══════════════════════════════════════════════════════════ */
 
-/* Layout wrapper — flexbox substitui o grid Bootstrap */
+/* Layout wrapper — flexbox substitui o grid Bootstrap.
+   Altura real vem do body/.main-content (flex column + flex:1 em style.css),
+   então herda 100% do espaço restante da viewport sem valor fixo em px
+   (que ficava errado nas páginas com breadcrumb, pois não descontava a barra). */
 .admin-layout {
   display: flex;
-  min-height: calc(100vh - 52px);
+  min-height: 100%;
 }
 .admin-main {
   flex: 1;

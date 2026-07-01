@@ -77,14 +77,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($acao === 'toggle_active') {
         if ($currentUserId === $id) { setFlashMessage('Você não pode desativar seu próprio usuário.', MSG_ERROR); redirect('/admin/usuarios'); }
-        try { $usuarioModel->setActive($id, !(bool)$alvo['ativo']); setFlashMessage('Status atualizado.', MSG_SUCCESS); }
+        try {
+            $novoAtivo = !(bool)$alvo['ativo'];
+            $usuarioModel->setActive($id, $novoAtivo);
+            auditLog($novoAtivo ? 'ativar_usuario' : 'desativar_usuario', 'usuarios', $id,
+                ['ativo' => (int)$alvo['ativo']], ['ativo' => (int)$novoAtivo]);
+            setFlashMessage('Status atualizado.', MSG_SUCCESS);
+        }
         catch (Throwable $e) { error_log('[Admin Usuarios] toggle_active: ' . $e->getMessage()); setFlashMessage('Erro ao atualizar.', MSG_ERROR); }
         redirect('/admin/usuarios');
     }
 
     if ($acao === 'toggle_admin') {
         if ($currentUserId === $id) { setFlashMessage('Você não pode remover seu próprio acesso admin.', MSG_ERROR); redirect('/admin/usuarios'); }
-        try { $usuarioModel->setAdmin($id, !(bool)$alvo['is_admin']); setFlashMessage('Permissão atualizada.', MSG_SUCCESS); }
+        try {
+            $novoAdmin = !(bool)$alvo['is_admin'];
+            $usuarioModel->setAdmin($id, $novoAdmin);
+            auditLog($novoAdmin ? 'promover_admin' : 'revogar_admin', 'usuarios', $id,
+                ['is_admin' => (int)$alvo['is_admin']], ['is_admin' => (int)$novoAdmin]);
+            setFlashMessage('Permissão atualizada.', MSG_SUCCESS);
+        }
         catch (Throwable $e) { error_log('[Admin Usuarios] toggle_admin: ' . $e->getMessage()); setFlashMessage('Erro ao atualizar.', MSG_ERROR); }
         redirect('/admin/usuarios');
     }
@@ -111,11 +123,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($errors)) { setFlashMessage(implode(' ', $errors), MSG_ERROR); redirect('/admin/usuarios'); }
 
         try {
-            $usuarioModel->update($id, [
+            $dadosNovos = [
                 'nome' => $nome, 'email' => $email, 'telefone' => $telefone,
                 'tipo_usuario' => $tipoUsuario, 'ativo' => $ativo,
                 'is_admin' => $isAdminFlag, 'email_confirmado' => $emailConfirmado,
-            ]);
+            ];
+            $usuarioModel->update($id, $dadosNovos);
+            auditLog('editar_usuario', 'usuarios', $id,
+                array_intersect_key($alvo, $dadosNovos), $dadosNovos);
             setFlashMessage('Usuário atualizado.', MSG_SUCCESS);
         } catch (Throwable $e) {
             error_log('[Admin Usuarios] update_user: ' . $e->getMessage());
@@ -127,7 +142,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($acao === 'reset_password') {
         $senha = (string)($_POST['senha'] ?? '');
         if (strlen($senha) < PASSWORD_MIN_LENGTH) { setFlashMessage('Senha muito curta.', MSG_ERROR); redirect('/admin/usuarios'); }
-        try { $usuarioModel->updatePassword($id, $senha); setFlashMessage('Senha atualizada.', MSG_SUCCESS); }
+        try {
+            $usuarioModel->updatePassword($id, $senha);
+            auditLog('reset_senha_usuario', 'usuarios', $id, null, ['senha_redefinida' => true]);
+            setFlashMessage('Senha atualizada.', MSG_SUCCESS);
+        }
         catch (Throwable $e) { error_log('[Admin Usuarios] reset_password: ' . $e->getMessage()); setFlashMessage('Erro ao atualizar senha.', MSG_ERROR); }
         redirect('/admin/usuarios');
     }
@@ -145,6 +164,7 @@ $breadcrumbs = [
     ['label' => 'Admin',    'url' => BASE_URL . '/admin'],
     ['label' => 'Usuários'],
 ];
+$suppressBreadcrumbBar = true;
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -164,6 +184,8 @@ include __DIR__ . '/../includes/header.php';
                 <a href="<?php echo BASE_URL; ?>/admin/financeiro" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-chart-line"></i></a>
                 <a href="<?php echo BASE_URL; ?>/admin/config"     class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-gear"></i></a>
             </div>
+
+            <?php include __DIR__ . '/../includes/admin-breadcrumb.php'; ?>
 
             <!-- Header da página -->
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">

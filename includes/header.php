@@ -231,7 +231,7 @@ $includeMapAssets = $includeMapAssets ?? false;
         </div>
     </header>
 
-    <?php if (!empty($breadcrumbs) && count($breadcrumbs) > 1): ?>
+    <?php if (!empty($breadcrumbs) && count($breadcrumbs) > 1 && empty($suppressBreadcrumbBar)): ?>
     <nav aria-label="breadcrumb" class="breadcrumb-bar">
         <div class="container">
             <ol class="breadcrumb mb-0 py-2 small">

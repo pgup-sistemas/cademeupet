@@ -20,6 +20,7 @@ $breadcrumbs = [
     ['label' => 'Admin',  'url' => BASE_URL . '/admin'],
     ['label' => 'Dashboard'],
 ];
+$suppressBreadcrumbBar = true;
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -38,6 +39,8 @@ include __DIR__ . '/../includes/header.php';
                 <a href="<?php echo BASE_URL; ?>/admin/financeiro"  class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-chart-line"></i></a>
                 <a href="<?php echo BASE_URL; ?>/admin/config"      class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-gear"></i></a>
             </div>
+
+            <?php include __DIR__ . '/../includes/admin-breadcrumb.php'; ?>
 
             <h1 class="h4 fw-bold mb-4">Dashboard</h1>
 
