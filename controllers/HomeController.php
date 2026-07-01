@@ -11,6 +11,12 @@ class HomeController
 
     public function getHomeData(): array
     {
+        $cacheKey = 'home_data';
+        $cached = cacheGet($cacheKey);
+        if ($cached !== null) {
+            return $cached;
+        }
+
         $anunciosRecentes = $this->db->fetchAll("
             SELECT a.*, u.nome as autor_nome,
                    (SELECT nome_arquivo FROM fotos_anuncios
@@ -24,6 +30,8 @@ class HomeController
 
         $stats = $this->db->fetchOne("SELECT * FROM view_estatisticas") ?? [];
 
-        return ['anunciosRecentes' => $anunciosRecentes, 'stats' => $stats];
+        $result = ['anunciosRecentes' => $anunciosRecentes, 'stats' => $stats];
+        cacheSet($cacheKey, $result, CACHE_TIME_HOME);
+        return $result;
     }
 }

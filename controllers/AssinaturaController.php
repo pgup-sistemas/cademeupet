@@ -55,18 +55,23 @@ class AssinaturaController
         $agora = date('Y-m-d H:i:s');
 
         if ($acao === 'cancelar' && $assinatura['status'] !== 'cancelada') {
+            // TODO: chamar EFI Bank API para cancelar a assinatura recorrente no gateway
+            // antes de atualizar localmente, para evitar cobranças após o cancelamento.
             $this->doacaoModel->update($assinaturaId, ['status' => 'cancelada', 'cancelada_em' => $agora]);
             error_log("[AssinaturaController] Usuário $usuarioId cancelou assinatura $assinaturaId");
             return true;
         }
 
         if ($acao === 'pausar' && $assinatura['status'] === 'ativa') {
+            // TODO: EFI Bank não possui endpoint de "pausa" — implementar suspensão no gateway
+            // antes de atualizar localmente para evitar cobranças indevidas durante a pausa.
             $this->doacaoModel->update($assinaturaId, ['status' => 'pausada', 'pausada_em' => $agora]);
             error_log("[AssinaturaController] Usuário $usuarioId pausou assinatura $assinaturaId");
             return true;
         }
 
         if ($acao === 'reativar' && $assinatura['status'] === 'pausada') {
+            // TODO: reativar no gateway antes de atualizar localmente.
             $this->doacaoModel->update($assinaturaId, ['status' => 'ativa', 'pausada_em' => null]);
             error_log("[AssinaturaController] Usuário $usuarioId reativou assinatura $assinaturaId");
             return true;

@@ -4,19 +4,6 @@
  * Arquivo principal de configuração do sistema
  */
 
-// Encoding UTF-8 em toda a aplicação
-ini_set('default_charset', 'UTF-8');
-mb_internal_encoding('UTF-8');
-mb_http_output('UTF-8');
-if (!headers_sent()) {
-    header('Content-Type: text/html; charset=UTF-8');
-}
-
-// Iniciar sessão
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 // ═══════════════════════════════════════════════
 // DETECÇÃO DE AMBIENTE (deve vir primeiro)
 // ═══════════════════════════════════════════════
@@ -27,6 +14,27 @@ $_isLocal  = (php_sapi_name() === 'cli')
                               '127.0.0.1:8083', 'cademeupet.local'])
     || (isset($_SERVER['SERVER_ADDR']) && in_array($_SERVER['SERVER_ADDR'], ['127.0.0.1', '::1']));
 define('IS_LOCAL', $_isLocal);
+
+// Encoding UTF-8 em toda a aplicação
+ini_set('default_charset', 'UTF-8');
+mb_internal_encoding('UTF-8');
+mb_http_output('UTF-8');
+if (!headers_sent()) {
+    header('Content-Type: text/html; charset=UTF-8');
+}
+
+// Iniciar sessão com cookies seguros (apenas em contexto web)
+if (php_sapi_name() !== 'cli' && session_status() === PHP_SESSION_NONE) {
+    session_set_cookie_params([
+        'lifetime' => 0,            // expira ao fechar o browser (timeout via last_activity)
+        'path'     => '/',
+        'domain'   => '',
+        'secure'   => !$_isLocal,   // HTTPS only em produção
+        'httponly' => true,         // bloqueia acesso via JavaScript
+        'samesite' => 'Lax',       // protege contra CSRF cross-site
+    ]);
+    session_start();
+}
 
 // Configurações de erro por ambiente
 if ($_isLocal) {
@@ -116,13 +124,13 @@ define('MAX_ALERTS_PER_USER', 5);
 define('RESULTS_PER_PAGE', 20);
 define('ALERT_MIN_INTERVAL_SECONDS', 3600); // 1 hora entre disparos do mesmo alerta
 define('ALERT_EMAIL_MAX_RESULTS', 5);
+define('MAX_PETLOVE_PETS_PER_USER', 5);
+define('MAX_PETLOVE_INTERESTS_PER_USER', 20);
 
 // ═══════════════════════════════════════════════
 // DOAÇÕES
 // ═══════════════════════════════════════════════
 define('MIN_DONATION_AMOUNT', 2.00);
-define('MERCADO_PAGO_PUBLIC_KEY', 'TEST-your-public-key');
-define('MERCADO_PAGO_ACCESS_TOKEN', 'TEST-your-access-token');
 
 // ═══════════════════════════════════════════════
 // CONFIGURAÇÕES EFI BANK - PRODUÇÃO (ROTACIONADAS)
@@ -208,7 +216,7 @@ define('EMAIL_FROM_NAME', envValue('EMAIL_FROM_NAME', 'Cadê Meu Pet?'));
 // ═══════════════════════════════════════════════
 // GOOGLE MAPS API
 // ═══════════════════════════════════════════════
-define('GOOGLE_MAPS_API_KEY', 'your-google-maps-api-key');
+define('GOOGLE_MAPS_API_KEY', envValue('GOOGLE_MAPS_API_KEY', ''));
 
 // ═══════════════════════════════════════════════
 // CACHE

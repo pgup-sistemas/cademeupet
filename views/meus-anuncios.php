@@ -125,6 +125,15 @@ include __DIR__ . '/../includes/header.php';
                                         </button>
                                     </form>
                                 <?php endif; ?>
+                                <?php if (($anuncio['status'] ?? '') === STATUS_EXPIRADO): ?>
+                                    <form method="POST" action="<?php echo BASE_URL; ?>/renovar-anuncio" class="flex-grow-1" onsubmit="return confirm('Renovar este anúncio por mais <?php echo AD_EXPIRATION_DAYS; ?> dias?');">
+                                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                                        <input type="hidden" name="anuncio_id" value="<?php echo (int)$anuncio['id']; ?>">
+                                        <button type="submit" class="btn btn-success btn-sm w-100">
+                                            <i class="fa-solid fa-rotate-right me-1"></i>Renovar
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
                                 <?php if (($anuncio['status'] ?? '') !== STATUS_INATIVO): ?>
                                     <form method="POST" action="<?php echo BASE_URL; ?>/excluir-anuncio.php" class="flex-grow-1" onsubmit="return confirm('Tem certeza que deseja excluir este anúncio? Ele deixará de aparecer nas buscas.');">
                                         <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">

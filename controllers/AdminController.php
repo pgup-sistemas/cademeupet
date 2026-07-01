@@ -122,13 +122,18 @@ class AdminController
 
     public function processarAcaoAnuncio(int $anuncioId, string $acao): void
     {
+        $dadosAntes = $this->db->fetchOne('SELECT * FROM anuncios WHERE id = ?', [$anuncioId]) ?: [];
+
         if ($acao === 'desativar') {
             $this->db->update('anuncios', ['status' => STATUS_INATIVO], 'id = ?', [$anuncioId]);
+            auditLog('desativar_anuncio', 'anuncios', $anuncioId, ['status' => $dadosAntes['status'] ?? null], ['status' => STATUS_INATIVO]);
             setFlashMessage('Anúncio desativado com sucesso.', MSG_SUCCESS);
         } elseif ($acao === 'ativar') {
             $this->db->update('anuncios', ['status' => STATUS_ATIVO], 'id = ?', [$anuncioId]);
+            auditLog('ativar_anuncio', 'anuncios', $anuncioId, ['status' => $dadosAntes['status'] ?? null], ['status' => STATUS_ATIVO]);
             setFlashMessage('Anúncio reativado com sucesso.', MSG_SUCCESS);
         } elseif ($acao === 'excluir') {
+            auditLog('excluir_anuncio', 'anuncios', $anuncioId, $dadosAntes, null);
             $fotos = $this->db->fetchAll(
                 'SELECT nome_arquivo FROM fotos_anuncios WHERE anuncio_id = ?', [$anuncioId]
             );
@@ -173,12 +178,17 @@ class AdminController
     {
         if (!in_array($acao, ['aprovar', 'rejeitar'], true) || $anuncioId <= 0) return;
 
+        $dadosAntes = $this->db->fetchOne(
+            'SELECT moderacao_status, status FROM anuncios WHERE id = ?', [$anuncioId]
+        ) ?: [];
+
         $novoStatus = $acao === 'aprovar' ? 'aprovado' : 'rejeitado';
         $this->db->update('anuncios', [
             'moderacao_status' => $novoStatus,
             'moderacao_motivo' => $motivo ?: null,
             'status'           => $acao === 'rejeitar' ? STATUS_INATIVO : STATUS_ATIVO,
         ], 'id = ?', [$anuncioId]);
+        auditLog("moderacao_{$acao}", 'anuncios', $anuncioId, $dadosAntes, ['moderacao_status' => $novoStatus, 'motivo' => $motivo]);
 
         $anuncio = $this->db->fetchOne(
             'SELECT a.*, u.nome AS autor_nome, u.email AS autor_email

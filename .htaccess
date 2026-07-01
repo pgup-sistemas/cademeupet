@@ -12,10 +12,12 @@ AddCharset UTF-8 .php .html .htm .css .js .json .xml .txt
     # PRODUÇÃO (raiz do domínio): RewriteBase /
     RewriteBase /cademeupet/
 
-    # Força HTTPS (DESCOMENTE após confirmar que está tudo funcionando)
-    # RewriteCond %{HTTPS} off
-    # RewriteCond %{HTTP_HOST} ^petfinder\.pageup\.net\.br$ [NC]
-    # RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [L,R=301]
+    # Força HTTPS em produção
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP_HOST} !^localhost [NC]
+    RewriteCond %{HTTP_HOST} !^127\.0\.0\.1
+    RewriteCond %{REMOTE_ADDR} !^127\.0\.0\.1
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [L,R=301]
 
     # Include local env file (uncomment if you will upload `.htaccess.env` to the server and your host allows Include)
     # Include .htaccess.env
@@ -40,6 +42,7 @@ AddCharset UTF-8 .php .html .htm .css .js .json .xml .txt
     RewriteRule ^admin/anuncios/?$ views/admin-anuncios.php [L,QSA]
     RewriteRule ^admin/config/?$ views/admin-config.php [L,QSA]
     RewriteRule ^admin/moderacao/?$ views/admin-moderacao.php [L,QSA]
+    RewriteRule ^admin/denuncias/?$ views/admin-denuncias.php [L,QSA]
     RewriteRule ^minha-conta/?$ views/minha-conta.php [L,QSA]
 
     # Rotas de parceiros (ordem importa!)
@@ -53,6 +56,9 @@ AddCharset UTF-8 .php .html .htm .css .js .json .xml .txt
     RewriteRule ^admin/parceiro-editar/?$ views/admin-parceiro-editar.php [L,QSA]
     RewriteRule ^parceiro/contrato/?$ views/parceiro-contrato-aceite.php [L,QSA]
     RewriteRule ^parceiro/contrato-pdf/?$ views/parceiro-contrato-pdf.php [L,QSA]
+
+    # Perfil público de usuário
+    RewriteRule ^usuario/(\d+)/?$ views/perfil-publico.php?id=$1 [L,QSA]
 
     # URL amigável para anúncios
     RewriteRule ^anuncio/(\d+)/?$ anuncio.php?id=$1 [L,QSA]
@@ -85,14 +91,16 @@ AddCharset UTF-8 .php .html .htm .css .js .json .xml .txt
     RewriteRule ^alertas/?$ views/alertas.php [L,QSA]
 
     # Rotas de ação
+    RewriteRule ^denunciar-anuncio/?$ denunciar-anuncio.php [L,QSA]
     RewriteRule ^excluir-anuncio/?$ views/excluir-anuncio.php [L,QSA]
     RewriteRule ^marcar-resolvido/?$ views/marcar-resolvido.php [L,QSA]
     RewriteRule ^marcar-ativo/?$ marcar-ativo.php [L,QSA]
+    RewriteRule ^renovar-anuncio/?$ renovar-anuncio.php [L,QSA]
     RewriteRule ^favorito/toggle/?$ views/favorito_toggle.php [L,QSA]
 
     # Rotas de autenticação e email
     RewriteRule ^reenviar-confirmacao/?$ views/reenviar-confirmacao.php [L,QSA]
-    RewriteRule ^confirmar-email/?$ views/confirmar-email.php [L,QSA]
+    RewriteRule ^confirmar-email/?$ confirmar-email.php [L,QSA]
     RewriteRule ^recuperar-senha/?$ views/recuperar-senha.php [L,QSA]
     RewriteRule ^resetar-senha/?$ views/resetar-senha.php [L,QSA]
 
@@ -118,12 +126,12 @@ Options -Indexes
 
 # Proteger arquivos sensíveis (compatibilidade Apache 2.2/2.4)
 <IfModule mod_authz_core.c>
-    <FilesMatch "^(config\.php|\.env|\.git.*|\.htaccess|\.htpasswd)$">
+    <FilesMatch "(^(config\.php|\.env|\.git.*|\.htaccess|\.htpasswd)$|\.(bak|old|tmp|orig|save|sql|log)$)">
         Require all denied
     </FilesMatch>
 </IfModule>
 <IfModule !mod_authz_core.c>
-    <FilesMatch "^(config\.php|\.env|\.git.*|\.htaccess|\.htpasswd)$">
+    <FilesMatch "(^(config\.php|\.env|\.git.*|\.htaccess|\.htpasswd)$|\.(bak|old|tmp|orig|save|sql|log)$)">
         Deny from all
     </FilesMatch>
 </IfModule>
@@ -191,6 +199,15 @@ Options -Indexes
 
     # Referrer Policy
     Header set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # HSTS — força HTTPS por 1 ano (ativar após confirmar HTTPS funcionando)
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+    # Content Security Policy
+    Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://kit.fontawesome.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://ka-f.fontawesome.com; img-src 'self' data: blob: https://maps.gstatic.com https://maps.googleapis.com; connect-src 'self' https://api.resend.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';"
+
+    # Permissions Policy
+    Header set Permissions-Policy "geolocation=(self), camera=(), microphone=()"
 
     # Remover informações do servidor
     Header unset X-Powered-By

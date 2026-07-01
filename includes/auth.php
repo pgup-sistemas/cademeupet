@@ -65,6 +65,7 @@ class Auth {
                 'estado' => $data['estado'] ?? null,
                 'tipo_usuario' => 'comum',
                 'token_confirmacao' => $token,
+                'token_confirmacao_expira' => date('Y-m-d H:i:s', strtotime('+48 hours')),
                 'data_cadastro' => date('Y-m-d H:i:s')
             ]);
             
@@ -202,16 +203,19 @@ class Auth {
         }
         
         $user = $this->db->fetchOne(
-            "SELECT id, email FROM usuarios WHERE token_confirmacao = ? AND email_confirmado = 0",
+            "SELECT id, email FROM usuarios
+             WHERE token_confirmacao = ?
+               AND email_confirmado = 0
+               AND (token_confirmacao_expira IS NULL OR token_confirmacao_expira > NOW())",
             [$token]
         );
-        
+
         if (!$user) {
-            return ['success' => false, 'error' => 'Token inválido ou já utilizado'];
+            return ['success' => false, 'error' => 'Token inválido, já utilizado ou expirado. Solicite um novo link de confirmação.'];
         }
-        
+
         $this->db->update('usuarios',
-            ['email_confirmado' => 1, 'token_confirmacao' => null],
+            ['email_confirmado' => 1, 'token_confirmacao' => null, 'token_confirmacao_expira' => null],
             'id = ?',
             [$user['id']]
         );
@@ -296,7 +300,10 @@ class Auth {
             if (empty($confirmationToken)) {
                 $confirmationToken = bin2hex(random_bytes(32));
                 $this->db->update('usuarios',
-                    ['token_confirmacao' => $confirmationToken],
+                    [
+                        'token_confirmacao'        => $confirmationToken,
+                        'token_confirmacao_expira' => date('Y-m-d H:i:s', strtotime('+48 hours')),
+                    ],
                     'id = ?',
                     [$user['id']]
                 );
@@ -315,82 +322,49 @@ class Auth {
     }
     
     /**
-     * Envia email de confirmação
+     * Envia e-mail de confirmação de cadastro.
      */
-    public function sendConfirmationEmail($email, $nome, $token) {
-        $link = BASE_URL . "/confirmar-email.php?token=" . $token;
-        
-        $subject = "Confirme seu email - Cadê Meu Pet?";
-        $message = "
-            <html>
-            <body style='font-family: Arial, sans-serif;'>
-                <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
-                    <h2 style='color: #2196F3;'>Bem-vindo ao Cadê Meu Pet?, {$nome}!</h2>
-                    <p>Obrigado por se cadastrar. Para ativar sua conta, clique no link abaixo:</p>
-                    <p style='margin: 30px 0;'>
-                        <a href='{$link}' 
-                           style='background: #2196F3; color: white; padding: 12px 30px; 
-                                  text-decoration: none; border-radius: 5px; display: inline-block;'>
-                            Confirmar Email
-                        </a>
-                    </p>
-                    <p>Ou copie e cole este link no navegador:</p>
-                    <p style='color: #666; font-size: 12px;'>{$link}</p>
-                    <hr style='margin: 30px 0; border: none; border-top: 1px solid #ddd;'>
-                    <p style='color: #999; font-size: 12px;'>
-                        Se você não se cadastrou no Cadê Meu Pet?, ignore este email.
-                    </p>
-                </div>
-            </body>
-            </html>
-        ";
-        
+    public function sendConfirmationEmail($email, $nome, $token): bool {
+        $link    = BASE_URL . '/confirmar-email/?token=' . urlencode($token);
+        $subject = 'Confirme seu e-mail — Cadê Meu Pet?';
+        $message = $this->renderTemplate(BASE_PATH . '/views/emails/confirmacao.php', [
+            'nome' => $nome,
+            'link' => $link,
+        ]);
+
         $sent = sendEmail($email, $subject, $message);
         if (!$sent) {
-            error_log('[Auth] Falha ao enviar email de confirmação para: ' . $email);
-            // Salva flag em sessão para exibir alerta ao admin
-            if (isAdmin()) {
-                $_SESSION['alert_email_fail'] = 'Falha ao enviar e-mail de confirmação para: ' . $email;
-            }
+            error_log('[Auth] Falha ao enviar e-mail de confirmação para: ' . $email);
         }
+        return $sent;
     }
-    
+
     /**
-     * Envia email de recuperação de senha
+     * Envia e-mail de recuperação de senha.
      */
-    private function sendPasswordResetEmail($email, $nome, $token) {
-        $link = BASE_URL . "/resetar-senha.php?token=" . $token;
-        
-        $subject = "Recuperação de Senha - Cadê Meu Pet?";
-        $message = "
-            <html>
-            <body style='font-family: Arial, sans-serif;'>
-                <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
-                    <h2 style='color: #2196F3;'>Recuperação de Senha</h2>
-                    <p>Olá {$nome},</p>
-                    <p>Recebemos uma solicitação para resetar sua senha. Clique no link abaixo:</p>
-                    <p style='margin: 30px 0;'>
-                        <a href='{$link}' 
-                           style='background: #FF9800; color: white; padding: 12px 30px; 
-                                  text-decoration: none; border-radius: 5px; display: inline-block;'>
-                            Resetar Senha
-                        </a>
-                    </p>
-                    <p>Este link expira em 1 hora.</p>
-                    <p style='color: #666; font-size: 12px;'>{$link}</p>
-                    <hr style='margin: 30px 0; border: none; border-top: 1px solid #ddd;'>
-                    <p style='color: #999; font-size: 12px;'>
-                        Se você não solicitou isso, ignore este email.
-                    </p>
-                </div>
-            </body>
-            </html>
-        ";
-        
+    public function sendPasswordResetEmail($email, $nome, $token): bool {
+        $link    = BASE_URL . '/resetar-senha/?token=' . urlencode($token);
+        $subject = 'Recuperação de Senha — Cadê Meu Pet?';
+        $message = $this->renderTemplate(BASE_PATH . '/views/emails/recuperacao-senha.php', [
+            'nome' => $nome,
+            'link' => $link,
+        ]);
+
         $sent = sendEmail($email, $subject, $message);
         if (!$sent) {
-            error_log('[Auth] Falha ao enviar email de recuperação de senha para: ' . $email);
+            error_log('[Auth] Falha ao enviar e-mail de recuperação para: ' . $email);
         }
+        return $sent;
+    }
+
+    /**
+     * Renderiza um template de e-mail e retorna o HTML como string.
+     */
+    private function renderTemplate(string $templatePath, array $vars = []): string {
+        extract($vars, EXTR_SKIP);
+        ob_start();
+        include $templatePath;
+        return ob_get_clean();
     }
     
     /**

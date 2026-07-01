@@ -341,6 +341,16 @@ include __DIR__ . '/../includes/header.php';
                         </div>
                     <?php endif; ?>
 
+                    <?php if (isLoggedIn() && !$isOwner): ?>
+                        <hr>
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-outline-danger btn-sm"
+                                    data-bs-toggle="modal" data-bs-target="#modalDenuncia">
+                                <i class="fa-solid fa-flag me-1"></i>Denunciar anúncio
+                            </button>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if (($anuncio['status'] ?? '') === STATUS_RESOLVIDO && ($isOwner || isAdmin())): ?>
                         <div class="mt-3">
                             <form method="POST" action="<?php echo BASE_URL; ?>/marcar-ativo.php" class="d-inline" onsubmit="return confirm('Reativar este anúncio?');">
@@ -452,5 +462,83 @@ if (mrd) {
     });
 }
 </script>
+
+<?php if (isLoggedIn() && !$isOwner): ?>
+<!-- Modal: Denunciar Anúncio -->
+<div class="modal fade" id="modalDenuncia" tabindex="-1" aria-labelledby="modalDenunciaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="modalDenunciaLabel">
+                    <i class="fa-solid fa-flag text-danger me-2"></i>Denunciar anúncio
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3">Sua denúncia é anônima e será analisada pela equipe.</p>
+                <div id="denunciaAlerta"></div>
+                <div class="mb-3">
+                    <label for="denunciaMotivo" class="form-label fw-semibold">Motivo <span class="text-danger">*</span></label>
+                    <select class="form-select" id="denunciaMotivo" required>
+                        <option value="">Selecione...</option>
+                        <option value="inapropriado">Conteúdo inapropriado</option>
+                        <option value="spam">Spam / duplicado</option>
+                        <option value="venda">Anúncio de venda disfarçado</option>
+                        <option value="golpe">Possível golpe ou fraude</option>
+                        <option value="outro">Outro</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="denunciaDescricao" class="form-label fw-semibold">Detalhes adicionais</label>
+                    <textarea class="form-control" id="denunciaDescricao" rows="3" maxlength="500"
+                              placeholder="Descreva brevemente o problema..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btnEnviarDenuncia">
+                    <i class="fa-solid fa-flag me-1"></i>Enviar denúncia
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.getElementById('btnEnviarDenuncia')?.addEventListener('click', async function () {
+    const motivo    = document.getElementById('denunciaMotivo').value;
+    const descricao = document.getElementById('denunciaDescricao').value;
+    const alerta    = document.getElementById('denunciaAlerta');
+    alerta.innerHTML = '';
+
+    if (!motivo) {
+        alerta.innerHTML = '<div class="alert alert-warning py-2">Selecione um motivo.</div>';
+        return;
+    }
+
+    this.disabled = true;
+    try {
+        const fd = new FormData();
+        fd.append('csrf_token', <?php echo json_encode(generateCSRFToken()); ?>);
+        fd.append('anuncio_id', <?php echo (int)($anuncio['id'] ?? 0); ?>);
+        fd.append('motivo', motivo);
+        fd.append('descricao', descricao);
+
+        const resp = await fetch(<?php echo json_encode(BASE_URL . '/denunciar-anuncio'); ?>, { method: 'POST', body: fd });
+        const data = await resp.json();
+
+        if (data.ok) {
+            alerta.innerHTML = '<div class="alert alert-success py-2">Denúncia enviada! Obrigado por ajudar a manter a plataforma segura.</div>';
+            document.getElementById('btnEnviarDenuncia').classList.add('d-none');
+        } else {
+            alerta.innerHTML = '<div class="alert alert-danger py-2">' + (data.erro || 'Erro ao enviar denúncia.') + '</div>';
+            this.disabled = false;
+        }
+    } catch (e) {
+        alerta.innerHTML = '<div class="alert alert-danger py-2">Erro de conexão. Tente novamente.</div>';
+        this.disabled = false;
+    }
+});
+</script>
+<?php endif; ?>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

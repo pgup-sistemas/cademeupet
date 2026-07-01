@@ -145,9 +145,10 @@ class AlertaController
     {
         $erros = [];
 
+        $maxAlertas  = (int)getConfig('max_alertas', (string)MAX_ALERTS_PER_USER);
         $totalAtivos = $this->alertaModel->countByUser($usuarioId);
-        if ($totalAtivos >= MAX_ALERTS_PER_USER) {
-            $erros[] = 'Você atingiu o limite de ' . MAX_ALERTS_PER_USER . ' alertas ativos.';
+        if ($totalAtivos >= $maxAlertas) {
+            $erros[] = 'Você atingiu o limite de ' . $maxAlertas . ' alertas ativos.';
         }
 
         $tipo = $dados['tipo'] ?? 'ambos';

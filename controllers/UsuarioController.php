@@ -21,8 +21,7 @@ class UsuarioController
      */
     public function solicitarResetSenha(string $email): array
     {
-        $auth = new Auth();
-        return $auth->requestPasswordReset($email);
+        return $this->auth->requestPasswordReset($email);
     }
 
     /**
@@ -41,7 +40,10 @@ class UsuarioController
         }
 
         $token = bin2hex(random_bytes(32));
-        $this->usuarioModel->update((int)$usuario['id'], ['token_confirmacao' => $token]);
+        $this->usuarioModel->update((int)$usuario['id'], [
+            'token_confirmacao'        => $token,
+            'token_confirmacao_expira' => date('Y-m-d H:i:s', strtotime('+48 hours')),
+        ]);
 
         $this->auth->sendConfirmationEmail($email, $usuario['nome'], $token);
 

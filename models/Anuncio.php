@@ -263,8 +263,19 @@ class Anuncio
      */
     public function search(array $filtros, int $limit = RESULTS_PER_PAGE, int $offset = 0): array
     {
+        // Cache apenas para buscas sem geolocalização e sem filtro de usuário específico
+        $isGeo     = !empty($filtros['lat']) && !empty($filtros['lng']);
+        $hasUserId = !empty($filtros['usuario_id']);
+        if (!$isGeo && !$hasUserId) {
+            $cacheKey = 'search_' . md5(serialize($filtros) . $limit . '_' . $offset);
+            $cached   = cacheGet($cacheKey);
+            if ($cached !== null) {
+                return $cached;
+            }
+        }
+
         $query = [
-            'SELECT SQL_CALC_FOUND_ROWS a.*, u.nome AS usuario_nome,',
+            'SELECT a.*, u.nome AS usuario_nome,',
             '       (SELECT nome_arquivo FROM fotos_anuncios f WHERE f.anuncio_id = a.id ORDER BY ordem LIMIT 1) AS foto',
             'FROM anuncios a',
             'JOIN usuarios u ON a.usuario_id = u.id'
@@ -331,26 +342,47 @@ class Anuncio
         }
 
         if (!empty($filtros['lat']) && !empty($filtros['lng']) && !empty($filtros['raio'])) {
+            $lat   = (float)$filtros['lat'];
+            $lng   = (float)$filtros['lng'];
+            $raio  = (float)$filtros['raio'];
+            // 1° latitude ≈ 111 km; 1° longitude ≈ 111 km * cos(lat)
+            $deltaLat = $raio / 111.0;
+            $deltaLng = $raio / (111.0 * max(cos(deg2rad($lat)), 0.0001));
             $where[] = 'a.latitude IS NOT NULL AND a.longitude IS NOT NULL';
+            $where[] = 'a.latitude  BETWEEN ? AND ?';
+            $where[] = 'a.longitude BETWEEN ? AND ?';
+            $params[] = $lat - $deltaLat;
+            $params[] = $lat + $deltaLat;
+            $params[] = $lng - $deltaLng;
+            $params[] = $lng + $deltaLng;
         }
 
-        $query[] = 'WHERE ' . implode(' AND ', $where);
+        // Captura WHERE params antes de injetar Haversine (para a query de COUNT)
+        $countParams = $params;
+        $whereSQL    = 'WHERE ' . implode(' AND ', $where);
 
-        if (!empty($filtros['lat']) && !empty($filtros['lng']) && !empty($filtros['raio'])) {
+        $query[] = $whereSQL;
+
+        $hasGeo = !empty($filtros['lat']) && !empty($filtros['lng']) && !empty($filtros['raio']);
+
+        if ($hasGeo) {
             $query[] = 'HAVING distancia <= ?';
             $params[] = (int)$filtros['raio'];
 
             $query[0] .= ' (6371 * acos(cos(radians(?)) * cos(radians(a.latitude)) * cos(radians(a.longitude) - radians(?)) + sin(radians(?)) * sin(radians(a.latitude)))) AS distancia,';
-            array_splice($params, 0, 0, [$filtros['lat'], $filtros['lng'], $filtros['lat']]);
+            array_splice($params, 0, 0, [(float)$filtros['lat'], (float)$filtros['lng'], (float)$filtros['lat']]);
         }
+
+        // COUNT separado (bounding box já filtra; pequeno sobre-arredondamento aceitável)
+        $countSQL = 'SELECT COUNT(*) AS total FROM anuncios a JOIN usuarios u ON a.usuario_id = u.id ' . $whereSQL;
+        $totalRow = $this->db->fetchOne($countSQL, $countParams);
+        $total    = (int)($totalRow['total'] ?? 0);
 
         $order = 'a.data_publicacao DESC';
 
         if (!empty($filtros['ordenacao'])) {
             $ordenacao = (string)$filtros['ordenacao'];
-            $hasDistance = !empty($filtros['lat']) && !empty($filtros['lng']) && !empty($filtros['raio']);
-
-            if ($ordenacao === 'proximo' && !$hasDistance) {
+            if ($ordenacao === 'proximo' && !$hasGeo) {
                 $order = 'a.data_publicacao DESC';
             } else {
                 $order = $this->resolveOrderClause($ordenacao);
@@ -364,10 +396,14 @@ class Anuncio
         $params[] = $offset;
 
         $results = $this->db->fetchAll(implode("\n", $query), $params);
-        $totalRow = $this->db->fetchOne('SELECT FOUND_ROWS() AS total');
-        $total = $totalRow ? (int)$totalRow['total'] : count($results);
 
-        return ['results' => $results, 'total' => $total];
+        $output = ['results' => $results, 'total' => $total];
+
+        if (!$isGeo && !$hasUserId) {
+            cacheSet($cacheKey, $output, CACHE_TIME_SEARCH);
+        }
+
+        return $output;
     }
 
     private function buildFulltextQuery(string $termo): string

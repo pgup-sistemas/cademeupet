@@ -289,6 +289,9 @@ include __DIR__ . '/../includes/header.php';
                                     <span class="badge bg-warning text-dark ms-1"><?php echo (int)$hoje['pendentes_moderacao']; ?></span>
                                 <?php endif; ?>
                             </a>
+                            <a href="<?php echo BASE_URL; ?>/admin/denuncias" class="btn btn-outline-danger text-start">
+                                <i class="fa-solid fa-flag me-2"></i>Ver denúncias
+                            </a>
                             <a href="<?php echo BASE_URL; ?>/admin/anuncios?status=bloqueado" class="btn btn-outline-danger text-start">
                                 <i class="fa-solid fa-ban me-2"></i>Ver anúncios bloqueados
                             </a>

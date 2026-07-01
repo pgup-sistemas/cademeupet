@@ -404,9 +404,35 @@ DELIMITER ;
 -- ÍNDICES ADICIONAIS PARA PERFORMANCE
 -- ═══════════════════════════════════════════════
 
--- Índice composto para busca rápida
-ALTER TABLE `anuncios` 
+-- Índice FULLTEXT para busca textual
+ALTER TABLE `anuncios`
   ADD FULLTEXT INDEX `idx_fulltext_busca` (`nome_pet`, `raca`, `cor`, `descricao`);
+
+-- Índice para lookup de transação PIX (chamado em todo webhook e polling)
+ALTER TABLE `doacoes`
+  ADD INDEX `idx_transaction_id` (`transaction_id`(64));
+
+-- Índice para lookup de referência de parceiro
+ALTER TABLE `parceiro_pagamentos`
+  ADD INDEX `idx_referencia` (`referencia`(64));
+
+-- ═══════════════════════════════════════════════
+-- COLUNAS ADICIONAIS (se não existirem)
+-- Execute em produção via: ALTER TABLE ... ADD COLUMN IF NOT EXISTS ...
+-- ═══════════════════════════════════════════════
+
+-- Colunas de moderação e reencontro na tabela anuncios
+ALTER TABLE `anuncios`
+  ADD COLUMN IF NOT EXISTS `moderacao_status` enum('pendente','aprovado','rejeitado') NOT NULL DEFAULT 'pendente' AFTER `status`,
+  ADD COLUMN IF NOT EXISTS `moderacao_motivo` text DEFAULT NULL AFTER `moderacao_status`,
+  ADD COLUMN IF NOT EXISTS `historia_reuniao` text DEFAULT NULL AFTER `descricao`,
+  ADD COLUMN IF NOT EXISTS `resolvido_em` datetime DEFAULT NULL AFTER `data_atualizacao`,
+  ADD INDEX IF NOT EXISTS `idx_moderacao` (`moderacao_status`);
+
+-- Colunas PIX e split na tabela doacoes
+ALTER TABLE `doacoes`
+  ADD COLUMN IF NOT EXISTS `pix_qrcode` text DEFAULT NULL AFTER `payment_url`,
+  ADD COLUMN IF NOT EXISTS `efi_split` text DEFAULT NULL AFTER `pix_qrcode`;
 
 -- ═══════════════════════════════════════════════
 -- FIM DO SCHEMA

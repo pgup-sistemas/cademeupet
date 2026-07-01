@@ -14,14 +14,14 @@ class PetLoveController {
 
     public function vitrine(): array {
         $filtros = [
-            'especie'      => $_GET['especie']      ?? '',
-            'sexo'         => $_GET['sexo']         ?? '',
-            'porte'        => $_GET['porte']         ?? '',
-            'raca'         => $_GET['raca']          ?? '',
-            'cidade'       => $_GET['cidade']        ?? '',
-            'estado'       => $_GET['estado']        ?? '',
-            'tem_pedigree' => $_GET['tem_pedigree']  ?? '',
-            'objetivo'     => $_GET['objetivo']      ?? '',
+            'especie'      => sanitize($_GET['especie']      ?? ''),
+            'sexo'         => sanitize($_GET['sexo']         ?? ''),
+            'porte'        => sanitize($_GET['porte']        ?? ''),
+            'raca'         => sanitize($_GET['raca']         ?? ''),
+            'cidade'       => sanitize($_GET['cidade']       ?? ''),
+            'estado'       => sanitize($_GET['estado']       ?? ''),
+            'tem_pedigree' => sanitize($_GET['tem_pedigree'] ?? ''),
+            'objetivo'     => sanitize($_GET['objetivo']     ?? ''),
         ];
         // Limpar filtros vazios
         $filtros = array_filter($filtros, fn($v) => $v !== '');
@@ -61,6 +61,16 @@ class PetLoveController {
 
         $erros = $this->validar($post);
         if ($erros) return ['ok' => false, 'erros' => $erros];
+
+        $db          = getDB();
+        $totalPets   = (int)($db->fetchOne(
+            "SELECT COUNT(*) AS n FROM petlove_pets WHERE usuario_id = ? AND status != 'removido'",
+            [getUserId()]
+        )['n'] ?? 0);
+        $maxPets     = (int)getConfig('max_petlove_pets', (string)MAX_PETLOVE_PETS_PER_USER);
+        if ($totalPets >= $maxPets) {
+            return ['ok' => false, 'erros' => ["Você atingiu o limite de {$maxPets} pets no PetLove."]];
+        }
 
         $dados = array_merge($post, ['usuario_id' => getUserId()]);
         $id    = $this->model->criar($dados);

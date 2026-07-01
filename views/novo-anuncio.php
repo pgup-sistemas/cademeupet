@@ -164,8 +164,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 unset($_SESSION['anuncio_temp']);
                 unset($_SESSION['anuncio_temp_fotos']);
-                setFlashMessage('Anúncio publicado com sucesso!', MSG_SUCCESS);
-                redirect('/anuncio/' . $result['id'] . '/');
+                if (!empty($result['em_moderacao'])) {
+                    setFlashMessage('Anúncio enviado! Ele será publicado após revisão pela equipe.', MSG_INFO);
+                    redirect('/meus-anuncios');
+                } else {
+                    setFlashMessage('Anúncio publicado com sucesso!', MSG_SUCCESS);
+                    redirect('/anuncio/' . $result['id'] . '/');
+                }
             } else {
                 $errors = $result['errors'] ?? ['Não foi possível publicar o anúncio. Tente novamente.'];
 

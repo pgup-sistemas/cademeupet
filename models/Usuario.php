@@ -170,12 +170,15 @@ class Usuario
     }
 
     /**
-     * Confirma email através do token de confirmação.
+     * Confirma email através do token de confirmação, respeitando o TTL de 48h.
      */
     public function confirmEmailByToken(string $token)
     {
         $usuario = $this->db->fetchOne(
-            'SELECT id FROM usuarios WHERE token_confirmacao = ? AND email_confirmado = 0',
+            'SELECT id FROM usuarios
+             WHERE token_confirmacao = ?
+               AND email_confirmado = 0
+               AND (token_confirmacao_expira IS NULL OR token_confirmacao_expira > NOW())',
             [$token]
         );
 
@@ -184,8 +187,9 @@ class Usuario
         }
 
         $this->update((int)$usuario['id'], [
-            'email_confirmado' => 1,
-            'token_confirmacao' => null
+            'email_confirmado'         => 1,
+            'token_confirmacao'        => null,
+            'token_confirmacao_expira' => null,
         ]);
 
         return $usuario['id'];

@@ -130,13 +130,24 @@ function requireLogin() {
 }
 
 /**
- * Requer admin
+ * Requer admin — também verifica no banco se o usuário ainda está ativo e é admin,
+ * para revogar sessões de contas desativadas ou rebaixadas sem esperar logout.
  */
 function requireAdmin() {
     requireLogin();
     if (!isAdmin()) {
         setFlashMessage('Acesso negado. Área restrita a administradores.', MSG_ERROR);
         redirect('/');
+    }
+    $userId = getUserId();
+    $db     = getDB();
+    $row    = $db->fetchOne(
+        'SELECT ativo, is_admin FROM usuarios WHERE id = ? LIMIT 1',
+        [$userId]
+    );
+    if (!$row || !$row['ativo'] || !$row['is_admin']) {
+        session_destroy();
+        redirect('/login.php?msg=sessao_invalida');
     }
 }
 
@@ -637,6 +648,91 @@ function getClientIP() {
         }
     }
     return '0.0.0.0';
+}
+
+/**
+ * Rate limiting simples via sessão.
+ * Retorna true se o limite foi excedido (deve bloquear a requisição).
+ */
+function isRateLimited(string $key, int $maxRequests, int $windowSeconds): bool
+{
+    $sessionKey = 'rl_' . $key;
+    $now = time();
+
+    if (!isset($_SESSION[$sessionKey])) {
+        $_SESSION[$sessionKey] = ['count' => 0, 'window_start' => $now];
+    }
+
+    $entry = &$_SESSION[$sessionKey];
+
+    if (($now - $entry['window_start']) >= $windowSeconds) {
+        $entry = ['count' => 0, 'window_start' => $now];
+    }
+
+    $entry['count']++;
+    return $entry['count'] > $maxRequests;
+}
+
+/**
+ * Registra ação na tabela de auditoria.
+ */
+function auditLog(string $acao, string $tabela, int $registroId, $dadosAntigos = null, $dadosNovos = null): void
+{
+    try {
+        getDB()->insert('auditoria', [
+            'usuario_id'    => getUserId(),
+            'acao'          => $acao,
+            'tabela'        => $tabela,
+            'registro_id'   => $registroId,
+            'dados_antigos' => $dadosAntigos !== null ? json_encode($dadosAntigos, JSON_UNESCAPED_UNICODE) : null,
+            'dados_novos'   => $dadosNovos  !== null ? json_encode($dadosNovos,  JSON_UNESCAPED_UNICODE) : null,
+            'ip_address'    => getClientIP(),
+            'user_agent'    => isset($_SERVER['HTTP_USER_AGENT']) ? substr($_SERVER['HTTP_USER_AGENT'], 0, 255) : null,
+        ]);
+    } catch (Throwable $e) {
+        error_log('[Audit] Falha ao registrar ação "' . $acao . '": ' . $e->getMessage());
+    }
+}
+
+// ═══════════════════════════════════════════════
+// CACHE FILE-BASED
+// ═══════════════════════════════════════════════
+
+function _cacheFilePath(string $key): string {
+    return BASE_PATH . '/cache/' . md5($key) . '.cache';
+}
+
+function cacheGet(string $key) {
+    if (!defined('CACHE_ENABLED') || !CACHE_ENABLED) return null;
+    $file = _cacheFilePath($key);
+    if (!file_exists($file)) return null;
+    $raw = @file_get_contents($file);
+    if ($raw === false) return null;
+    $data = @unserialize($raw);
+    if (!is_array($data) || !isset($data['expires'], $data['value'])) return null;
+    if ($data['expires'] !== 0 && time() > $data['expires']) {
+        @unlink($file);
+        return null;
+    }
+    return $data['value'];
+}
+
+function cacheSet(string $key, $value, int $ttl): void {
+    if (!defined('CACHE_ENABLED') || !CACHE_ENABLED) return;
+    $file = _cacheFilePath($key);
+    $data = serialize(['expires' => $ttl > 0 ? time() + $ttl : 0, 'value' => $value]);
+    @file_put_contents($file, $data, LOCK_EX);
+}
+
+function cacheClear(string $key = null): void {
+    $dir = BASE_PATH . '/cache/';
+    if ($key !== null) {
+        @unlink($dir . md5($key) . '.cache');
+        return;
+    }
+    foreach (glob($dir . '*.cache') ?: [] as $f) {
+        @unlink($f);
+    }
 }
 
 /**

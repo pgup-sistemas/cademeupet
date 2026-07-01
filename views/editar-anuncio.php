@@ -33,6 +33,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = $controller->update($id, $_POST);
 
         if (!empty($result['success'])) {
+            if (!empty($result['em_moderacao'])) {
+                setFlashMessage('Anúncio atualizado! Ele passará por revisão antes de ser publicado novamente.', MSG_INFO);
+                redirect('/meus-anuncios');
+            }
             setFlashMessage('Anúncio atualizado com sucesso!', MSG_SUCCESS);
             redirect('/anuncio/' . $id . '/');
         }

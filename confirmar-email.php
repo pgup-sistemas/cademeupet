@@ -1,20 +1,21 @@
 <?php
 require_once __DIR__ . '/config.php';
 
-$token = $_GET['token'] ?? '';
+$token = trim($_GET['token'] ?? '');
 
-if (empty($token)) {
-    setFlashMessage('Token de confirmação inválido.', MSG_ERROR);
-    redirect('/login.php');
+if ($token === '') {
+    setFlashMessage('Link de confirmação inválido.', MSG_ERROR);
+    redirect('/login/');
 }
 
-$usuarioModel = new Usuario();
-$userId = $usuarioModel->confirmEmailByToken($token);
+// Auth::confirmEmail() verifica TTL (token_confirmacao_expira) além da validade do token
+$auth   = new Auth();
+$result = $auth->confirmEmail($token);
 
-if ($userId) {
+if ($result['success']) {
     setFlashMessage('E-mail confirmado com sucesso! Você já pode fazer login.', MSG_SUCCESS);
-    redirect('/login.php');
 } else {
-    setFlashMessage('Token inválido ou já utilizado. Tente solicitar um novo email de confirmação.', MSG_ERROR);
-    redirect('/login.php');
+    setFlashMessage($result['error'] ?? 'Link inválido ou expirado.', MSG_ERROR);
 }
+
+redirect('/login/');

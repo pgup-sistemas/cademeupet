@@ -280,6 +280,13 @@ include __DIR__ . '/../includes/header.php';
                 </div>
                 <div class="modal-body">
                     <p class="mb-0" id="acaoTexto">Deseja confirmar esta ação?</p>
+                    <div id="confirmarExclusaoWrap" class="mt-3 d-none">
+                        <label for="confirmarExclusaoInput" class="form-label small fw-semibold text-danger">
+                            Digite <strong>EXCLUIR</strong> para confirmar:
+                        </label>
+                        <input type="text" id="confirmarExclusaoInput" class="form-control form-control-sm"
+                               autocomplete="off" placeholder="EXCLUIR">
+                    </div>
                 </div>
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
@@ -291,29 +298,58 @@ include __DIR__ . '/../includes/header.php';
 </div>
 
 <script>
-document.querySelectorAll('.btn-acao').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        const acao  = this.dataset.acao;
-        const id    = this.dataset.anuncioId;
-        const nome  = this.dataset.nome;
+(function () {
+    const textos = {
+        desativar: { titulo: 'Desativar anúncio', texto: 'Desativar o anúncio de <strong>{nome}</strong>?', cor: 'warning' },
+        ativar:    { titulo: 'Reativar anúncio',  texto: 'Reativar o anúncio de <strong>{nome}</strong>?',  cor: 'success' },
+        excluir:   { titulo: 'Excluir anúncio',   texto: 'Excluir <strong>permanentemente</strong> o anúncio de <strong>{nome}</strong>? Esta ação não pode ser desfeita.', cor: 'danger' },
+    };
 
-        document.getElementById('acaoAnuncioId').value = id;
-        document.getElementById('acaoNome').value      = acao;
+    const modalEl      = document.getElementById('modalAcao');
+    const formAcao     = document.getElementById('formAcao');
+    const inputConfirm = document.getElementById('confirmarExclusaoInput');
+    const wrapConfirm  = document.getElementById('confirmarExclusaoWrap');
+    const btnConfirmar = document.getElementById('acaoBtnConfirmar');
 
-        const textos = {
-            desativar: { titulo: 'Desativar anúncio', texto: 'Desativar o anúncio de <strong>' + nome + '</strong>?', cor: 'warning' },
-            ativar:    { titulo: 'Reativar anúncio',  texto: 'Reativar o anúncio de <strong>' + nome + '</strong>?', cor: 'success' },
-            excluir:   { titulo: 'Excluir anúncio',   texto: 'Excluir <strong>permanentemente</strong> o anúncio de <strong>' + nome + '</strong>? Esta ação não pode ser desfeita.', cor: 'danger' },
-        };
-        const t = textos[acao] || { titulo: 'Confirmar', texto: 'Confirmar?', cor: 'primary' };
+    document.querySelectorAll('.btn-acao').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const acao = this.dataset.acao;
+            const id   = this.dataset.anuncioId;
+            const nome = this.dataset.nome;
 
-        document.getElementById('acaoTitulo').textContent       = t.titulo;
-        document.getElementById('acaoTexto').innerHTML          = t.texto;
-        document.getElementById('acaoBtnConfirmar').className   = 'btn btn-sm btn-' + t.cor;
+            document.getElementById('acaoAnuncioId').value = id;
+            document.getElementById('acaoNome').value      = acao;
 
-        new bootstrap.Modal(document.getElementById('modalAcao')).show();
+            const t = textos[acao] || { titulo: 'Confirmar', texto: 'Confirmar?', cor: 'primary' };
+
+            document.getElementById('acaoTitulo').textContent     = t.titulo;
+            document.getElementById('acaoTexto').innerHTML        = t.texto.replace('{nome}', nome);
+            btnConfirmar.className = 'btn btn-sm btn-' + t.cor;
+
+            const isExcluir = acao === 'excluir';
+            wrapConfirm.classList.toggle('d-none', !isExcluir);
+            if (isExcluir) {
+                inputConfirm.value = '';
+                btnConfirmar.disabled = true;
+                inputConfirm.oninput = function () {
+                    btnConfirmar.disabled = this.value.trim() !== 'EXCLUIR';
+                };
+            } else {
+                btnConfirmar.disabled = false;
+                inputConfirm.oninput = null;
+            }
+
+            new bootstrap.Modal(modalEl).show();
+        });
     });
-});
+
+    // Limpa o input ao fechar o modal
+    modalEl.addEventListener('hidden.bs.modal', function () {
+        inputConfirm.value = '';
+        wrapConfirm.classList.add('d-none');
+        btnConfirmar.disabled = false;
+    });
+})();
 </script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

@@ -42,15 +42,15 @@ class AnuncioController
             return ['success' => false, 'errors' => ['Sessão expirada. Faça login novamente.']];
         }
 
-        // Log dos dados recebidos
-        error_log('Dados recebidos no método create: ' . print_r($data, true));
-        error_log('Tipo de anúncio recebido: ' . ($data['tipo'] ?? 'não definido'));
+        if (IS_LOCAL) {
+            error_log('Dados recebidos no método create: ' . print_r($data, true));
+            error_log('Tipo de anúncio recebido: ' . ($data['tipo'] ?? 'não definido'));
+        }
 
         $data = sanitize($data);
         $errors = $this->validateCreateData($data, $files, $userId);
 
         if (!empty($errors)) {
-            error_log('Erros de validação: ' . print_r($errors, true));
             return ['success' => false, 'errors' => $errors];
         }
 
@@ -67,7 +67,10 @@ class AnuncioController
 
             $this->db->commit();
 
-            return ['success' => true, 'id' => $anuncioId];
+            cacheClear(null);
+
+            $emModeracao = getConfig('moderacao_ativa') === '1';
+            return ['success' => true, 'id' => $anuncioId, 'em_moderacao' => $emModeracao];
         } catch (Throwable $e) {
             $this->db->rollback();
             error_log('[AnuncioController] Falha ao criar anúncio: ' . $e->getMessage());
@@ -184,6 +187,43 @@ class AnuncioController
     }
 
     /**
+     * Renova um anúncio expirado, reiniciando o prazo de expiração.
+     */
+    public function renovar(int $id, int $usuarioId)
+    {
+        if (isRateLimited('renovar_' . $usuarioId, 5, 3600)) {
+            return ['success' => false, 'error' => 'Muitas renovações em pouco tempo. Aguarde 1 hora e tente novamente.'];
+        }
+
+        $anuncio = $this->anuncioModel->findByIdAnyStatus($id);
+        if (!$anuncio) {
+            return ['success' => false, 'error' => 'Anúncio não encontrado.'];
+        }
+        if ((int)$anuncio['usuario_id'] !== $usuarioId) {
+            return ['success' => false, 'error' => 'Você não tem permissão para renovar este anúncio.'];
+        }
+        if ($anuncio['status'] !== STATUS_EXPIRADO) {
+            return ['success' => false, 'error' => 'Apenas anúncios expirados podem ser renovados.'];
+        }
+
+        $maxAtivos = (int)getConfig('max_anuncios', (string)MAX_ACTIVE_ADS_PER_USER);
+        $ativos    = $this->anuncioModel->countActiveByUser($usuarioId);
+        if ($ativos >= $maxAtivos) {
+            return ['success' => false, 'error' => 'Você atingiu o limite de ' . $maxAtivos . ' anúncios ativos.'];
+        }
+
+        $novaExpiracao = date('Y-m-d', strtotime('+' . AD_EXPIRATION_DAYS . ' days'));
+        $this->anuncioModel->update($id, [
+            'status'          => STATUS_ATIVO,
+            'data_publicacao' => date('Y-m-d H:i:s'),
+            'data_expiracao'  => $novaExpiracao,
+            'data_atualizacao' => date('Y-m-d H:i:s'),
+        ]);
+        cacheClear(null);
+        return ['success' => true];
+    }
+
+    /**
      * Soft delete do anúncio (dono ou admin).
      */
     public function excluir(int $id)
@@ -208,6 +248,18 @@ class AnuncioController
         } else {
             $this->anuncioModel->softDelete($id, (int)$anuncio['usuario_id']);
         }
+
+        // Remover arquivos de foto do disco (o registro é mantido para auditoria)
+        $db    = getDB();
+        $fotos = $db->fetchAll('SELECT nome_arquivo FROM fotos_anuncios WHERE anuncio_id = ?', [$id]);
+        foreach ($fotos as $foto) {
+            $caminho = UPLOAD_PATH . '/anuncios/' . $foto['nome_arquivo'];
+            if (file_exists($caminho)) {
+                @unlink($caminho);
+            }
+        }
+
+        cacheClear(null);
 
         return ['success' => true];
     }
@@ -333,12 +385,21 @@ class AnuncioController
             return ['success' => false, 'errors' => array_values(array_unique($errors))];
         }
 
+        // Se moderação ativa, anúncio editado volta para fila de revisão
+        if (getConfig('moderacao_ativa') === '1') {
+            $payload['moderacao_status'] = 'pendente';
+            $payload['status']           = STATUS_INATIVO;
+        }
+
         $updated = $this->anuncioModel->update($id, $payload);
         if (!$updated) {
             return ['success' => false, 'errors' => ['Não foi possível atualizar o anúncio.']];
         }
 
-        return ['success' => true];
+        cacheClear(null);
+
+        $emModeracao = getConfig('moderacao_ativa') === '1';
+        return ['success' => true, 'em_moderacao' => $emModeracao];
     }
 
     /**
@@ -357,9 +418,10 @@ class AnuncioController
                 $errors[] = 'Confirme seu email antes de publicar anúncios.';
             }
 
-            $ativos = $this->anuncioModel->countActiveByUser($userId);
-            if ($ativos >= MAX_ACTIVE_ADS_PER_USER) {
-                $errors[] = 'Você atingiu o limite de ' . MAX_ACTIVE_ADS_PER_USER . ' anúncios ativos.';
+            $maxAtivos = (int)getConfig('max_anuncios', (string)MAX_ACTIVE_ADS_PER_USER);
+            $ativos    = $this->anuncioModel->countActiveByUser($userId);
+            if ($ativos >= $maxAtivos) {
+                $errors[] = 'Você atingiu o limite de ' . $maxAtivos . ' anúncios ativos.';
             }
 
             if (!$this->anuncioModel->canPublishNewAd($userId)) {
@@ -509,8 +571,9 @@ class AnuncioController
             'whatsapp' => preg_replace('/[^0-9]/', '', $data['whatsapp']),
             'email_contato' => $data['email_contato'] ?? null,
             'recompensa' => $data['recompensa'] ?? null,
-            'status' => STATUS_ATIVO,
-            'data_publicacao' => date('Y-m-d H:i:s')
+            'status'           => STATUS_ATIVO,
+            'moderacao_status' => getConfig('moderacao_ativa') === '1' ? 'pendente' : 'aprovado',
+            'data_publicacao'  => date('Y-m-d H:i:s')
         ];
     }
 

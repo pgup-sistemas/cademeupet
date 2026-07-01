@@ -14,6 +14,8 @@ $successMessage = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
         $errors[] = 'Falha na validação. Recarregue a página.';
+    } elseif (isRateLimited('recuperar_senha_' . getClientIP(), 3, 600)) {
+        $errors[] = 'Muitas tentativas. Aguarde 10 minutos antes de tentar novamente.';
     } else {
         $email = $_POST['email'] ?? '';
         $result = $usuarioController->solicitarResetSenha($email);
