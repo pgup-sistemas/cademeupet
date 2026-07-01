@@ -14,8 +14,8 @@ $pageTitle = $pageTitle ?? 'Cadê Meu Pet?';
     <link rel="icon" type="image/svg+xml" href="<?php echo ASSETS_URL; ?>/img/favicon.svg">
     <meta name="theme-color" content="#E85D2B">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="<?php echo ASSETS_URL; ?>/css/vendors/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="<?php echo ASSETS_URL; ?>/css/vendors/fontawesome.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/cademeupet.css">
 </head>
 <body>
