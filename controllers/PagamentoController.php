@@ -321,7 +321,7 @@ class PagamentoController
             throw new Exception('Doação não encontrada.');
         }
 
-        if (($doacao['status'] ?? '') === 'aprovada' || ($doacao['status'] ?? '') === 'aprovado') {
+        if (($doacao['status'] ?? '') === 'aprovada') {
             return $doacao;
         }
 
@@ -370,6 +370,24 @@ class PagamentoController
 
             } elseif (str_starts_with($statusCobranca, 'REMOVIDA')) {
                 $doacaoModel->updateStatus((int)$doacaoId, 'cancelada', ['cancelada_em' => date('Y-m-d H:i:s')]);
+
+                $email = (string)($doacao['email_doador'] ?? '');
+                if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                    $subject = 'Sua doação PIX foi cancelada - Cadê Meu Pet?';
+                    $message = "<html><body style='font-family:Arial,sans-serif'>"
+                        . "<div style='max-width:600px;margin:0 auto;padding:20px'>"
+                        . "<h2 style='color:#FF6B6B'>Doação cancelada</h2>"
+                        . "<p>Olá!</p>"
+                        . "<p>Informamos que sua doação PIX (ID: " . (int)$doacaoId . ") foi cancelada.</p>"
+                        . "<p>Se tiver dúvidas, entre em contato conosco.</p>"
+                        . "<p>Abraços,<br/>Equipe Cadê Meu Pet?</p>"
+                        . "</div></body></html>";
+                    try {
+                        sendEmail($email, $subject, $message);
+                    } catch (Throwable $t) {
+                        error_log('[PagamentoController] Falha ao enviar email de cancelamento PIX: ' . $t->getMessage());
+                    }
+                }
             }
 
             return $doacaoModel->findById($doacaoId);

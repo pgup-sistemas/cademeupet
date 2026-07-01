@@ -26,6 +26,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 // ========================
+// VALIDAR IP DE ORIGEM (allowlist Efí Bank)
+// IPs oficiais: https://sejaefi.com.br/central-de-ajuda/pix/webhook-pix
+// ========================
+$efiAllowedIps = [
+    // Produção
+    '34.193.116.68', '34.201.82.218', '52.71.157.255',
+    '52.72.250.233', '52.201.120.24', '100.28.11.138', '18.215.141.45',
+    // Homologação (sandbox)
+    '54.167.39.240', '52.2.242.99',
+];
+
+$remoteIp = $_SERVER['REMOTE_ADDR'] ?? '';
+// Suporte a proxy reverso confiável (apenas se o servidor estiver atrás de proxy)
+if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+    $remoteIp = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
+}
+
+// Em sandbox local ignorar o allowlist; em produção, validar sempre
+if (!IS_LOCAL && !in_array($remoteIp, $efiAllowedIps, true)) {
+    http_response_code(403);
+    $entry = ['ts' => date('c'), 'event' => 'ip_blocked', 'remote_addr' => $remoteIp];
+    @file_put_contents($webhookLog, json_encode($entry) . PHP_EOL, FILE_APPEND | LOCK_EX);
+    echo json_encode(['ok' => false, 'error' => 'forbidden']);
+    exit;
+}
+
+// ========================
 // VALIDAR TOKEN
 // ========================
 // Aceitar apenas POST (GET já tratado acima)

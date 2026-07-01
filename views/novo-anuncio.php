@@ -206,46 +206,53 @@ $breadcrumbs = [
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="container py-5">
-    <!-- Título -->
-    <div class="text-center mb-5">
-        <h1 class="display-5 fw-bold mb-3"><i class="fa-solid fa-bullhorn"></i> Publicar Anúncio</h1>
-        <p class="lead text-muted">Preencha os dados em 3 passos simples</p>
-    </div>
-    
-    <!-- Stepper -->
-    <div class="stepper mb-5">
-        <div class="row">
-            <div class="col-md-4">
-                <div class="step <?php echo $step >= 1 ? 'active' : ''; ?> <?php echo $step > 1 ? 'completed' : ''; ?>">
-                    <div class="step-icon">
-                        <?php echo $step > 1 ? '<i class="fa-solid fa-check"></i>' : '1'; ?>
-                    </div>
-                    <div class="step-label">O que aconteceu?</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="step <?php echo $step >= 2 ? 'active' : ''; ?> <?php echo $step > 2 ? 'completed' : ''; ?>">
-                    <div class="step-icon">
-                        <?php echo $step > 2 ? '<i class="fa-solid fa-check"></i>' : '2'; ?>
-                    </div>
-                    <div class="step-label">Fotos e Detalhes</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="step <?php echo $step >= 3 ? 'active' : ''; ?>">
-                    <div class="step-icon">3</div>
-                    <div class="step-label">Onde e Contato</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
+<div class="container py-4">
+
     <div class="row justify-content-center">
-        <div class="col-lg-8">
+        <div class="col-lg-7 col-xl-6">
+
+            <!-- Cabeçalho compacto -->
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                     style="width:52px;height:52px;background:var(--cmp-primary);box-shadow:0 4px 14px rgba(232,93,43,.35);">
+                    <i class="fa-solid fa-bullhorn text-white"></i>
+                </div>
+                <h1 class="h4 fw-bold mb-1">Publicar Anúncio</h1>
+                <p class="text-muted small mb-0">Rápido, grátis e ajuda a reunir famílias</p>
+            </div>
+
+            <!-- Stepper compacto -->
+            <div class="d-flex align-items-center mb-4 px-1">
+                <?php
+                $steps = ['O que aconteceu?', 'Fotos e Detalhes', 'Onde e Contato'];
+                foreach ($steps as $i => $label):
+                    $n       = $i + 1;
+                    $isDone  = $step > $n;
+                    $isActive= $step === $n;
+                ?>
+                <div class="d-flex align-items-center gap-2 <?php echo $n < 3 ? 'flex-fill' : ''; ?>">
+                    <div class="d-flex align-items-center justify-content-center rounded-circle fw-bold flex-shrink-0"
+                         style="width:28px;height:28px;font-size:.78rem;
+                                background:<?php echo $isDone ? '#22c55e' : ($isActive ? 'var(--cmp-primary)' : '#e2e8f0'); ?>;
+                                color:<?php echo ($isDone || $isActive) ? '#fff' : '#94a3b8'; ?>;
+                                transition:background .3s;">
+                        <?php echo $isDone ? '<i class="fa-solid fa-check" style="font-size:.65rem;"></i>' : $n; ?>
+                    </div>
+                    <span class="small fw-semibold d-none d-sm-inline"
+                          style="color:<?php echo $isActive ? 'var(--cmp-primary)' : ($isDone ? '#22c55e' : '#94a3b8'); ?>;">
+                        <?php echo $label; ?>
+                    </span>
+                    <?php if ($n < 3): ?>
+                    <div class="flex-fill mx-2" style="height:2px;border-radius:2px;
+                         background:<?php echo $step > $n ? '#22c55e' : '#e2e8f0'; ?>;transition:background .3s;"></div>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+            </div>
+
             <!-- Card do Formulário -->
-            <div class="card shadow border-0">
-                <div class="card-body p-4 p-md-5">
+            <div class="card shadow-sm border-0" style="border-radius:16px;">
+                <div class="card-body p-4">
                     
                     <?php if (!empty($errors)): ?>
                         <div class="alert alert-danger">

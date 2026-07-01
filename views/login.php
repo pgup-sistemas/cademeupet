@@ -59,6 +59,7 @@ include __DIR__ . '/../includes/auth-head.php';
         <h1 class="auth-title">Bem-vindo de volta</h1>
         <p class="auth-subtitle">Entre para ajudar pets perdidos</p>
 
+        <?php displayFlashMessage(); ?>
         <?php if (!empty($error)): ?>
             <div class="alert alert-danger alert-dismissible fade show py-2 small" role="alert">
                 <i class="bi bi-exclamation-triangle me-1"></i><?php echo sanitize($error); ?>

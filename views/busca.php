@@ -47,23 +47,23 @@ include __DIR__ . '/../includes/header.php';
                     <h5 class="fw-bold mb-3"><i class="bi bi-funnel me-2"></i>Filtros Rápidos</h5>
                     <form method="GET" action="" id="filtrosBusca">
                         <div class="mb-3">
-                            <label class="form-label">Palavra-chave</label>
-                            <input type="text" name="q" class="form-control" placeholder="Ex: labrador preto" value="<?php echo sanitize($params['q'] ?? ''); ?>">
+                            <label for="busca-q" class="form-label">Palavra-chave</label>
+                            <input type="text" id="busca-q" name="q" class="form-control" placeholder="Ex: labrador preto" value="<?php echo sanitize($params['q'] ?? ''); ?>">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Tipo</label>
-                            <select name="tipo" class="form-select">
+                            <label for="busca-tipo" class="form-label">Tipo</label>
+                            <select id="busca-tipo" name="tipo" class="form-select">
                                 <option value="">Todos</option>
-                                <option value="perdido" <?php echo (($filters['tipo'] ?? '') === 'perdido') ? 'selected' : ''; ?>><i class="fa-solid fa-circle text-danger"></i> Perdidos</option>
-                                <option value="encontrado" <?php echo (($filters['tipo'] ?? '') === 'encontrado') ? 'selected' : ''; ?>><i class="fa-solid fa-circle text-success"></i> Encontrados</option>
-                                <option value="doacao" <?php echo (($filters['tipo'] ?? '') === 'doacao') ? 'selected' : ''; ?>><i class="fa-solid fa-circle text-primary"></i> Adoção</option>
+                                <option value="perdido" <?php echo (($filters['tipo'] ?? '') === 'perdido') ? 'selected' : ''; ?>>Perdidos</option>
+                                <option value="encontrado" <?php echo (($filters['tipo'] ?? '') === 'encontrado') ? 'selected' : ''; ?>>Encontrados</option>
+                                <option value="doacao" <?php echo (($filters['tipo'] ?? '') === 'doacao') ? 'selected' : ''; ?>>Adoção</option>
                             </select>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Espécie</label>
-                            <select name="especie" class="form-select">
+                            <label for="busca-especie" class="form-label">Espécie</label>
+                            <select id="busca-especie" name="especie" class="form-select">
                                 <option value="">Todas</option>
                                 <option value="cachorro" <?php echo (($filters['especie'] ?? '') === 'cachorro') ? 'selected' : ''; ?>>Cachorro</option>
                                 <option value="gato" <?php echo (($filters['especie'] ?? '') === 'gato') ? 'selected' : ''; ?>>Gato</option>
@@ -73,23 +73,23 @@ include __DIR__ . '/../includes/header.php';
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Estado (UF)</label>
-                            <input type="text" name="estado" maxlength="2" class="form-control text-uppercase" value="<?php echo sanitize($params['estado'] ?? ''); ?>">
+                            <label for="busca-estado" class="form-label">Estado (UF)</label>
+                            <input type="text" id="busca-estado" name="estado" maxlength="2" class="form-control text-uppercase" value="<?php echo sanitize($params['estado'] ?? ''); ?>">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Cidade</label>
-                            <input type="text" name="cidade" class="form-control" value="<?php echo sanitize($params['cidade'] ?? ''); ?>">
+                            <label for="busca-cidade" class="form-label">Cidade</label>
+                            <input type="text" id="busca-cidade" name="cidade" class="form-control" value="<?php echo sanitize($params['cidade'] ?? ''); ?>">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Bairro</label>
-                            <input type="text" name="bairro" class="form-control" value="<?php echo sanitize($params['bairro'] ?? ''); ?>">
+                            <label for="busca-bairro" class="form-label">Bairro</label>
+                            <input type="text" id="busca-bairro" name="bairro" class="form-control" value="<?php echo sanitize($params['bairro'] ?? ''); ?>">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Porte</label>
-                            <select name="tamanho" class="form-select">
+                            <label for="busca-tamanho" class="form-label">Porte</label>
+                            <select id="busca-tamanho" name="tamanho" class="form-select">
                                 <option value="">Todos</option>
                                 <option value="pequeno" <?php echo (($filters['tamanho'] ?? '') === 'pequeno') ? 'selected' : ''; ?>>Pequeno</option>
                                 <option value="medio" <?php echo (($filters['tamanho'] ?? '') === 'medio') ? 'selected' : ''; ?>>Médio</option>
@@ -99,8 +99,8 @@ include __DIR__ . '/../includes/header.php';
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Ordenar por</label>
-                            <select name="ordenacao" class="form-select">
+                            <label for="busca-ordenacao" class="form-label">Ordenar por</label>
+                            <select id="busca-ordenacao" name="ordenacao" class="form-select">
                                 <option value="">Mais recentes</option>
                                 <option value="antigo" <?php echo (($filters['ordenacao'] ?? '') === 'antigo') ? 'selected' : ''; ?>>Mais antigos</option>
                                 <option value="popular" <?php echo (($filters['ordenacao'] ?? '') === 'popular') ? 'selected' : ''; ?>>Mais populares</option>

@@ -14,6 +14,9 @@ requireLogin();
 
 $anuncioId = isset($_POST['anuncio_id']) ? (int)$_POST['anuncio_id'] : 0;
 $returnTo = $_POST['return_to'] ?? '/';
+if (!is_string($returnTo) || $returnTo === '' || strpos($returnTo, '://') !== false) {
+    $returnTo = '/';
+}
 
 if ($anuncioId <= 0) {
     setFlashMessage('Anúncio inválido.', MSG_ERROR);

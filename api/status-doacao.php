@@ -46,6 +46,16 @@ if ($doacaoId <= 0 || empty($txid)) {
     exit;
 }
 
+// Rate limit: máximo 1 requisição a cada 4 segundos por doação/sessão
+$rateLimitKey = 'pix_poll_' . $doacaoId;
+$lastCall = $_SESSION[$rateLimitKey] ?? 0;
+if ((time() - $lastCall) < 4) {
+    http_response_code(429);
+    echo json_encode(['ok' => true, 'status' => 'processando', 'aprovada' => false, 'retry_after' => 4]);
+    exit;
+}
+$_SESSION[$rateLimitKey] = time();
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Buscar Doação
 // ═══════════════════════════════════════════════════════════════════════════
@@ -134,7 +144,7 @@ try {
 } catch (Exception $e) {
     error_log('[status-doacao] Erro: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['ok' => false, 'error' => 'internal_error', 'message' => $e->getMessage()]);
+    echo json_encode(['ok' => false, 'error' => 'internal_error']);
     exit;
 }
 ?>

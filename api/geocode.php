@@ -14,6 +14,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit;
 }
 
+// Rate limit: máximo 60 requisições por hora por IP
+$ipKey = 'geocode_' . md5(getClientIP());
+if (isRateLimited($ipKey, 60, 3600)) {
+    http_response_code(429);
+    echo json_encode(['success' => false, 'message' => 'Limite de requisições excedido. Tente novamente em 1 hora.']);
+    exit;
+}
+
 $latParam = $_GET['lat'] ?? null;
 $lngParam = $_GET['lng'] ?? null;
 

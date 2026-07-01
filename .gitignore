@@ -25,6 +25,16 @@ secrets/
 # User uploads
 /uploads/
 
+# Cache gerado em runtime (manter .htaccess e .gitkeep)
+/cache/*.cache
+
+# Backup files (bloqueados também pelo .htaccess, mas não devem entrar no repo)
+*.bak
+*.old
+*.orig
+*.tmp
+*.save
+
 # OS / IDE
 .DS_Store
 Thumbs.db

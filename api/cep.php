@@ -14,6 +14,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit;
 }
 
+// Rate limit: máximo 120 requisições por hora por IP
+$ipKey = 'cep_' . md5(getClientIP());
+if (isRateLimited($ipKey, 120, 3600)) {
+    http_response_code(429);
+    echo json_encode(['success' => false, 'message' => 'Limite de requisições excedido. Tente novamente mais tarde.']);
+    exit;
+}
+
 $cepParam = $_GET['cep'] ?? '';
 $cep = preg_replace('/\D/', '', $cepParam);
 

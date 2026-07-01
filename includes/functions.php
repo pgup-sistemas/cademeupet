@@ -124,8 +124,10 @@ function getUserId() {
  */
 function requireLogin() {
     if (!isLoggedIn()) {
+        $current = $_SERVER['REQUEST_URI'] ?? '';
+        $query   = $current && $current !== '/' ? '?redirect=' . urlencode($current) : '';
         setFlashMessage('Você precisa estar logado para acessar esta página.', MSG_WARNING);
-        redirect('/login.php');
+        redirect('/login/' . $query);
     }
 }
 
@@ -147,7 +149,7 @@ function requireAdmin() {
     );
     if (!$row || !$row['ativo'] || !$row['is_admin']) {
         session_destroy();
-        redirect('/login.php?msg=sessao_invalida');
+        redirect('/login/?msg=sessao_invalida');
     }
 }
 

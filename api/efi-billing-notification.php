@@ -4,15 +4,32 @@ require_once __DIR__ . '/../config.php';
 header('Content-Type: application/json; charset=utf-8');
 
 // ========================
-// VALIDAR TOKEN
+// ALLOWLIST DE IP (mesma lista do efi-webhook.php)
+// ========================
+$efiAllowedIps = [
+    '34.193.116.68', '34.201.82.218', '52.71.157.255',
+    '52.72.250.233', '52.201.120.24', '100.28.11.138', '18.215.141.45',
+    '54.167.39.240', '52.2.242.99',
+];
+$remoteIp = $_SERVER['REMOTE_ADDR'] ?? '';
+if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+    $remoteIp = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
+}
+if (!IS_LOCAL && !in_array($remoteIp, $efiAllowedIps, true)) {
+    http_response_code(403);
+    error_log('[efi-billing-notification] IP bloqueado: ' . $remoteIp);
+    echo json_encode(['ok' => false, 'error' => 'forbidden']);
+    exit;
+}
+
+// ========================
+// VALIDAR TOKEN (apenas header — nunca via GET para evitar exposição em logs)
 // ========================
 $tokenAuth = '';
 if (isset($_SERVER['HTTP_X_WEBHOOK_TOKEN'])) {
     $tokenAuth = (string)$_SERVER['HTTP_X_WEBHOOK_TOKEN'];
 } elseif (isset($_SERVER['HTTP_X_EFI_WEBHOOK_TOKEN'])) {
     $tokenAuth = (string)$_SERVER['HTTP_X_EFI_WEBHOOK_TOKEN'];
-} elseif (isset($_GET['token'])) {
-    $tokenAuth = (string)$_GET['token'];
 }
 
 $expectedToken = (string)envValue('EFI_BILLING_WEBHOOK_TOKEN', (string)EFI_WEBHOOK_TOKEN);
@@ -44,8 +61,6 @@ if (empty($notificationToken)) {
     exit;
 }
 
-error_log('[efi-billing-notification] Notification token recebido: ' . $notificationToken);
-
 // ========================
 // PROCESSAR NOTIFICAÇÃO
 // ========================
@@ -55,7 +70,7 @@ try {
 
     // Obter detalhes da notificação
     $chargeNotification = $efi->getNotification(['token' => $notificationToken], []);
-    
+
     $dataList = $chargeNotification['data'] ?? [];
 
     if (!is_array($dataList) || empty($dataList)) {
@@ -103,12 +118,7 @@ try {
     if (empty($pagamento) && empty($doacao)) {
         http_response_code(404);
         error_log('[efi-billing-notification] Nenhuma transação encontrada para ChargeId: ' . ($chargeId ?? 'N/A'));
-        echo json_encode([
-            'ok' => false,
-            'error' => 'transaction_not_found',
-            'charge_id' => $chargeId,
-            'subscription_id' => $subscriptionId
-        ]);
+        echo json_encode(['ok' => false, 'error' => 'transaction_not_found']);
         exit;
     }
 
@@ -116,23 +126,23 @@ try {
     // MAPEAR STATUS
     // ========================
     $novoStatus = null;
-$statusEventType = strtoupper((string)($ultimo['status']['type'] ?? ''));
+    $statusEventType = strtoupper((string)($ultimo['status']['type'] ?? ''));
 
-if (in_array($statusAtual, ['PAID', 'SETTLED'], true)) {
-    $novoStatus = 'aprovado';
-} elseif (in_array($statusAtual, ['UNPAID', 'CANCELED', 'CANCELLED', 'REFUSED', 'REJECTED'], true)) {
-    $novoStatus = 'recusado';
-}
+    if (in_array($statusAtual, ['PAID', 'SETTLED'], true)) {
+        $novoStatus = 'aprovado';
+    } elseif (in_array($statusAtual, ['UNPAID', 'CANCELED', 'CANCELLED', 'REFUSED', 'REJECTED'], true)) {
+        $novoStatus = 'recusado';
+    }
 
-// Log de event type para debug
-error_log('[efi-billing-notification] Event Type: ' . $statusEventType . ', Status Type: ' . ($ultimo['status']['type'] ?? 'N/A'));
+    error_log('[efi-billing-notification] Event Type: ' . $statusEventType . ', Status Type: ' . ($ultimo['status']['type'] ?? 'N/A'));
 
-// Verificar se é webhook de assinatura
-$isSubscriptionEvent = !empty($subscriptionId) && (
-    strpos($statusEventType, 'SUBSCRIPTION') !== false || 
-    strpos($statusEventType, 'BILL') !== false ||
-    !empty($subscriptionId)
-);
+    // Verificar se é webhook de assinatura
+    $isSubscriptionEvent = !empty($subscriptionId) && (
+        strpos($statusEventType, 'SUBSCRIPTION') !== false ||
+        strpos($statusEventType, 'BILL') !== false ||
+        !empty($subscriptionId)
+    );
+
     if ($novoStatus && !empty($pagamento)) {
         $update = [];
         if (!empty($chargeId)) {
@@ -230,20 +240,12 @@ $isSubscriptionEvent = !empty($subscriptionId) && (
         'ok' => true,
         'status' => $statusAtual,
         'mapped_status' => $novoStatus,
-        'charge_id' => $chargeId,
-        'subscription_id' => $subscriptionId,
-        'pagamento_id' => $pagamento['id'] ?? null,
-        'doacao_id' => $doacao['id'] ?? null,
     ]);
     exit;
 
 } catch (Exception $e) {
     error_log('[efi-billing-notification] Exceção ao processar notificação: ' . $e->getMessage());
     http_response_code(502);
-    echo json_encode([
-        'ok' => false,
-        'error' => 'processing_error',
-        'message' => $e->getMessage()
-    ]);
+    echo json_encode(['ok' => false, 'error' => 'processing_error']);
     exit;
 }

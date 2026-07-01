@@ -21,6 +21,8 @@ if (!$inscricao || $inscricao['status'] !== 'aprovada') {
     redirect('/parceiro/painel');
 }
 
+$assinaturaInativa = $assinatura && !in_array($assinatura['status'] ?? '', ['ativa', 'pendente'], true);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
         setFlashMessage('Falha na validação do formulário. Recarregue a página e tente novamente.', MSG_ERROR);
@@ -123,6 +125,18 @@ include __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="container py-5">
+
+    <?php if (!empty($assinaturaInativa)): ?>
+    <div class="alert alert-warning d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div>
+            Sua assinatura está <strong><?php echo htmlspecialchars($assinatura['status'] ?? 'inativa', ENT_QUOTES, 'UTF-8'); ?></strong>.
+            Você pode editar seu perfil, mas ele não ficará visível no diretório enquanto a assinatura não estiver ativa.
+            <a href="<?php echo BASE_URL; ?>/parceiro/painel" class="alert-link ms-1">Ir ao painel para regularizar.</a>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1">Meu Perfil Parceiro</h1>
