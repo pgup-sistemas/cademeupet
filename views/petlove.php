@@ -8,10 +8,7 @@ $controller = new PetLoveController();
 $resultado  = $controller->vitrine();
 $pets       = $resultado['pets'];
 
-$breadcrumbs = [
-    ['label' => 'Início',   'url' => BASE_URL],
-    ['label' => 'Pet Love'],
-];
+// Seção de primeiro nível do menu principal (irmã do Início) — sem breadcrumb, igual à Home.
 include __DIR__ . '/../includes/header.php';
 ?>
 

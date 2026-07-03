@@ -30,7 +30,18 @@ class HomeController
 
         $stats = $this->db->fetchOne("SELECT * FROM view_estatisticas") ?? [];
 
-        $result = ['anunciosRecentes' => $anunciosRecentes, 'stats' => $stats];
+        $depoimentos = $this->db->fetchAll("
+            SELECT d.texto, d.criado_em, u.nome AS usuario_nome, a.nome_pet, a.tipo AS anuncio_tipo,
+                   (SELECT nome_arquivo FROM fotos_anuncios WHERE anuncio_id = a.id ORDER BY ordem LIMIT 1) AS foto
+            FROM depoimentos d
+            JOIN usuarios u ON u.id = d.usuario_id
+            LEFT JOIN anuncios a ON a.id = d.anuncio_id
+            WHERE d.aprovado = 1
+            ORDER BY d.criado_em DESC
+            LIMIT 6
+        ") ?: [];
+
+        $result = ['anunciosRecentes' => $anunciosRecentes, 'stats' => $stats, 'depoimentos' => $depoimentos];
         cacheSet($cacheKey, $result, CACHE_TIME_HOME);
         return $result;
     }

@@ -10,8 +10,8 @@
 $_httpHost = $_SERVER['HTTP_HOST'] ?? '';
 $_isLocal  = (php_sapi_name() === 'cli')
     || in_array($_httpHost, ['localhost', '127.0.0.1', '::1',
-                              'localhost:8080', 'localhost:8083',
-                              '127.0.0.1:8083', 'cademeupet.local'])
+                              'localhost:8080', 'localhost:8083', 'localhost:8090',
+                              '127.0.0.1:8083', '127.0.0.1:8090', 'cademeupet.local'])
     || (isset($_SERVER['SERVER_ADDR']) && in_array($_SERVER['SERVER_ADDR'], ['127.0.0.1', '::1']));
 define('IS_LOCAL', $_isLocal);
 
@@ -82,9 +82,9 @@ if (!function_exists('envValue')) {
 // ═══════════════════════════════════════════════
 // BANCO DE DADOS
 // ═══════════════════════════════════════════════
-define('DB_HOST',    IS_LOCAL ? 'localhost'    : envValue('DB_HOST',    'petfinder.mysql.dbaas.com.br'));
+define('DB_HOST',    IS_LOCAL ? 'localhost'    : envValue('DB_HOST',    ''));
 define('DB_NAME',    IS_LOCAL ? 'cademeupet'   : envValue('DB_NAME',    'cademeupet'));
-define('DB_USER',    IS_LOCAL ? 'root'         : envValue('DB_USER',    'petfinder'));
+define('DB_USER',    IS_LOCAL ? 'root'         : envValue('DB_USER',    ''));
 define('DB_PASS',    IS_LOCAL ? ''             : envValue('DB_PASS',    ''));
 define('DB_CHARSET', 'utf8mb4');
 unset($_isLocal, $_httpHost);
@@ -147,7 +147,7 @@ define('EFI_WEBHOOK_TOKEN', envValue('EFI_WEBHOOK_TOKEN', ''));
 // por isso checamos explicitamente e aplicamos o default manual.
 $__efiCertPath = trim((string)envValue('EFI_CERTIFICATE_PATH', ''));
 if ($__efiCertPath === '') {
-    $__efiCertPath = __DIR__ . DIRECTORY_SEPARATOR . 'secrets' . DIRECTORY_SEPARATOR . 'producao-573055-petfinder.pem';
+    $__efiCertPath = __DIR__ . DIRECTORY_SEPARATOR . 'secrets' . DIRECTORY_SEPARATOR . 'producao-cademeupet.pem';
 }
 
 // Normalizar caminho do certificado: se veio um path antigo/inválido, buscar na raiz do projeto.
@@ -195,7 +195,7 @@ define('EFI_BASE_URL', EFI_SANDBOX === true
     : 'https://pix.api.efipay.com.br'         // Produção
 );
 
-define('EFI_PIX_DESCRIPTION', envValue('EFI_PIX_DESCRIPTION', 'Doação para PetFinder'));
+define('EFI_PIX_DESCRIPTION', envValue('EFI_PIX_DESCRIPTION', 'Doação para Cadê Meu Pet?'));
 // URL do webhook PIX: lida do .env, com fallback para BASE_URL + caminho padrão
 define('EFI_PIX_NOTIFICATION_URL', (function() {
     $fromEnv = trim((string)envValue('EFI_PIX_NOTIFICATION_URL', ''));
@@ -203,8 +203,8 @@ define('EFI_PIX_NOTIFICATION_URL', (function() {
     return rtrim(IS_LOCAL ? 'https://cademeupet.pageup.net.br' : BASE_URL, '/') . '/api/efi-webhook';
 })());
 
-define('DONATION_MODAL_TITLE', 'Ajude a manter o PetFinder ativo!');
-define('DONATION_MODAL_TEXT', 'Seja um apoiador e ajude a manter o PetFinder ativo!');
+define('DONATION_MODAL_TITLE', 'Ajude a manter o Cadê Meu Pet? ativo!');
+define('DONATION_MODAL_TEXT', 'Seja um apoiador e ajude a manter o Cadê Meu Pet? ativo!');
 
 // ═══════════════════════════════════════════════
 // EMAIL (Resend.com)

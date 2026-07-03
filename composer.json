@@ -1,5 +1,5 @@
 {
-  "name": "pgup-sistemas/petfinder",
+  "name": "pgup-sistemas/cademeupet",
   "type": "project",
   "require": {
     "php": ">=7.2",

@@ -19,6 +19,9 @@ $metaOgImage = $fotoPrincipal;
 $metaOgTitle = $pageTitle;
 
 $isOwner   = isLoggedIn() && (int)$pet['usuario_id'] === getUserId();
+$conversaCtrl = new ConversaController();
+$conversaExistente = isLoggedIn() && !$isOwner ? $conversaCtrl->buscarConversaDoUsuario('petlove', $pet['id'], getUserId()) : null;
+$totalConversasItem = $isOwner ? $conversaCtrl->contarConversasDoItem('petlove', $pet['id']) : 0;
 $sexoIcon  = $pet['sexo'] === 'macho' ? 'fa-mars' : 'fa-venus';
 $sexoLabel = $pet['sexo'] === 'macho' ? 'Macho' : 'Fêmea';
 $sexoClass = $pet['sexo'] === 'macho' ? 'badge-sexo-macho' : 'badge-sexo-femea';
@@ -183,13 +186,22 @@ include __DIR__ . '/../includes/header.php';
 
                         <?php if ($isOwner): ?>
                             <div class="d-grid gap-2">
+                                <?php if ($totalConversasItem > 0): ?>
+                                    <a href="<?php echo BASE_URL; ?>/mensagens" class="btn btn-cmp-primary">
+                                        <i class="fa-solid fa-comments me-2"></i>Ver conversas sobre <?php echo sanitize($pet['nome']); ?>
+                                    </a>
+                                <?php endif; ?>
                                 <a href="<?php echo BASE_URL; ?>/minha-conta/petlove"
                                    class="btn btn-outline-primary">
                                     <i class="fa-solid fa-list me-2"></i>Gerenciar meus pets
                                 </a>
                             </div>
                         <?php elseif (isLoggedIn()): ?>
-                            <?php if ($pet['ja_interesse']): ?>
+                            <?php if ($conversaExistente): ?>
+                                <a href="<?php echo BASE_URL . '/mensagens?conversa=' . (int)$conversaExistente['id']; ?>" class="btn btn-cmp-primary w-100 mb-2">
+                                    <i class="fa-solid fa-comments me-2"></i>Continuar conversa
+                                </a>
+                            <?php elseif ($pet['ja_interesse']): ?>
                                 <div class="alert alert-success py-2 mb-0 text-center">
                                     <i class="fa-solid fa-circle-check me-2"></i>Interesse já enviado!
                                 </div>

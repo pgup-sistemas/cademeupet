@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://petfinder.pageup.net.br/sitemap.xml
+Sitemap: https://cademeupet.pageup.net.br/sitemap.xml

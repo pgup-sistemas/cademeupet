@@ -35,6 +35,15 @@ secrets/
 *.tmp
 *.save
 
+# Scripts de debug/teste locais (credenciais de teste hardcoded) - NUNCA subir para produção
+/dev/*
+!/dev/.htaccess
+
+# Logs de runtime e dados de produção (podem conter dados sensíveis de doações)
+/logs/*
+!/logs/.htaccess
+!/logs/.gitkeep
+
 # OS / IDE
 .DS_Store
 Thumbs.db

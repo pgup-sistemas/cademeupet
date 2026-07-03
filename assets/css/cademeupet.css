@@ -871,3 +871,55 @@ footer .social-links a:hover { background: var(--cmp-primary); color: #fff !impo
   flex: 1;
   border-top: 1px solid var(--cmp-border);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   CHAT / MENSAGENS
+   ═══════════════════════════════════════════════════════════ */
+.chat-card {
+  border-radius: var(--cmp-radius, .75rem);
+  overflow: hidden;
+}
+.chat-list-panel {
+  background: var(--cmp-bg);
+}
+.chat-list-item {
+  border: 0;
+  border-bottom: 1px solid var(--cmp-border);
+  border-radius: 0;
+  background: transparent;
+  transition: background-color .15s ease;
+}
+.chat-list-item:hover { background: var(--cmp-primary-lt); }
+.chat-list-item.active {
+  background: var(--cmp-primary-lt);
+  border-left: 3px solid var(--cmp-primary);
+  color: inherit;
+}
+.chat-list-item .chat-item-name,
+.chat-list-item .chat-item-sub {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chat-panel-header {
+  background: var(--cmp-surface);
+}
+.chat-bubble-area {
+  background: var(--cmp-bg);
+}
+
+/* Scroll fino e discreto — só nas áreas de chat, sem afetar o resto do site */
+.chat-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cmp-border) transparent;
+}
+.chat-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+.chat-scroll::-webkit-scrollbar-track { background: transparent; }
+.chat-scroll::-webkit-scrollbar-thumb {
+  background: var(--cmp-border);
+  border-radius: 10px;
+}
+.chat-scroll::-webkit-scrollbar-thumb:hover { background: var(--cmp-muted); }

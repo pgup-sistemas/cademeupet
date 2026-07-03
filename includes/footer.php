@@ -223,6 +223,30 @@
     <?php if (!empty($includeMapAssets)): ?>
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
         <script src="<?php echo ASSETS_URL; ?>/js/map.js"></script>
+        <?php if (!empty($includeMapCluster)): ?>
+            <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+        <?php endif; ?>
+    <?php endif; ?>
+    <?php if (isLoggedIn()): ?>
+    <script>
+    (function () {
+        var badge = document.getElementById('navMensagensBadge');
+        if (!badge) return;
+        var apiUrl = <?php echo json_encode(rtrim((string)BASE_URL, '/') . '/api/conversa-nao-lidas.php'); ?>;
+        function atualizar() {
+            fetch(apiUrl).then(function (r) { return r.json(); }).then(function (data) {
+                if (!data.ok) return;
+                if (data.total > 0) {
+                    badge.textContent = data.total;
+                    badge.classList.remove('d-none');
+                } else {
+                    badge.classList.add('d-none');
+                }
+            }).catch(function () {});
+        }
+        setInterval(atualizar, 30000);
+    })();
+    </script>
     <?php endif; ?>
     <script>
     (function () {

@@ -222,6 +222,46 @@ class AdminController
     }
 
     // ─────────────────────────────────────────────
+    // DEPOIMENTOS (histórias de reencontro/adoção)
+    // ─────────────────────────────────────────────
+
+    public function listarDepoimentos(string $filtro = 'pendente'): array
+    {
+        $filtrosValidos = ['pendente', 'aprovado'];
+        if (!in_array($filtro, $filtrosValidos, true)) $filtro = 'pendente';
+
+        $depoimentos = $this->db->fetchAll(
+            "SELECT d.*, u.nome AS usuario_nome, a.nome_pet, a.tipo AS anuncio_tipo,
+                    (SELECT nome_arquivo FROM fotos_anuncios WHERE anuncio_id = a.id ORDER BY ordem LIMIT 1) AS foto
+             FROM depoimentos d
+             JOIN usuarios u ON u.id = d.usuario_id
+             LEFT JOIN anuncios a ON a.id = d.anuncio_id
+             WHERE d.aprovado = ?
+             ORDER BY d.criado_em DESC",
+            [$filtro === 'aprovado' ? 1 : 0]
+        ) ?: [];
+
+        $contagens = $this->db->fetchOne(
+            "SELECT SUM(aprovado = 0) AS pendentes, SUM(aprovado = 1) AS aprovados FROM depoimentos"
+        ) ?: [];
+
+        return ['depoimentos' => $depoimentos, 'contagens' => $contagens];
+    }
+
+    public function processarDepoimento(int $id, string $acao): void
+    {
+        if ($id <= 0 || !in_array($acao, ['aprovar', 'rejeitar'], true)) return;
+
+        if ($acao === 'aprovar') {
+            $this->db->update('depoimentos', ['aprovado' => 1], 'id = ?', [$id]);
+            setFlashMessage('Depoimento aprovado e agora aparece publicamente.', MSG_SUCCESS);
+        } else {
+            $this->db->delete('depoimentos', 'id = ?', [$id]);
+            setFlashMessage('Depoimento rejeitado e removido.', MSG_SUCCESS);
+        }
+    }
+
+    // ─────────────────────────────────────────────
     // CONFIGURAÇÕES
     // ─────────────────────────────────────────────
 

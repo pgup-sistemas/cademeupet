@@ -2,9 +2,14 @@
 require_once __DIR__ . '/../config.php';
 
 $includeMapAssets = true;
+$includeMapCluster = true;
 
 $homeCtrl = new HomeController();
-['anunciosRecentes' => $anunciosRecentes, 'stats' => $stats] = $homeCtrl->getHomeData();
+['anunciosRecentes' => $anunciosRecentes, 'stats' => $stats, 'depoimentos' => $depoimentos] = $homeCtrl->getHomeData();
+
+// Impacto combinado: reencontros + adoções concluídas (anúncios resolvidos)
+// + matches confirmados no Pet Love.
+$totalConexoes = (int)($stats['casos_resolvidos'] ?? 0) + (int)($stats['petlove_matches'] ?? 0);
 
 include __DIR__ . '/../includes/header.php';
 ?>
@@ -14,11 +19,12 @@ include __DIR__ . '/../includes/header.php';
         <div class="row align-items-center">
             <div class="col-lg-7">
                 <h1 class="display-4 fw-bold mb-4 hero-title">
-                    <i class="fa-solid fa-paw"></i> Encontre ou Publique um Pet
+                    <i class="fa-solid fa-paw"></i> Encontre, Adote ou Conecte um Pet
                 </h1>
                 <p class="lead mb-4">
-                    Ajudamos a encontrar o dono de pets perdidos e a devolver cada animal ao seu lar.
-                    Juntos, já promovemos <?php echo number_format($stats['casos_resolvidos'] ?? 0); ?> reencontros.
+                    Do reencontro de pets perdidos à adoção responsável e ao Pet Love para cruzamento,
+                    além de parceiros de confiança para cuidar do seu animal — o Cadê Meu Pet? conecta
+                    tutores em todo o Brasil. Juntos, já promovemos <?php echo number_format($totalConexoes); ?> conexões entre pets e famílias.
                 </p>
                 
                 <!-- Busca Rápida -->
@@ -109,6 +115,45 @@ include __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
+<?php if (!empty($depoimentos)): ?>
+<!-- Depoimentos -->
+<div class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h2 class="h3 fw-bold mb-2"><i class="fa-solid fa-heart text-danger me-2"></i>Histórias reais de reencontro</h2>
+            <p class="text-muted">Depoimentos de tutores que usaram o Cadê Meu Pet? para reunir a família</p>
+        </div>
+        <div class="row g-4">
+            <?php foreach ($depoimentos as $dep): ?>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <i class="fa-solid fa-quote-left text-primary opacity-25 fa-2x mb-2"></i>
+                            <p class="fst-italic flex-grow-1">"<?php echo sanitize(truncate($dep['texto'], 220)); ?>"</p>
+                            <div class="d-flex align-items-center gap-2 mt-3 pt-3 border-top">
+                                <?php if (!empty($dep['foto'])): ?>
+                                    <img src="<?php echo BASE_URL . '/uploads/anuncios/' . sanitize($dep['foto']); ?>" class="rounded-circle" style="width:40px;height:40px;object-fit:cover;" alt="">
+                                <?php else: ?>
+                                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
+                                        <i class="fa-solid fa-paw"></i>
+                                    </div>
+                                <?php endif; ?>
+                                <div>
+                                    <strong class="d-block small"><?php echo sanitize($dep['usuario_nome']); ?></strong>
+                                    <span class="text-muted" style="font-size:.78rem;">
+                                        <?php echo $dep['nome_pet'] ? 'sobre ' . sanitize($dep['nome_pet']) : 'Cadê Meu Pet?'; ?>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <!-- Anúncios Recentes -->
 <div class="py-5">
     <div class="container">
@@ -198,9 +243,9 @@ include __DIR__ . '/../includes/header.php';
                 <p class="text-muted mb-0">Pets perdidos e encontrados na sua região</p>
             </div>
             <div class="d-none d-md-flex gap-3 align-items-center small">
-                <span><span class="badge" style="background:#e74c3c;">&nbsp;</span> Perdido</span>
-                <span><span class="badge" style="background:#27ae60;">&nbsp;</span> Encontrado</span>
-                <span><span class="badge" style="background:#3498db;">&nbsp;</span> Adoção</span>
+                <span><span class="badge" style="background:#e74c3c;">&nbsp;</span> Perdido (<span id="legendaCountPerdido">0</span>)</span>
+                <span><span class="badge" style="background:#27ae60;">&nbsp;</span> Encontrado (<span id="legendaCountEncontrado">0</span>)</span>
+                <span><span class="badge" style="background:#3498db;">&nbsp;</span> Adoção (<span id="legendaCountDoacao">0</span>)</span>
             </div>
         </div>
         <div id="mapaGeral" style="height:420px;border-radius:16px;overflow:hidden;border:1px solid rgba(0,0,0,.08);"></div>
@@ -343,7 +388,6 @@ window.addEventListener('load', function () {
     const mapEl = document.getElementById('mapaGeral');
     if (!mapEl || typeof L === 'undefined') return;
 
-    // Carrega plugin markercluster dinamicamente se não disponível
     function initMapaGeral() {
         const map = L.map('mapaGeral', {
             scrollWheelZoom: false,
@@ -384,6 +428,15 @@ window.addEventListener('load', function () {
                 if (!Array.isArray(pins) || pins.length === 0) return;
                 const tipoLabel = { perdido: 'Perdido', encontrado: 'Encontrado', doacao: 'Adoção' };
 
+                const contagem = { perdido: 0, encontrado: 0, doacao: 0 };
+                pins.forEach(pin => { if (contagem[pin.tipo] !== undefined) contagem[pin.tipo]++; });
+                const elPerdido = document.getElementById('legendaCountPerdido');
+                const elEncontrado = document.getElementById('legendaCountEncontrado');
+                const elDoacao = document.getElementById('legendaCountDoacao');
+                if (elPerdido) elPerdido.textContent = contagem.perdido;
+                if (elEncontrado) elEncontrado.textContent = contagem.encontrado;
+                if (elDoacao) elDoacao.textContent = contagem.doacao;
+
                 pins.forEach(pin => {
                     const marker = L.marker([pin.lat, pin.lng], { icon: criarIcone(pin.tipo) });
                     const foto = pin.foto_thumb
@@ -411,15 +464,7 @@ window.addEventListener('load', function () {
             .catch(() => {});
     }
 
-    // Carrega markercluster se ainda não disponível
-    if (typeof L.markerClusterGroup === 'undefined') {
-        const s = document.createElement('script');
-        s.src = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js';
-        s.onload = initMapaGeral;
-        document.head.appendChild(s);
-    } else {
-        initMapaGeral();
-    }
+    initMapaGeral();
 });
 </script>
 

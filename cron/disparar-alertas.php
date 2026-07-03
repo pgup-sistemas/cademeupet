@@ -1,14 +1,11 @@
 <?php
-/**
- * Cron: dispara e-mails de alertas de busca pendentes.
- *
- * Configurar no cPanel/cron host:
- *   0 */6 * * *  php /home/user/public_html/cademeupet/cron/disparar-alertas.php >> /dev/null 2>&1
- *
- * Executa a cada 6 horas. O ALERT_MIN_INTERVAL_SECONDS (3600 s) no controller
- * garante que o mesmo alerta não dispara mais de 1x por hora mesmo que o cron
- * rode com frequência maior.
- */
+// Cron: dispara e-mails de alertas de busca pendentes.
+//
+// Configurar no cPanel/cron host (a cada 6 horas):
+//   0 */6 * * *  php /home/user/public_html/cademeupet/cron/disparar-alertas.php >> /dev/null 2>&1
+//
+// O ALERT_MIN_INTERVAL_SECONDS (3600 s) no controller garante que o mesmo
+// alerta não dispara mais de 1x por hora mesmo que o cron rode com frequência maior.
 
 // Só pode rodar via CLI
 if (php_sapi_name() !== 'cli') {

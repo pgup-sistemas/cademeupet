@@ -24,6 +24,10 @@ $isOwner = isLoggedIn() && getUserId() == $anuncio['usuario_id'];
 $favoritoController = new FavoritoController();
 $isFavorited = $favoritoController->isFavorited($anuncio['id']);
 
+$conversaCtrl = new ConversaController();
+$conversaExistente = isLoggedIn() && !$isOwner ? $conversaCtrl->buscarConversaDoUsuario('anuncio', $anuncio['id'], getUserId()) : null;
+$totalConversasAnuncio = $isOwner ? $conversaCtrl->contarConversasDoItem('anuncio', $anuncio['id']) : 0;
+
 $shareUrl = rtrim((string)BASE_URL, '/') . '/anuncio/' . (int)$anuncio['id'] . '/';
 $shareTitle = ($anuncio['nome_pet'] ?: ('Pet ' . ucfirst($anuncio['especie'])));
 $shareDescription = trim((string)($anuncio['descricao'] ?? ''));
@@ -280,6 +284,27 @@ include __DIR__ . '/../includes/header.php';
                 <div class="card-body p-4">
                     <h5 class="fw-bold mb-3">Entre em contato</h5>
 
+                    <?php if ($isOwner && $totalConversasAnuncio > 0): ?>
+                        <a href="<?php echo BASE_URL; ?>/mensagens" class="btn btn-primary w-100 mb-3">
+                            <i class="fa-solid fa-comments me-1"></i>Ver conversas sobre este anúncio
+                        </a>
+                    <?php elseif ($conversaExistente): ?>
+                        <a href="<?php echo BASE_URL . '/mensagens?conversa=' . (int)$conversaExistente['id']; ?>" class="btn btn-primary w-100 mb-3">
+                            <i class="fa-solid fa-comments me-1"></i>Continuar conversa
+                        </a>
+                    <?php elseif (isLoggedIn() && !$isOwner && ($anuncio['status'] ?? '') === STATUS_ATIVO): ?>
+                        <button type="button" class="btn btn-primary w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalTenhoInformacoes">
+                            <i class="fa-solid fa-comment-dots me-1"></i>Tenho informações sobre esse pet
+                        </button>
+                        <p class="text-muted small mb-3">
+                            A conversa fica registrada na plataforma e o tutor recebe um aviso na hora.
+                        </p>
+                    <?php elseif (!isLoggedIn()): ?>
+                        <a href="<?php echo BASE_URL . '/login?redirect=' . rawurlencode('/anuncio/' . (int)$anuncio['id'] . '/'); ?>" class="btn btn-primary w-100 mb-3">
+                            <i class="fa-solid fa-right-to-bracket me-1"></i>Entrar para enviar mensagem
+                        </a>
+                    <?php endif; ?>
+
                     <div class="d-flex flex-wrap gap-2 mb-3">
                         <a class="btn btn-outline-success btn-sm" href="https://wa.me/?text=<?php echo rawurlencode($shareTitle . ' - ' . $shareUrl); ?>" target="_blank" rel="noopener">
                             <i class="fa-brands fa-whatsapp me-1"></i> Compartilhar
@@ -462,6 +487,71 @@ if (mrd) {
     });
 }
 </script>
+
+<?php if (isLoggedIn() && !$isOwner && ($anuncio['status'] ?? '') === STATUS_ATIVO): ?>
+<!-- Modal: Tenho informações -->
+<div class="modal fade" id="modalTenhoInformacoes" tabindex="-1" aria-labelledby="modalTenhoInformacoesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="modalTenhoInformacoesLabel">
+                    <i class="fa-solid fa-comment-dots text-primary me-2"></i>Tenho informações
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3">Conte ao tutor o que você viu ou sabe sobre este pet. A conversa abre dentro da plataforma.</p>
+                <div id="tiAlerta"></div>
+                <textarea class="form-control" id="tiMensagem" rows="4" maxlength="1000"
+                          placeholder="Ex: Acho que vi esse pet no bairro X, perto da praça..."></textarea>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnEnviarTenhoInformacoes">
+                    <i class="fa-solid fa-paper-plane me-1"></i>Enviar mensagem
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.getElementById('btnEnviarTenhoInformacoes')?.addEventListener('click', async function () {
+    const mensagem = document.getElementById('tiMensagem').value.trim();
+    const alerta = document.getElementById('tiAlerta');
+    alerta.innerHTML = '';
+
+    if (!mensagem) {
+        alerta.innerHTML = '<div class="alert alert-warning py-2">Escreva uma mensagem.</div>';
+        return;
+    }
+
+    this.disabled = true;
+    try {
+        const resp = await fetch(<?php echo json_encode(rtrim((string)BASE_URL, '/') . '/api/conversas.php'); ?>, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                acao: 'abrir',
+                tipo: 'anuncio',
+                referencia_id: <?php echo (int)$anuncio['id']; ?>,
+                mensagem: mensagem,
+                csrf_token: <?php echo json_encode(generateCSRFToken()); ?>
+            })
+        });
+        const data = await resp.json();
+        if (data.ok) {
+            window.location.href = <?php echo json_encode(rtrim((string)BASE_URL, '/') . '/mensagens'); ?> + '?conversa=' + data.conversa_id;
+        } else {
+            alerta.innerHTML = '<div class="alert alert-danger py-2">' + (data.erro || 'Erro ao enviar mensagem.') + '</div>';
+            this.disabled = false;
+        }
+    } catch (e) {
+        alerta.innerHTML = '<div class="alert alert-danger py-2">Erro de conexão. Tente novamente.</div>';
+        this.disabled = false;
+    }
+});
+</script>
+<?php endif; ?>
 
 <?php if (isLoggedIn() && !$isOwner): ?>
 <!-- Modal: Denunciar Anúncio -->

@@ -383,8 +383,12 @@ SELECT
   (SELECT COUNT(*) FROM anuncios WHERE tipo = 'doacao' AND status = 'ativo') as doacoes_ativas,
   (SELECT COUNT(*) FROM anuncios WHERE status = 'resolvido') as casos_resolvidos,
   (SELECT COALESCE(SUM(valor), 0) FROM doacoes WHERE status = 'aprovada') as total_doacoes,
-  (SELECT COALESCE(SUM(valor), 0) FROM doacoes 
+  (SELECT COALESCE(SUM(valor), 0) FROM doacoes
    WHERE status = 'aprovada' AND MONTH(data_doacao) = MONTH(CURDATE())) as doacoes_mes_atual;
+
+-- Nota: petlove_matches é adicionado a esta view por database/migrate_deploy.php
+-- (só depois que as tabelas do Pet Love existem). schema.sql é a base legada
+-- e não referencia petlove_interesses para não quebrar instalações do zero.
 
 -- ═══════════════════════════════════════════════
 -- TRIGGERS

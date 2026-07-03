@@ -143,6 +143,19 @@ class AnuncioController
 
         $this->anuncioModel->markAsResolved($id, $historia);
 
+        // Encerra as conversas abertas sobre este anúncio — o caso foi resolvido.
+        (new Conversa($this->db))->encerrarPorReferencia('anuncio', $id);
+
+        // Depoimento (história de reencontro/adoção) — moderado antes de aparecer em público.
+        if (trim($historia) !== '') {
+            $this->db->insert('depoimentos', [
+                'usuario_id' => $anuncio['usuario_id'],
+                'anuncio_id' => $id,
+                'texto'      => trim($historia),
+                'aprovado'   => 0,
+            ]);
+        }
+
         // Email de parabéns ao tutor
         $db = getDB();
         $usuario = $db->fetchOne('SELECT nome, email FROM usuarios WHERE id = ?', [$anuncio['usuario_id']]);

@@ -1,6 +1,6 @@
 <?php
 /**
- * PetFinder - Verificar Status de Doação
+ * Cadê Meu Pet? - Verificar Status de Doação
  * 
  * Endpoint usado pelo JavaScript para verificar em tempo real se o PIX foi confirmado
  * Chamado a cada 5 segundos enquanto usuário está na página de doação

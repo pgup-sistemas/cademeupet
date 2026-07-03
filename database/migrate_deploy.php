@@ -76,7 +76,7 @@ out("");
 try {
     $db = getDB();
     $passo = 0;
-    $totalPassos = 9;
+    $totalPassos = 13;
 
     // ── 1. cancelamentos_log ────────────────────────────────────────────
     out("[" . (++$passo) . "/$totalPassos] Tabela cancelamentos_log");
@@ -255,31 +255,110 @@ try {
     ");
     out("");
 
-    // ── 9. view_estatisticas (usada no dashboard admin e na home) ───────
-    out("[" . (++$passo) . "/$totalPassos] View view_estatisticas");
-    if (viewExists($db, 'view_estatisticas')) {
-        out("  já existe, nada a fazer.");
-    } else {
-        // Sem DEFINER explícito de propósito: em hospedagem compartilhada o
-        // usuário do banco raramente tem privilégio para definir outro
-        // DEFINER, então deixamos o MySQL usar o usuário que está criando.
-        $db->query("
-            CREATE VIEW `view_estatisticas` AS
-            SELECT
-              (SELECT COUNT(*) FROM usuarios WHERE ativo = 1) AS usuarios_ativos,
-              (SELECT COUNT(*) FROM anuncios WHERE status = 'ativo') AS anuncios_ativos,
-              (SELECT COUNT(*) FROM anuncios WHERE tipo = 'perdido' AND status = 'ativo') AS perdidos_ativos,
-              (SELECT COUNT(*) FROM anuncios WHERE tipo = 'encontrado' AND status = 'ativo') AS encontrados_ativos,
-              (SELECT COUNT(*) FROM anuncios WHERE tipo = 'doacao' AND status = 'ativo') AS doacoes_ativas,
-              (SELECT COUNT(*) FROM anuncios WHERE status = 'resolvido') AS casos_resolvidos,
-              (SELECT COALESCE(SUM(valor), 0) FROM doacoes WHERE status = 'aprovada') AS total_doacoes,
-              (SELECT COALESCE(SUM(valor), 0) FROM doacoes WHERE status = 'aprovada'
-                 AND MONTH(data_doacao) = MONTH(CURDATE()) AND YEAR(data_doacao) = YEAR(CURDATE())) AS doacoes_mes_atual,
-              (SELECT COUNT(*) FROM doacoes WHERE status = 'aprovada') AS total_doacoes_count,
-              (SELECT COUNT(*) FROM doacoes WHERE status = 'pendente') AS doacoes_pendentes
-        ");
-        out("  criada com sucesso.");
+    // ── 9. conversas (chat interno — anúncios e Pet Love) ────────────────
+    out("[" . (++$passo) . "/$totalPassos] Tabela conversas");
+    ensureTable($db, 'conversas', "
+        CREATE TABLE `conversas` (
+          `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+          `tipo` enum('anuncio','petlove') NOT NULL DEFAULT 'anuncio',
+          `referencia_id` int(10) unsigned NOT NULL,
+          `usuario_dono_id` int(11) NOT NULL,
+          `usuario_interessado_id` int(11) NOT NULL,
+          `status` enum('aberta','resolvida','arquivada') NOT NULL DEFAULT 'aberta',
+          `criado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `ultima_mensagem_em` datetime DEFAULT NULL,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uniq_conversa` (`tipo`,`referencia_id`,`usuario_interessado_id`),
+          KEY `idx_dono` (`usuario_dono_id`),
+          KEY `idx_interessado` (`usuario_interessado_id`),
+          KEY `idx_referencia` (`tipo`,`referencia_id`),
+          CONSTRAINT `fk_conversa_dono` FOREIGN KEY (`usuario_dono_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+          CONSTRAINT `fk_conversa_interessado` FOREIGN KEY (`usuario_interessado_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    out("");
+
+    // ── 10. conversa_mensagens ────────────────────────────────────────────
+    out("[" . (++$passo) . "/$totalPassos] Tabela conversa_mensagens");
+    ensureTable($db, 'conversa_mensagens', "
+        CREATE TABLE `conversa_mensagens` (
+          `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+          `conversa_id` int(10) unsigned NOT NULL,
+          `remetente_id` int(11) NOT NULL,
+          `mensagem` text NOT NULL,
+          `lida` tinyint(1) NOT NULL DEFAULT 0,
+          `criado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `idx_conversa_data` (`conversa_id`,`criado_em`),
+          KEY `idx_remetente` (`remetente_id`),
+          CONSTRAINT `fk_mensagem_conversa` FOREIGN KEY (`conversa_id`) REFERENCES `conversas` (`id`) ON DELETE CASCADE,
+          CONSTRAINT `fk_mensagem_remetente` FOREIGN KEY (`remetente_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    out("");
+
+    // ── 11. depoimentos (histórias de reencontro/adoção — prova social) ──
+    out("[" . (++$passo) . "/$totalPassos] Tabela depoimentos");
+    ensureTable($db, 'depoimentos', "
+        CREATE TABLE `depoimentos` (
+          `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+          `conversa_id` int(10) unsigned DEFAULT NULL,
+          `usuario_id` int(11) NOT NULL,
+          `anuncio_id` int(11) DEFAULT NULL,
+          `texto` text NOT NULL,
+          `aprovado` tinyint(1) NOT NULL DEFAULT 0,
+          `criado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `idx_aprovado` (`aprovado`),
+          KEY `idx_anuncio` (`anuncio_id`),
+          CONSTRAINT `fk_depoimento_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+          CONSTRAINT `fk_depoimento_conversa` FOREIGN KEY (`conversa_id`) REFERENCES `conversas` (`id`) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    out("");
+
+    // ── 12. conversa_mensagens: tipo (texto/imagem/localizacao) ─────────
+    out("[" . (++$passo) . "/$totalPassos] Colunas de mídia em conversa_mensagens");
+    $colunasMensagem = [
+        'tipo'      => "enum('texto','imagem','localizacao') NOT NULL DEFAULT 'texto'",
+        'arquivo'   => "varchar(255) DEFAULT NULL",
+        'latitude'  => "decimal(10,8) DEFAULT NULL",
+        'longitude' => "decimal(11,8) DEFAULT NULL",
+    ];
+    foreach ($colunasMensagem as $coluna => $definicao) {
+        if (columnExists($db, 'conversa_mensagens', $coluna)) {
+            out("  conversa_mensagens.$coluna já existe.");
+            continue;
+        }
+        $db->query("ALTER TABLE `conversa_mensagens` ADD COLUMN `$coluna` $definicao");
+        out("  conversa_mensagens.$coluna adicionada.");
     }
+    out("");
+
+    // ── 13. view_estatisticas (usada no dashboard admin e na home) ───────
+    // CREATE OR REPLACE (idempotente) para que deploys já existentes também
+    // recebam colunas novas, como petlove_matches.
+    out("[" . (++$passo) . "/$totalPassos] View view_estatisticas");
+    // Sem DEFINER explícito de propósito: em hospedagem compartilhada o
+    // usuário do banco raramente tem privilégio para definir outro
+    // DEFINER, então deixamos o MySQL usar o usuário que está criando.
+    $db->query("
+        CREATE OR REPLACE VIEW `view_estatisticas` AS
+        SELECT
+          (SELECT COUNT(*) FROM usuarios WHERE ativo = 1) AS usuarios_ativos,
+          (SELECT COUNT(*) FROM anuncios WHERE status = 'ativo') AS anuncios_ativos,
+          (SELECT COUNT(*) FROM anuncios WHERE tipo = 'perdido' AND status = 'ativo') AS perdidos_ativos,
+          (SELECT COUNT(*) FROM anuncios WHERE tipo = 'encontrado' AND status = 'ativo') AS encontrados_ativos,
+          (SELECT COUNT(*) FROM anuncios WHERE tipo = 'doacao' AND status = 'ativo') AS doacoes_ativas,
+          (SELECT COUNT(*) FROM anuncios WHERE status = 'resolvido') AS casos_resolvidos,
+          (SELECT COUNT(*) FROM petlove_interesses WHERE status = 'aceito') AS petlove_matches,
+          (SELECT COALESCE(SUM(valor), 0) FROM doacoes WHERE status = 'aprovada') AS total_doacoes,
+          (SELECT COALESCE(SUM(valor), 0) FROM doacoes WHERE status = 'aprovada'
+             AND MONTH(data_doacao) = MONTH(CURDATE()) AND YEAR(data_doacao) = YEAR(CURDATE())) AS doacoes_mes_atual,
+          (SELECT COUNT(*) FROM doacoes WHERE status = 'aprovada') AS total_doacoes_count,
+          (SELECT COUNT(*) FROM doacoes WHERE status = 'pendente') AS doacoes_pendentes
+    ");
+    out("  criada/atualizada com sucesso.");
     out("");
 
     out("=== Migration concluída com sucesso. ===");

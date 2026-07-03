@@ -85,6 +85,12 @@ function __adminNavActive(string $path, string $uri): string {
             <i class="fa-solid fa-ban me-2"></i><span class="nav-label">Cancelamentos</span>
         </a>
 
+        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/admin/depoimentos', $__uri); ?>"
+           href="<?php echo BASE_URL; ?>/admin/depoimentos"
+           title="Depoimentos">
+            <i class="fa-solid fa-quote-left me-2"></i><span class="nav-label">Depoimentos</span>
+        </a>
+
         <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/admin/config', $__uri); ?>"
            href="<?php echo BASE_URL; ?>/admin/config"
            title="Configurações">

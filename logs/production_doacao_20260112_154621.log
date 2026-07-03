@@ -1,9 +1,0 @@
-Starting production donation test at 2026-01-12T15:46:21-04:00
-Created doacao id: 38
-API Response: {"code":200,"data":{"charge_id":962389254,"status":"link","total":200,"custom_id":"DOACAO_38","payment_url":"https:\/\/pagamento.sejaefi.com.br\/75ad3582-d065-4afb-bc97-da0b341b61cd","payment_method":"credit_card","conditional_discount_date":null,"request_delivery_address":false,"expire_at":"2026-01-19","created_at":"2026-01-12 16:46:25"}}
-ERROR: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'payment_url' in 'field list'
-Trace: #0 C:\xampp\htdocs\petfinder\includes\db.php(53): PDO->prepare('UPDATE doacoes ...')
-#1 C:\xampp\htdocs\petfinder\includes\db.php(108): Database->query('UPDATE doacoes ...', Array)
-#2 C:\xampp\htdocs\petfinder\models\Doacao.php(26): Database->update('doacoes', Array, 'id = ?', Array)
-#3 C:\xampp\htdocs\petfinder\scripts\production_create_doacao_cartao.php(54): Doacao->update(38, Array)
-#4 {main}

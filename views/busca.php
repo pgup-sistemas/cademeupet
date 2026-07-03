@@ -1,8 +1,6 @@
 ﻿<?php
 require_once __DIR__ . '/../config.php';
 
-$pageTitle = 'Buscar Pets - Cadê Meu Pet?';
-
 $buscaController = new BuscaController();
 $params = $_GET;
 $resultado = $buscaController->listar($params);
@@ -12,6 +10,14 @@ $filters    = $resultado['filters'];
 $page       = $resultado['page'];
 $total      = $resultado['total'] ?? count($anuncios);
 $totalPages = $resultado['totalPages'] ?? 1;
+
+$tituloPorTipo = [
+    'perdido'    => 'Pets Perdidos',
+    'encontrado' => 'Pets Encontrados',
+    'doacao'     => 'Pets para Adoção',
+];
+$tituloBusca = $tituloPorTipo[$filters['tipo'] ?? ''] ?? 'Buscar Pets';
+$pageTitle   = $tituloBusca . ' - Cadê Meu Pet?';
 
 $includeMapAssets = true;
 
@@ -32,10 +38,7 @@ foreach ($anuncios as $anuncio) {
     }
 }
 
-$breadcrumbs = [
-    ['label' => 'Início', 'url' => BASE_URL],
-    ['label' => 'Buscar Pets'],
-];
+// Seção de primeiro nível do menu principal (irmã do Início) — sem breadcrumb, igual à Home.
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -142,7 +145,7 @@ include __DIR__ . '/../includes/header.php';
         <div class="col-lg-9">
             <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3">
                 <div>
-                    <h1 class="h3 fw-bold mb-0">Resultados da busca</h1>
+                    <h1 class="h3 fw-bold mb-0"><?php echo sanitize($tituloBusca); ?></h1>
                     <p class="text-muted mb-0">
                         <?php if ($total > 0): ?>
                             <strong><?php echo number_format($total); ?></strong> anúnci<?php echo $total === 1 ? 'o encontrado' : 'os encontrados'; ?><?php if ($totalPages > 1): ?> &mdash; página <?php echo $page; ?> de <?php echo $totalPages; ?><?php endif; ?>

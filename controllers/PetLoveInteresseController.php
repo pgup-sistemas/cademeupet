@@ -52,9 +52,12 @@ class PetLoveInteresseController {
             'status'             => 'pendente',
         ]);
 
-        $this->notificarDono((int)$pet['usuario_id'], $pet['nome'], $usuarioId);
+        // Abre a conversa unificada (mesma engine dos anúncios) para que a
+        // combinação do cruzamento aconteça dentro da plataforma.
+        $conversaCtrl = new ConversaController($this->db);
+        $conversaCtrl->abrir('petlove', $petloveId, $mensagem ?: 'Tenho interesse no cruzamento com ' . $pet['nome'] . '.');
 
-        return ['ok' => true, 'msg' => 'Interesse enviado! O tutor será notificado.'];
+        return ['ok' => true, 'msg' => 'Interesse enviado! O tutor foi notificado e você já pode conversar pela aba Mensagens.'];
     }
 
     public function responder(array $dados): array {
@@ -133,19 +136,6 @@ class PetLoveInteresseController {
     // ─────────────────────────────────────────────
     // Notificações (best-effort)
     // ─────────────────────────────────────────────
-
-    private function notificarDono(int $donoId, string $petNome, int $interessadoId): void {
-        if (!function_exists('sendEmail')) return;
-        $dono       = $this->db->fetchOne("SELECT nome, email FROM usuarios WHERE id = ?", [$donoId]);
-        $interessado = $this->db->fetchOne("SELECT nome FROM usuarios WHERE id = ?", [$interessadoId]);
-        if (!$dono || !$dono['email']) return;
-        $assunto = "Novo interesse no seu pet {$petNome} — Cadê Meu Pet?";
-        $corpo   = "Olá {$dono['nome']},\n\n"
-                 . "{$interessado['nome']} demonstrou interesse no cruzamento com {$petNome}.\n\n"
-                 . "Acesse sua conta para aceitar ou recusar: " . BASE_URL . "/minha-conta/petlove\n\n"
-                 . "Equipe Cadê Meu Pet?";
-        @sendEmail($dono['email'], $assunto, nl2br(htmlspecialchars($corpo)));
-    }
 
     private function notificarInteressadoAceito(int $interessadoId, string $petNome, int $donoId): void {
         if (!function_exists('sendEmail')) return;

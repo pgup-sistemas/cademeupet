@@ -164,6 +164,14 @@ $includeMapAssets = $includeMapAssets ?? false;
                         </a>
                     </li>
                     <?php if (isLoggedIn()): ?>
+                        <?php $_naoLidasMsgs = (new ConversaController())->contarNaoLidas(getUserId()); ?>
+                        <li class="nav-item">
+                            <a class="nav-link text-white position-relative" href="<?php echo BASE_URL; ?>/mensagens" title="Mensagens">
+                                <i class="fa-solid fa-comments"></i>
+                                <span class="d-lg-none ms-1">Mensagens</span>
+                                <span id="navMensagensBadge" class="badge bg-danger rounded-pill <?php echo $_naoLidasMsgs > 0 ? '' : 'd-none'; ?>" style="font-size:.65rem;"><?php echo $_naoLidasMsgs; ?></span>
+                            </a>
+                        </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link text-white dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                 <?php
@@ -178,6 +186,11 @@ $includeMapAssets = $includeMapAssets ?? false;
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/perfil">
                                     <i class="fa-solid fa-user me-2 text-secondary"></i>Meu Perfil</a>
+                                </li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/mensagens">
+                                    <i class="fa-solid fa-comments me-2 text-secondary"></i>Mensagens
+                                    <?php if ($_naoLidasMsgs > 0): ?><span class="badge bg-danger rounded-pill ms-1"><?php echo $_naoLidasMsgs; ?></span><?php endif; ?>
+                                    </a>
                                 </li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/meus-anuncios">
                                     <i class="fa-solid fa-list me-2 text-secondary"></i>Meus Anúncios</a>
