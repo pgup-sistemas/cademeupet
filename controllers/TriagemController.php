@@ -41,7 +41,7 @@ class TriagemController
     public function iniciarTriagem(array $dados, ?int $usuarioId): array
     {
         $dados = sanitize($dados);
-        $erros = $this->validar($dados);
+        $erros = $this->validar($dados, $usuarioId);
         if (!empty($erros)) {
             return ['success' => false, 'errors' => $erros];
         }
@@ -156,7 +156,7 @@ class TriagemController
         return $row ?: null;
     }
 
-    private function validar(array $dados): array
+    private function validar(array $dados, ?int $usuarioId): array
     {
         $erros = [];
 
@@ -172,7 +172,9 @@ class TriagemController
             $erros[] = 'Selecione ao menos um sintoma ou motivo da consulta.';
         }
 
-        if (empty($dados['nome_contato']) && empty($dados['telefone_contato'])) {
+        // Nome/telefone de contato só são coletados (e exigidos) de quem não está logado —
+        // o formulário nem mostra esses campos para usuário autenticado (ver views/triagem.php).
+        if ($usuarioId === null && empty($dados['nome_contato']) && empty($dados['telefone_contato'])) {
             $erros[] = 'Informe ao menos um nome ou telefone de contato.';
         }
 
