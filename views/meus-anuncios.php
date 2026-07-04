@@ -115,6 +115,11 @@ include __DIR__ . '/../includes/header.php';
                                     </button>
                                 <?php endif; ?>
 
+                                <?php if (($anuncio['status'] ?? '') === STATUS_RESOLVIDO && $anuncio['tipo'] === 'doacao'): ?>
+                                    <a class="btn btn-outline-primary btn-sm flex-grow-1" href="<?php echo BASE_URL; ?>/termo-adocao?anuncio_id=<?php echo (int)$anuncio['id']; ?>">
+                                        <i class="fa-solid fa-file-signature me-1"></i>Termo de Adoção
+                                    </a>
+                                <?php endif; ?>
                                 <?php if (($anuncio['status'] ?? '') === STATUS_RESOLVIDO): ?>
                                     <form method="POST" action="<?php echo BASE_URL; ?>/marcar-ativo.php" class="flex-grow-1" onsubmit="return confirm('Reativar este anúncio?');">
                                         <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">

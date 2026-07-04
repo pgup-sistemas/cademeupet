@@ -203,6 +203,9 @@ $includeMapAssets = $includeMapAssets ?? false;
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/meus-pets">
                                     <i class="fa-solid fa-paw me-2 text-secondary"></i>Meus Pets</a>
                                 </li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/termos-adocao">
+                                    <i class="fa-solid fa-file-signature me-2 text-secondary"></i>Termos de Adoção</a>
+                                </li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/favoritos">
                                     <i class="fa-solid fa-heart me-2 text-secondary"></i>Meus Favoritos</a>
                                 </li>
