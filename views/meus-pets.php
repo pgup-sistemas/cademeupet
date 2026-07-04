@@ -147,6 +147,9 @@ include __DIR__ . '/../includes/header.php';
                                         <?php echo sanitize($opcoesEspecie[$pet['especie']] ?? ucfirst($pet['especie'])); ?>
                                         <?php if (!empty($pet['raca'])): ?> · <?php echo sanitize($pet['raca']); ?><?php endif; ?>
                                     </p>
+                                    <a href="<?php echo BASE_URL; ?>/pet-historico?id=<?php echo (int)$pet['id']; ?>" class="btn btn-sm btn-outline-primary mb-2">
+                                        <i class="fa-solid fa-notes-medical me-1"></i>Histórico de atendimentos
+                                    </a>
                                     <form method="POST" onsubmit="return confirm('Remover este pet da sua lista?');">
                                         <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                                         <input type="hidden" name="action" value="desativar">

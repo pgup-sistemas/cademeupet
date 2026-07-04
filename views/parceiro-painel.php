@@ -112,6 +112,14 @@ include __DIR__ . '/../includes/header.php';
                     <div class="d-grid gap-2">
                         <a class="btn btn-outline-primary" href="<?php echo BASE_URL; ?>/parceiro/perfil">Editar perfil</a>
                         <a class="btn btn-outline-primary" href="<?php echo BASE_URL; ?>/parceiro/pagamento">Pagamento</a>
+                        <?php if ($perfil && ($perfil['categoria'] ?? '') === 'clinica'): ?>
+                            <a class="btn btn-outline-primary" href="<?php echo BASE_URL; ?>/parceiro/veterinarios">
+                                <i class="fa-solid fa-user-doctor me-1"></i>Veterinários
+                            </a>
+                            <a class="btn btn-outline-primary" href="<?php echo BASE_URL; ?>/parceiro/atendimentos">
+                                <i class="fa-solid fa-notes-medical me-1"></i>Atendimentos
+                            </a>
+                        <?php endif; ?>
                         <?php if ($etapaPagamentoOk): ?>
                             <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#modalCancelarAssinatura">
                                 <i class="fas fa-times-circle me-1"></i>Cancelar Assinatura

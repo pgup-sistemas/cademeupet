@@ -97,6 +97,12 @@ function __adminNavActive(string $path, string $uri): string {
             <i class="fa-solid fa-plug me-2"></i><span class="nav-label">API Pública</span>
         </a>
 
+        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/admin/veterinarios', $__uri); ?>"
+           href="<?php echo BASE_URL; ?>/admin/veterinarios"
+           title="Veterinários">
+            <i class="fa-solid fa-user-doctor me-2"></i><span class="nav-label">Veterinários</span>
+        </a>
+
         <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/admin/config', $__uri); ?>"
            href="<?php echo BASE_URL; ?>/admin/config"
            title="Configurações">
