@@ -27,6 +27,7 @@ class Documento
             'tipo'                  => $dados['tipo'],
             'referencia_tipo'       => $dados['referencia_tipo'],
             'referencia_id'         => $dados['referencia_id'],
+            'retifica_documento_id' => $dados['retifica_documento_id'] ?? null,
             'conteudo_html'         => $conteudo,
             'hash_conteudo'         => hash('sha256', $conteudo),
             'status'                => 'rascunho',
@@ -39,6 +40,15 @@ class Documento
     {
         $row = $this->db->fetchOne('SELECT * FROM documentos WHERE id = ?', [$id]);
         return $row ?: null;
+    }
+
+    /** Documentos que retificam (corrigem) o documento informado, se houver. */
+    public function buscarRetificacoes(int $documentoId): array
+    {
+        return $this->db->fetchAll(
+            'SELECT * FROM documentos WHERE retifica_documento_id = ? ORDER BY criado_em ASC',
+            [$documentoId]
+        ) ?: [];
     }
 
     public function buscarPorCodigoVerificacao(string $codigo): ?array

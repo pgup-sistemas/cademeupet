@@ -76,7 +76,7 @@ out("");
 try {
     $db = getDB();
     $passo = 0;
-    $totalPassos = 33;
+    $totalPassos = 35;
 
     // ── 1. cancelamentos_log ────────────────────────────────────────────
     out("[" . (++$passo) . "/$totalPassos] Tabela cancelamentos_log");
@@ -824,6 +824,43 @@ try {
           CONSTRAINT `fk_atendimento_triagem` FOREIGN KEY (`triagem_solicitacao_id`) REFERENCES `triagem_solicitacoes` (`id`) ON DELETE SET NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
+    out("");
+
+    // ── 34. laudos (vínculo entre atendimento e documento assinável) ────
+    out("[" . (++$passo) . "/$totalPassos] Tabela laudos");
+    ensureTable($db, 'laudos', "
+        CREATE TABLE `laudos` (
+          `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+          `atendimento_id` int(10) unsigned NOT NULL,
+          `documento_id` int(10) unsigned NOT NULL,
+          `criado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uq_atendimento_documento` (`atendimento_id`,`documento_id`),
+          KEY `idx_atendimento` (`atendimento_id`),
+          CONSTRAINT `fk_laudo_atendimento` FOREIGN KEY (`atendimento_id`) REFERENCES `atendimentos` (`id`) ON DELETE CASCADE,
+          CONSTRAINT `fk_laudo_documento` FOREIGN KEY (`documento_id`) REFERENCES `documentos` (`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    out("");
+
+    // ── 35. documentos.retifica_documento_id (correção de documento assinado) ─
+    out("[" . (++$passo) . "/$totalPassos] Coluna documentos.retifica_documento_id");
+    if (columnExists($db, 'documentos', 'retifica_documento_id')) {
+        out("  documentos.retifica_documento_id já existe.");
+    } else {
+        $db->query("ALTER TABLE `documentos` ADD COLUMN `retifica_documento_id` int(10) unsigned NULL DEFAULT NULL AFTER `criado_por_usuario_id`");
+        out("  documentos.retifica_documento_id adicionada.");
+    }
+    $fkExiste = $db->fetchOne(
+        "SELECT COUNT(*) AS n FROM information_schema.table_constraints
+         WHERE table_schema = DATABASE() AND table_name = 'documentos' AND constraint_name = 'fk_documento_retifica'"
+    );
+    if ((int)($fkExiste['n'] ?? 0) > 0) {
+        out("  fk_documento_retifica já existe.");
+    } else {
+        $db->query("ALTER TABLE `documentos` ADD CONSTRAINT `fk_documento_retifica` FOREIGN KEY (`retifica_documento_id`) REFERENCES `documentos` (`id`) ON DELETE SET NULL");
+        out("  fk_documento_retifica criada.");
+    }
     out("");
 
     out("=== Migration concluída com sucesso. ===");

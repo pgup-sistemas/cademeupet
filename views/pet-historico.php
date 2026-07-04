@@ -16,6 +16,9 @@ if (!$pet) {
 $pageTitle = 'Histórico de ' . $pet['nome'] . ' | Cadê Meu Pet?';
 $atendimentoController = new AtendimentoController();
 $historico = $atendimentoController->historicoDoPet($petId);
+$laudoController = new LaudoController();
+$laudos = $laudoController->historicoDoPet($petId);
+$tipoLabel = ['laudo' => 'Laudo', 'atestado' => 'Atestado', 'receituario' => 'Receituário'];
 
 $breadcrumbs = [
     ['label' => 'Início', 'url' => BASE_URL],
@@ -54,6 +57,23 @@ include __DIR__ . '/../includes/header.php';
                     <?php endif; ?>
                     <div class="small text-muted mt-1"><?php echo formatDateTimeBR($a['criado_em']); ?></div>
                 </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <h2 class="h5 fw-bold mb-3 mt-4">Documentos assinados (laudos, atestados, receituários)</h2>
+    <?php if (empty($laudos)): ?>
+        <div class="alert alert-info">Nenhum documento assinado ainda.</div>
+    <?php else: ?>
+        <div class="list-group shadow-sm">
+            <?php foreach ($laudos as $l): ?>
+                <a class="list-group-item list-group-item-action" href="<?php echo BASE_URL; ?>/laudo?id=<?php echo (int)$l['id']; ?>">
+                    <div class="d-flex justify-content-between">
+                        <span><?php echo $tipoLabel[$l['tipo']] ?? ucfirst($l['tipo']); ?> — <?php echo sanitize($l['motivo_consulta']); ?></span>
+                        <span class="small text-muted"><?php echo formatDateTimeBR($l['documento_criado_em']); ?></span>
+                    </div>
+                    <div class="small text-muted"><?php echo sanitize($l['clinica_nome']); ?> — <?php echo sanitize($l['veterinario_nome']); ?></div>
+                </a>
             <?php endforeach; ?>
         </div>
     <?php endif; ?>

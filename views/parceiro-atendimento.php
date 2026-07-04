@@ -6,6 +6,7 @@ requireLogin();
 $pageTitle = 'Atendimento | Cadê Meu Pet?';
 $usuarioId = (int)getUserId();
 $controller = new AtendimentoController();
+$laudoController = new LaudoController();
 $errors = [];
 
 $atendimentoId = (int)($_GET['id'] ?? 0);
@@ -32,6 +33,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 redirect('/parceiro/atendimentos');
             } else {
                 $errors = $resultado['errors'] ?? ['Erro ao finalizar.'];
+            }
+        } elseif ($acao === 'gerar_laudo') {
+            $resultado = $laudoController->gerar($atendimentoId, $usuarioId, $_POST['tipo_laudo'] ?? '', $_POST['conteudo_laudo'] ?? '');
+            if (!empty($resultado['success'])) {
+                setFlashMessage('Documento gerado. Revise e assine para torná-lo definitivo.', MSG_SUCCESS);
+                redirect('/laudo?id=' . $resultado['id']);
+            } else {
+                $errors = $resultado['errors'] ?? ['Erro ao gerar documento.'];
             }
         }
     }
@@ -152,6 +161,53 @@ include __DIR__ . '/../includes/header.php';
             <div class="alert alert-info">Este atendimento já foi <?php echo $atendimento['status']; ?> e não pode mais ser editado.</div>
         <?php endif; ?>
     </form>
+
+    <?php if ($atendimento['status'] === 'finalizado'): ?>
+        <?php $laudos = $laudoController->buscarPorAtendimento($atendimentoId); ?>
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-body p-4">
+                <h2 class="h5 fw-bold mb-3">Documentos (laudo/atestado/receituário)</h2>
+
+                <?php if (!empty($laudos)): ?>
+                    <div class="list-group mb-3">
+                        <?php
+                        $tipoLabel = ['laudo' => 'Laudo', 'atestado' => 'Atestado', 'receituario' => 'Receituário'];
+                        $statusBadge = ['rascunho' => 'secondary', 'aguardando_assinaturas' => 'warning text-dark', 'assinado' => 'success', 'revogado' => 'secondary'];
+                        ?>
+                        <?php foreach ($laudos as $l): ?>
+                            <a class="list-group-item list-group-item-action" href="<?php echo BASE_URL; ?>/laudo?id=<?php echo (int)$l['id']; ?>">
+                                <div class="d-flex justify-content-between">
+                                    <span><?php echo $tipoLabel[$l['tipo']] ?? ucfirst($l['tipo']); ?> — <?php echo sanitize($l['codigo_verificacao']); ?></span>
+                                    <span class="badge bg-<?php echo $statusBadge[$l['documento_status']] ?? 'secondary'; ?>"><?php echo ucfirst(str_replace('_', ' ', $l['documento_status'])); ?></span>
+                                </div>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+
+                <details>
+                    <summary class="text-primary" style="cursor:pointer;">Gerar novo documento</summary>
+                    <form method="POST" class="mt-3">
+                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                        <input type="hidden" name="action" value="gerar_laudo">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Tipo</label>
+                            <select class="form-select" name="tipo_laudo" required>
+                                <option value="laudo">Laudo</option>
+                                <option value="atestado">Atestado</option>
+                                <option value="receituario">Receituário</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Conteúdo</label>
+                            <textarea class="form-control" name="conteudo_laudo" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Gerar documento (ainda não assinado)</button>
+                    </form>
+                </details>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
