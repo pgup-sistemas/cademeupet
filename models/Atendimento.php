@@ -114,6 +114,52 @@ class Atendimento
         ) ?: [];
     }
 
+    /** Decodifica o JSON de vacinas_aplicadas ([{nome, data, lote}]) com segurança. */
+    public static function decodificarVacinas(?string $json): array
+    {
+        if (empty($json)) {
+            return [];
+        }
+        $arr = json_decode($json, true);
+        return is_array($arr) ? $arr : [];
+    }
+
+    /** Carteira de vacinação consolidada do pet — agrega vacinas de todos os atendimentos finalizados. */
+    public function carteiraDeVacinacao(int $petId): array
+    {
+        $rows = $this->db->fetchAll(
+            "SELECT a.vacinas_aplicadas, a.criado_em, v.nome_completo AS veterinario_nome, pp.nome_fantasia AS clinica_nome
+             FROM atendimentos a
+             JOIN parceiro_veterinarios v ON v.id = a.veterinario_id
+             JOIN parceiro_perfis pp ON pp.id = a.parceiro_perfil_id
+             WHERE a.pet_id = ? AND a.status = 'finalizado' AND a.vacinas_aplicadas IS NOT NULL
+             ORDER BY a.criado_em DESC",
+            [$petId]
+        ) ?: [];
+
+        $vacinas = [];
+        foreach ($rows as $row) {
+            foreach (self::decodificarVacinas($row['vacinas_aplicadas']) as $v) {
+                if (empty($v['nome'])) {
+                    continue;
+                }
+                $vacinas[] = [
+                    'nome'    => $v['nome'],
+                    'data'    => $v['data'] ?? null,
+                    'lote'    => $v['lote'] ?? null,
+                    'clinica' => $row['clinica_nome'],
+                    'veterinario' => $row['veterinario_nome'],
+                ];
+            }
+        }
+
+        usort($vacinas, function ($a, $b) {
+            return strcmp((string)($b['data'] ?? ''), (string)($a['data'] ?? ''));
+        });
+
+        return $vacinas;
+    }
+
     public function listarEmAndamentoPorVeterinario(int $veterinarioId): array
     {
         return $this->db->fetchAll(

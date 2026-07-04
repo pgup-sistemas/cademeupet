@@ -48,6 +48,9 @@
                             <a href="<?php echo BASE_URL; ?>/transparencia" class="text-light-gray text-decoration-none small">Transparência</a>
                         </li>
                         <li class="mb-2">
+                            <a href="<?php echo BASE_URL; ?>/verificar" class="text-light-gray text-decoration-none small">Verificar Documento</a>
+                        </li>
+                        <li class="mb-2">
                             <a href="<?php echo BASE_URL; ?>/doar" class="text-light-gray text-decoration-none small">Fazer Doação</a>
                         </li>
                     </ul>

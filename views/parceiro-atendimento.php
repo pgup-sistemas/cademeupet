@@ -133,6 +133,39 @@ include __DIR__ . '/../includes/header.php';
 
             <div class="card shadow-sm border-0 mb-3">
                 <div class="card-body p-4">
+                    <h2 class="h6 fw-bold mb-3">Vacinas aplicadas nesta consulta</h2>
+                    <div id="vacinasContainer">
+                        <?php
+                        $vacinasExistentes = Atendimento::decodificarVacinas($atendimento['vacinas_aplicadas'] ?? null);
+                        if (empty($vacinasExistentes)) {
+                            $vacinasExistentes = [['nome' => '', 'data' => '', 'lote' => '']];
+                        }
+                        ?>
+                        <?php foreach ($vacinasExistentes as $v): ?>
+                            <div class="row vacina-linha mb-2">
+                                <div class="col-md-5">
+                                    <input type="text" class="form-control form-control-sm" name="vacina_nome[]" placeholder="Nome da vacina (ex: V10, Antirrábica)" value="<?php echo sanitize($v['nome'] ?? ''); ?>">
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="date" class="form-control form-control-sm" name="vacina_data[]" value="<?php echo sanitize($v['data'] ?? ''); ?>">
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control form-control-sm" name="vacina_lote[]" placeholder="Lote" value="<?php echo sanitize($v['lote'] ?? ''); ?>">
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-sm btn-outline-danger remover-vacina">&times;</button>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php if (!$somenteLeitura): ?>
+                        <button type="button" id="adicionarVacina" class="btn btn-sm btn-outline-primary mt-2">+ Adicionar vacina</button>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body p-4">
                     <h2 class="h6 fw-bold mb-3">Diagnóstico e conduta</h2>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Diagnóstico</label>
@@ -161,6 +194,44 @@ include __DIR__ . '/../includes/header.php';
             <div class="alert alert-info">Este atendimento já foi <?php echo $atendimento['status']; ?> e não pode mais ser editado.</div>
         <?php endif; ?>
     </form>
+
+    <?php if (!$somenteLeitura): ?>
+    <script>
+    (function () {
+        var container = document.getElementById('vacinasContainer');
+        var addBtn = document.getElementById('adicionarVacina');
+
+        function linhaTemplate() {
+            var div = document.createElement('div');
+            div.className = 'row vacina-linha mb-2';
+            div.innerHTML =
+                '<div class="col-md-5"><input type="text" class="form-control form-control-sm" name="vacina_nome[]" placeholder="Nome da vacina (ex: V10, Antirrábica)"></div>' +
+                '<div class="col-md-3"><input type="date" class="form-control form-control-sm" name="vacina_data[]"></div>' +
+                '<div class="col-md-3"><input type="text" class="form-control form-control-sm" name="vacina_lote[]" placeholder="Lote"></div>' +
+                '<div class="col-md-1"><button type="button" class="btn btn-sm btn-outline-danger remover-vacina">&times;</button></div>';
+            return div;
+        }
+
+        if (addBtn) {
+            addBtn.addEventListener('click', function () {
+                container.appendChild(linhaTemplate());
+            });
+        }
+
+        container.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remover-vacina')) {
+                var linhas = container.querySelectorAll('.vacina-linha');
+                if (linhas.length > 1) {
+                    e.target.closest('.vacina-linha').remove();
+                } else {
+                    // Mantém ao menos uma linha, só limpa os campos.
+                    e.target.closest('.vacina-linha').querySelectorAll('input').forEach(function (i) { i.value = ''; });
+                }
+            }
+        });
+    })();
+    </script>
+    <?php endif; ?>
 
     <?php if ($atendimento['status'] === 'finalizado'): ?>
         <?php $laudos = $laudoController->buscarPorAtendimento($atendimentoId); ?>

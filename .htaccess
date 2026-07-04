@@ -104,6 +104,7 @@ AddCharset UTF-8 .php .html .htm .css .js .json .xml .txt
     RewriteRule ^meus-pets/?$ meus-pets.php [L,QSA]
     RewriteRule ^pet-historico/?$ pet-historico.php [L,QSA]
     RewriteRule ^laudo/?$ laudo.php [L,QSA]
+    RewriteRule ^verificar/?$ verificar.php [L,QSA]
     RewriteRule ^termo-adocao/?$ termo-adocao.php [L,QSA]
     RewriteRule ^termos-adocao/?$ termos-adocao.php [L,QSA]
     RewriteRule ^triagem/conversa/?$ triagem-conversa.php [L,QSA]

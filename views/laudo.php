@@ -91,11 +91,21 @@ include __DIR__ . '/../includes/header.php';
             </div>
 
             <?php if ($laudo['documento_status'] === 'assinado'): ?>
+                <?php
+                    $urlVerificacao = rtrim((string)BASE_URL, '/') . '/verificar?codigo=' . urlencode($laudo['codigo_verificacao']);
+                    $textoWhats = rawurlencode('Documento veterinário (' . ($tipoLabel[$laudo['tipo']] ?? $laudo['tipo']) . ') — confira a autenticidade: ' . $urlVerificacao);
+                ?>
                 <div class="alert alert-success">
                     Código de verificação: <strong><?php echo sanitize($laudo['codigo_verificacao']); ?></strong>
-                    <?php if (!empty($laudo['pdf_path'])): ?>
-                        <br><a href="<?php echo BASE_URL; ?>/uploads/documentos/<?php echo sanitize($laudo['pdf_path']); ?>" target="_blank" class="btn btn-sm btn-outline-success mt-2">Baixar PDF</a>
-                    <?php endif; ?>
+                    <div class="mt-2 d-flex flex-wrap gap-2">
+                        <?php if (!empty($laudo['pdf_path'])): ?>
+                            <a href="<?php echo BASE_URL; ?>/uploads/documentos/<?php echo sanitize($laudo['pdf_path']); ?>" target="_blank" class="btn btn-sm btn-outline-success">Baixar PDF</a>
+                        <?php endif; ?>
+                        <a href="<?php echo $urlVerificacao; ?>" target="_blank" class="btn btn-sm btn-outline-secondary">Página de verificação</a>
+                        <a href="https://wa.me/?text=<?php echo $textoWhats; ?>" target="_blank" class="btn btn-sm btn-success">
+                            <i class="fa-brands fa-whatsapp me-1"></i>Compartilhar no WhatsApp
+                        </a>
+                    </div>
                 </div>
 
                 <?php if ($souOAutor && empty($retificacoes)): ?>

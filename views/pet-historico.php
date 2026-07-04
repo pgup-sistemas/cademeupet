@@ -19,6 +19,7 @@ $historico = $atendimentoController->historicoDoPet($petId);
 $laudoController = new LaudoController();
 $laudos = $laudoController->historicoDoPet($petId);
 $tipoLabel = ['laudo' => 'Laudo', 'atestado' => 'Atestado', 'receituario' => 'Receituário'];
+$carteiraVacinacao = $atendimentoController->carteiraDeVacinacao($petId);
 
 $breadcrumbs = [
     ['label' => 'Início', 'url' => BASE_URL],
@@ -31,6 +32,27 @@ include __DIR__ . '/../includes/header.php';
 <div class="container py-5">
     <h1 class="h3 fw-bold mb-1"><?php echo sanitize($pet['nome']); ?></h1>
     <p class="text-muted mb-4"><?php echo sanitize(ucfirst($pet['especie'])); ?><?php if (!empty($pet['raca'])): ?> · <?php echo sanitize($pet['raca']); ?><?php endif; ?></p>
+
+    <h2 class="h5 fw-bold mb-3">Carteira de vacinação</h2>
+    <?php if (empty($carteiraVacinacao)): ?>
+        <div class="alert alert-info">Nenhuma vacina registrada ainda.</div>
+    <?php else: ?>
+        <div class="table-responsive mb-4">
+            <table class="table table-sm table-striped">
+                <thead><tr><th>Vacina</th><th>Data</th><th>Lote</th><th>Aplicada em</th></tr></thead>
+                <tbody>
+                    <?php foreach ($carteiraVacinacao as $v): ?>
+                        <tr>
+                            <td><?php echo sanitize($v['nome']); ?></td>
+                            <td><?php echo !empty($v['data']) ? sanitize(date('d/m/Y', strtotime($v['data']))) : '—'; ?></td>
+                            <td><?php echo sanitize($v['lote'] ?? '—'); ?></td>
+                            <td class="small text-muted"><?php echo sanitize($v['clinica']); ?> — <?php echo sanitize($v['veterinario']); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    <?php endif; ?>
 
     <h2 class="h5 fw-bold mb-3">Histórico de atendimentos</h2>
     <?php if (empty($historico)): ?>

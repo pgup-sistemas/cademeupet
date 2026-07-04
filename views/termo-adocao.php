@@ -102,11 +102,21 @@ include __DIR__ . '/../includes/header.php';
                 </div>
 
                 <?php if ($termo['status'] === 'assinado'): ?>
+                    <?php
+                        $urlVerificacao = rtrim((string)BASE_URL, '/') . '/verificar?codigo=' . urlencode($termo['codigo_verificacao']);
+                        $textoWhats = rawurlencode('Termo de Responsabilidade de Adoção assinado — confira a autenticidade: ' . $urlVerificacao);
+                    ?>
                     <div class="alert alert-success">
                         Termo assinado. Código de verificação: <strong><?php echo sanitize($termo['codigo_verificacao']); ?></strong>
-                        <?php if (!empty($termo['pdf_path'])): ?>
-                            <br><a href="<?php echo BASE_URL; ?>/uploads/documentos/<?php echo sanitize($termo['pdf_path']); ?>" target="_blank" class="btn btn-sm btn-outline-success mt-2">Baixar PDF</a>
-                        <?php endif; ?>
+                        <div class="mt-2 d-flex flex-wrap gap-2">
+                            <?php if (!empty($termo['pdf_path'])): ?>
+                                <a href="<?php echo BASE_URL; ?>/uploads/documentos/<?php echo sanitize($termo['pdf_path']); ?>" target="_blank" class="btn btn-sm btn-outline-success">Baixar PDF</a>
+                            <?php endif; ?>
+                            <a href="<?php echo $urlVerificacao; ?>" target="_blank" class="btn btn-sm btn-outline-secondary">Página de verificação</a>
+                            <a href="https://wa.me/?text=<?php echo $textoWhats; ?>" target="_blank" class="btn btn-sm btn-success">
+                                <i class="fa-brands fa-whatsapp me-1"></i>Compartilhar no WhatsApp
+                            </a>
+                        </div>
                     </div>
                 <?php elseif ($termo['status'] === 'aguardando_adotante' && (int)($termo['adotante_usuario_id'] ?? 0) === $usuarioId): ?>
                     <form method="POST" class="d-inline">

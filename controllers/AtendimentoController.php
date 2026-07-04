@@ -117,9 +117,39 @@ class AtendimentoController
         }
 
         $dados = sanitize($dados);
+        if (isset($dados['vacina_nome']) && is_array($dados['vacina_nome'])) {
+            $dados['vacinas_aplicadas'] = json_encode($this->normalizarVacinas($dados), JSON_UNESCAPED_UNICODE);
+        }
         $this->atendimentoModel->atualizarCampos($atendimentoId, $dados);
 
         return ['success' => true];
+    }
+
+    /** Monta o array estruturado de vacinas a partir dos campos repetidos do formulário. */
+    private function normalizarVacinas(array $dados): array
+    {
+        $nomes = (array)($dados['vacina_nome'] ?? []);
+        $datas = (array)($dados['vacina_data'] ?? []);
+        $lotes = (array)($dados['vacina_lote'] ?? []);
+
+        $vacinas = [];
+        foreach ($nomes as $indice => $nome) {
+            $nome = trim((string)$nome);
+            if ($nome === '') {
+                continue;
+            }
+            $vacinas[] = [
+                'nome' => $nome,
+                'data' => !empty($datas[$indice]) ? $datas[$indice] : null,
+                'lote' => !empty($lotes[$indice]) ? $lotes[$indice] : null,
+            ];
+        }
+        return $vacinas;
+    }
+
+    public function carteiraDeVacinacao(int $petId): array
+    {
+        return $this->atendimentoModel->carteiraDeVacinacao($petId);
     }
 
     public function finalizar(int $atendimentoId, int $veterinarioUsuarioId): array
