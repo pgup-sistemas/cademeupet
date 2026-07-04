@@ -97,6 +97,7 @@ AddCharset UTF-8 .php .html .htm .css .js .json .xml .txt
     RewriteRule ^alertas/?$ views/alertas.php [L,QSA]
     RewriteRule ^mensagens/?$ views/mensagens.php [L,QSA]
     RewriteRule ^matches/?$ matches.php [L,QSA]
+    RewriteRule ^meus-pets/?$ meus-pets.php [L,QSA]
     RewriteRule ^triagem/conversa/?$ triagem-conversa.php [L,QSA]
     RewriteRule ^triagem/historico/?$ triagem-historico.php [L,QSA]
     RewriteRule ^triagem/?$ triagem.php [L,QSA]

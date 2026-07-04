@@ -76,7 +76,7 @@ out("");
 try {
     $db = getDB();
     $passo = 0;
-    $totalPassos = 27;
+    $totalPassos = 30;
 
     // ── 1. cancelamentos_log ────────────────────────────────────────────
     out("[" . (++$passo) . "/$totalPassos] Tabela cancelamentos_log");
@@ -656,6 +656,80 @@ try {
         ]);
         out("  criada com valor padrão '0' (desabilitado).");
     }
+    out("");
+
+    // ── 28. pets (ficha permanente — fundação do módulo veterinário) ────
+    out("[" . (++$passo) . "/$totalPassos] Tabela pets");
+    ensureTable($db, 'pets', "
+        CREATE TABLE `pets` (
+          `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+          `tutor_usuario_id` int(11) NOT NULL,
+          `nome` varchar(100) NOT NULL,
+          `especie` varchar(30) NOT NULL,
+          `raca` varchar(100) DEFAULT NULL,
+          `sexo` enum('macho','femea') DEFAULT NULL,
+          `data_nascimento` date DEFAULT NULL,
+          `idade_aproximada_meses` smallint(5) unsigned DEFAULT NULL,
+          `cor` varchar(50) DEFAULT NULL,
+          `foto` varchar(255) DEFAULT NULL,
+          `microchip_numero` varchar(50) DEFAULT NULL,
+          `origem_anuncio_id` int(11) DEFAULT NULL,
+          `ativo` tinyint(1) NOT NULL DEFAULT 1,
+          `criado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `atualizado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `idx_tutor` (`tutor_usuario_id`),
+          CONSTRAINT `fk_pet_tutor` FOREIGN KEY (`tutor_usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE,
+          CONSTRAINT `fk_pet_origem_anuncio` FOREIGN KEY (`origem_anuncio_id`) REFERENCES `anuncios` (`id`) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    out("");
+
+    // ── 29. documentos (núcleo genérico de documento assinável) ─────────
+    out("[" . (++$passo) . "/$totalPassos] Tabela documentos");
+    ensureTable($db, 'documentos', "
+        CREATE TABLE `documentos` (
+          `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+          `tipo` enum('laudo','atestado','receituario','termo_adocao','termo_responsabilidade') NOT NULL,
+          `referencia_tipo` enum('atendimento','anuncio') NOT NULL,
+          `referencia_id` int(10) unsigned NOT NULL,
+          `conteudo_html` longtext NOT NULL,
+          `pdf_path` varchar(255) DEFAULT NULL,
+          `hash_conteudo` char(64) NOT NULL,
+          `status` enum('rascunho','aguardando_assinaturas','assinado','revogado') NOT NULL DEFAULT 'rascunho',
+          `codigo_verificacao` varchar(20) NOT NULL,
+          `criado_por_usuario_id` int(11) NOT NULL,
+          `criado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `revogado_em` datetime DEFAULT NULL,
+          `motivo_revogacao` varchar(500) DEFAULT NULL,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uq_codigo_verificacao` (`codigo_verificacao`),
+          KEY `idx_referencia` (`referencia_tipo`,`referencia_id`),
+          KEY `idx_tipo_status` (`tipo`,`status`),
+          CONSTRAINT `fk_documento_criador` FOREIGN KEY (`criado_por_usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    out("");
+
+    // ── 30. documento_assinaturas (trilha de auditoria multi-signatário) ─
+    out("[" . (++$passo) . "/$totalPassos] Tabela documento_assinaturas");
+    ensureTable($db, 'documento_assinaturas', "
+        CREATE TABLE `documento_assinaturas` (
+          `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+          `documento_id` int(10) unsigned NOT NULL,
+          `usuario_id` int(11) NOT NULL,
+          `papel` enum('veterinario_autor','adotante_responsavel','doador','testemunha_parceiro') NOT NULL,
+          `identificacao_extra` varchar(100) DEFAULT NULL,
+          `hash_no_momento` char(64) NOT NULL,
+          `ip_address` varchar(45) DEFAULT NULL,
+          `user_agent` varchar(255) DEFAULT NULL,
+          `assinado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `idx_documento` (`documento_id`),
+          CONSTRAINT `fk_assinatura_documento` FOREIGN KEY (`documento_id`) REFERENCES `documentos` (`id`) ON DELETE CASCADE,
+          CONSTRAINT `fk_assinatura_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE RESTRICT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
     out("");
 
     out("=== Migration concluída com sucesso. ===");
