@@ -163,6 +163,11 @@ $includeMapAssets = $includeMapAssets ?? false;
                             <i class="fa-solid fa-handshake me-1"></i>Parceiros
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="<?php echo BASE_URL; ?>/triagem">
+                            <i class="fa-solid fa-kit-medical me-1"></i>Triagem Veterinária
+                        </a>
+                    </li>
                     <?php if (isLoggedIn()): ?>
                         <?php $_naoLidasMsgs = (new ConversaController())->contarNaoLidas(getUserId()); ?>
                         <li class="nav-item">
@@ -200,6 +205,12 @@ $includeMapAssets = $includeMapAssets ?? false;
                                 </li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/alertas">
                                     <i class="fa-solid fa-bell me-2 text-secondary"></i>Meus Alertas</a>
+                                </li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/matches">
+                                    <i class="fa-solid fa-magnifying-glass me-2 text-secondary"></i>Matches Sugeridos</a>
+                                </li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/triagem/historico">
+                                    <i class="fa-solid fa-kit-medical me-2 text-secondary"></i>Minhas Triagens</a>
                                 </li>
                                 <?php
                                     $_parcInscricao = getDB()->fetchOne(

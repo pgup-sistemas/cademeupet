@@ -20,6 +20,12 @@ $etapaInscricaoOk = $inscricao && $inscricao['status'] === 'aprovada';
 $etapaPerfilOk = $perfil && !empty($perfil['nome_fantasia']) && !empty($perfil['categoria']) && !empty($perfil['cidade']) && !empty($perfil['estado']);
 $etapaPagamentoOk = $assinatura && ($assinatura['status'] ?? '') === 'ativa';
 
+$solicitacoesTriagem = [];
+if ($perfil && ($perfil['categoria'] ?? '') === 'clinica') {
+    $triagemController = new TriagemController();
+    $solicitacoesTriagem = $triagemController->painelParceiro((int)$perfil['id']);
+}
+
 $breadcrumbs = [
     ['label' => 'Início',    'url' => BASE_URL],
     ['label' => 'Parceiros', 'url' => BASE_URL . '/parceiros'],
@@ -123,6 +129,54 @@ include __DIR__ . '/../includes/header.php';
             <?php endif; ?>
         </div>
     </div>
+
+    <?php if ($perfil && ($perfil['categoria'] ?? '') === 'clinica'): ?>
+        <div class="row mt-2">
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <h2 class="h5 fw-bold mb-3">Solicitações de triagem direcionadas a você</h2>
+                        <p class="text-muted small">Tutores que fizeram triagem de emergência e foram direcionados à sua clínica.</p>
+
+                        <?php if (empty($solicitacoesTriagem)): ?>
+                            <div class="alert alert-info mb-0">Nenhuma solicitação de triagem até o momento.</div>
+                        <?php else: ?>
+                            <?php
+                            $urgLabel = ['critica' => 'Crítica', 'alta' => 'Alta', 'moderada' => 'Moderada', 'baixa' => 'Baixa'];
+                            $urgBadge = ['critica' => 'bg-danger', 'alta' => 'bg-warning text-dark', 'moderada' => 'bg-info text-dark', 'baixa' => 'bg-secondary'];
+                            ?>
+                            <div class="list-group">
+                                <?php foreach ($solicitacoesTriagem as $s): ?>
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <span class="badge <?php echo $urgBadge[$s['nivel_urgencia']] ?? 'bg-secondary'; ?>">
+                                                    <?php echo $urgLabel[$s['nivel_urgencia']] ?? $s['nivel_urgencia']; ?>
+                                                </span>
+                                                <span class="fw-semibold ms-2"><?php echo ucfirst(sanitize($s['especie'])); ?></span>
+                                                <?php if (!empty($s['tutor_nome'])): ?>
+                                                    · <?php echo sanitize($s['tutor_nome']); ?>
+                                                <?php elseif (!empty($s['nome_contato'])): ?>
+                                                    · <?php echo sanitize($s['nome_contato']); ?>
+                                                <?php endif; ?>
+                                                <?php if (!empty($s['telefone_contato'])): ?>
+                                                    · <?php echo sanitize($s['telefone_contato']); ?>
+                                                <?php endif; ?>
+                                            </div>
+                                            <?php if (!empty($s['conversa_id'])): ?>
+                                                <a href="<?php echo BASE_URL; ?>/mensagens" class="btn btn-sm btn-outline-primary">Ver conversa</a>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="small text-muted mt-1"><?php echo formatDateTimeBR($s['criado_em']); ?></div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>
 
 <!-- Modal de Cancelamento de Assinatura -->

@@ -127,6 +127,11 @@ define('ALERT_EMAIL_MAX_RESULTS', 5);
 define('MAX_PETLOVE_PETS_PER_USER', 5);
 define('MAX_PETLOVE_INTERESTS_PER_USER', 20);
 
+// Motor de match automático (perdido ↔ achado) — ver models/MatchEngine.php
+define('MATCHING_JANELA_DIAS', 60);     // dias após o "perdido" em que um "achado" ainda é candidato
+define('MATCHING_RAIO_KM', 50);         // raio padrão de busca de candidatos por geolocalização
+define('MATCHING_SCORE_MINIMO', 40);    // score mínimo (0-100) para notificar o usuário
+
 // ═══════════════════════════════════════════════
 // DOAÇÕES
 // ═══════════════════════════════════════════════
@@ -239,6 +244,7 @@ spl_autoload_register(function ($class) {
     $paths = [
         BASE_PATH . '/models/' . $class . '.php',
         BASE_PATH . '/controllers/' . $class . '.php',
+        BASE_PATH . '/services/' . $class . '.php',
     ];
     
     foreach ($paths as $path) {

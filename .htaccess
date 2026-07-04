@@ -32,6 +32,9 @@ AddCharset UTF-8 .php .html .htm .css .js .json .xml .txt
     RewriteRule ^api/efi-webhook/?$             api/efi-webhook.php [L,QSA]
     RewriteRule ^api/webhook-pix-admin/?$       api/webhook-pix-admin.php [L,QSA]
     RewriteRule ^api/status-doacao/?$           api/status-doacao.php [L,QSA]
+    RewriteRule ^api/v1/anuncios/?$              api/v1/anuncios.php [L,QSA]
+    RewriteRule ^api/v1/parceiros/?$             api/v1/parceiros.php [L,QSA]
+    RewriteRule ^api/v1/ingestao/animais/?$      api/v1/ingestao/animais.php [L,QSA]
 
     # Rotas administrativas
     RewriteRule ^admin/?$ views/admin.php [L,QSA]
@@ -45,6 +48,7 @@ AddCharset UTF-8 .php .html .htm .css .js .json .xml .txt
     RewriteRule ^admin/denuncias/?$ views/admin-denuncias.php [L,QSA]
     RewriteRule ^admin/cancelamentos/?$ views/admin-cancelamentos.php [L,QSA]
     RewriteRule ^admin/depoimentos/?$ views/admin-depoimentos.php [L,QSA]
+    RewriteRule ^admin/api-keys/?$ views/admin-api-keys.php [L,QSA]
     RewriteRule ^minha-conta/?$ views/minha-conta.php [L,QSA]
 
     # Rotas de parceiros (ordem importa!)
@@ -92,6 +96,10 @@ AddCharset UTF-8 .php .html .htm .css .js .json .xml .txt
     RewriteRule ^favoritos/?$ views/favoritos.php [L,QSA]
     RewriteRule ^alertas/?$ views/alertas.php [L,QSA]
     RewriteRule ^mensagens/?$ views/mensagens.php [L,QSA]
+    RewriteRule ^matches/?$ matches.php [L,QSA]
+    RewriteRule ^triagem/conversa/?$ triagem-conversa.php [L,QSA]
+    RewriteRule ^triagem/historico/?$ triagem-historico.php [L,QSA]
+    RewriteRule ^triagem/?$ triagem.php [L,QSA]
 
     # Rotas de ação
     RewriteRule ^denunciar-anuncio/?$ denunciar-anuncio.php [L,QSA]

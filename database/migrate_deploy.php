@@ -76,7 +76,7 @@ out("");
 try {
     $db = getDB();
     $passo = 0;
-    $totalPassos = 13;
+    $totalPassos = 27;
 
     // ── 1. cancelamentos_log ────────────────────────────────────────────
     out("[" . (++$passo) . "/$totalPassos] Tabela cancelamentos_log");
@@ -359,6 +359,303 @@ try {
           (SELECT COUNT(*) FROM doacoes WHERE status = 'pendente') AS doacoes_pendentes
     ");
     out("  criada/atualizada com sucesso.");
+    out("");
+
+    // ── 14. triagem_locais_publicos (clínicas municipais/institucionais) ─
+    out("[" . (++$passo) . "/$totalPassos] Tabela triagem_locais_publicos");
+    ensureTable($db, 'triagem_locais_publicos', "
+        CREATE TABLE `triagem_locais_publicos` (
+          `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+          `nome` varchar(150) NOT NULL,
+          `cidade` varchar(100) NOT NULL,
+          `estado` char(2) NOT NULL,
+          `endereco` varchar(255) DEFAULT NULL,
+          `latitude` decimal(10,7) DEFAULT NULL,
+          `longitude` decimal(10,7) DEFAULT NULL,
+          `horario_funcionamento` varchar(255) DEFAULT NULL,
+          `como_funciona_fila` text DEFAULT NULL,
+          `requisitos` varchar(500) DEFAULT NULL,
+          `telefone` varchar(20) DEFAULT NULL,
+          `ativo` tinyint(1) NOT NULL DEFAULT 1,
+          `criado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `idx_cidade_estado` (`cidade`,`estado`),
+          KEY `idx_ativo` (`ativo`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    out("");
+
+    // ── 15. triagem_solicitacoes ─────────────────────────────────────────
+    out("[" . (++$passo) . "/$totalPassos] Tabela triagem_solicitacoes");
+    ensureTable($db, 'triagem_solicitacoes', "
+        CREATE TABLE `triagem_solicitacoes` (
+          `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+          `usuario_id` int(11) DEFAULT NULL,
+          `nome_contato` varchar(150) DEFAULT NULL,
+          `telefone_contato` varchar(20) DEFAULT NULL,
+          `especie` varchar(30) NOT NULL,
+          `sintomas` text NOT NULL COMMENT 'JSON: respostas estruturadas do formulario',
+          `nivel_urgencia` enum('baixa','moderada','alta','critica') NOT NULL,
+          `renda_baixa_declarada` tinyint(1) DEFAULT NULL,
+          `cidade` varchar(100) DEFAULT NULL,
+          `estado` char(2) DEFAULT NULL,
+          `latitude` decimal(10,7) DEFAULT NULL,
+          `longitude` decimal(10,7) DEFAULT NULL,
+          `direcionamento_sugerido` enum('publico','parceiro_privado','ambos','emergencia_imediata') NOT NULL,
+          `triagem_locais_publicos_id` int(10) unsigned DEFAULT NULL,
+          `parceiro_perfil_id` int(11) DEFAULT NULL,
+          `conversa_id` int(10) unsigned DEFAULT NULL,
+          `status` enum('orientado','em_contato','encerrado','abandonado') NOT NULL DEFAULT 'orientado',
+          `disclaimer_aceito` tinyint(1) NOT NULL DEFAULT 0,
+          `criado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `atualizado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `idx_usuario` (`usuario_id`),
+          KEY `idx_parceiro_status` (`parceiro_perfil_id`,`status`),
+          KEY `idx_urgencia_data` (`nivel_urgencia`,`criado_em`),
+          CONSTRAINT `fk_triagem_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
+          CONSTRAINT `fk_triagem_local_publico` FOREIGN KEY (`triagem_locais_publicos_id`) REFERENCES `triagem_locais_publicos` (`id`) ON DELETE SET NULL,
+          CONSTRAINT `fk_triagem_parceiro` FOREIGN KEY (`parceiro_perfil_id`) REFERENCES `parceiro_perfis` (`id`) ON DELETE SET NULL,
+          CONSTRAINT `fk_triagem_conversa` FOREIGN KEY (`conversa_id`) REFERENCES `conversas` (`id`) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    out("");
+
+    // ── 16. triagem_arrecadacao_futura (reservada, sem uso no MVP) ──────
+    out("[" . (++$passo) . "/$totalPassos] Tabela triagem_arrecadacao_futura");
+    ensureTable($db, 'triagem_arrecadacao_futura', "
+        CREATE TABLE `triagem_arrecadacao_futura` (
+          `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+          `triagem_solicitacao_id` int(10) unsigned NOT NULL,
+          `doacao_id` int(11) DEFAULT NULL,
+          `valor_estimado_necessario` decimal(10,2) DEFAULT NULL,
+          `status` enum('nao_iniciado','arrecadando','concluido') NOT NULL DEFAULT 'nao_iniciado',
+          `criado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `idx_solicitacao` (`triagem_solicitacao_id`),
+          CONSTRAINT `fk_arrecadacao_solicitacao` FOREIGN KEY (`triagem_solicitacao_id`) REFERENCES `triagem_solicitacoes` (`id`) ON DELETE CASCADE,
+          CONSTRAINT `fk_arrecadacao_doacao` FOREIGN KEY (`doacao_id`) REFERENCES `doacoes` (`id`) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    out("");
+
+    // ── 17. conversas.tipo precisa aceitar 'triagem' ────────────────────
+    out("[" . (++$passo) . "/$totalPassos] conversas.tipo aceita 'triagem'");
+    $db->query("ALTER TABLE `conversas` MODIFY COLUMN `tipo` enum('anuncio','petlove','triagem') NOT NULL DEFAULT 'anuncio'");
+    out("  conversas.tipo atualizado.");
+    out("");
+
+    // ── Seed: Clínica de Bem-Estar Animal Municipal (Porto Velho/RO) ────
+    out("Seed: Clínica de Bem-Estar Animal Municipal (Porto Velho/RO)");
+    $existe = $db->fetchOne(
+        "SELECT id FROM triagem_locais_publicos WHERE nome = ? AND cidade = ?",
+        ['Clínica de Bem-Estar Animal Municipal', 'Porto Velho']
+    );
+    if ($existe) {
+        out("  já cadastrada.");
+    } else {
+        $db->insert('triagem_locais_publicos', [
+            'nome' => 'Clínica de Bem-Estar Animal Municipal',
+            'cidade' => 'Porto Velho',
+            'estado' => 'RO',
+            'endereco' => 'Av. Mamoré, nº 1120, Lagoinha (junto ao CCZ)',
+            'horario_funcionamento' => 'Segunda a sexta-feira, das 8h às 17h',
+            'como_funciona_fila' => 'Distribuição de senhas por volta das 7h30 da manhã, em ordem de chegada. Quantidade diária limitada — recomendado chegar cedo.',
+            'requisitos' => 'Famílias de baixa renda (CadÚnico), protetores de animais e pets de rua',
+            'ativo' => 1,
+        ]);
+        out("  cadastrada com sucesso.");
+    }
+    out("");
+
+    // ── 18. foto_embeddings (assinatura visual das fotos p/ matching) ───
+    out("[" . (++$passo) . "/$totalPassos] Tabela foto_embeddings");
+    ensureTable($db, 'foto_embeddings', "
+        CREATE TABLE `foto_embeddings` (
+          `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+          `foto_id` int(11) NOT NULL,
+          `anuncio_id` int(11) NOT NULL,
+          `provedor` varchar(30) NOT NULL DEFAULT 'phash_local',
+          `status` enum('pendente','processado','falha') NOT NULL DEFAULT 'pendente',
+          `hash_perceptual` varchar(64) DEFAULT NULL,
+          `vetor` longtext DEFAULT NULL COMMENT 'Reservado para provedor pago futuro (embedding vetorial em JSON)',
+          `tentativas` tinyint(3) unsigned NOT NULL DEFAULT 0,
+          `erro_mensagem` varchar(500) DEFAULT NULL,
+          `processado_em` datetime DEFAULT NULL,
+          `criado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `idx_status_tentativas` (`status`,`tentativas`),
+          KEY `idx_anuncio` (`anuncio_id`),
+          CONSTRAINT `fk_embedding_foto` FOREIGN KEY (`foto_id`) REFERENCES `fotos_anuncios` (`id`) ON DELETE CASCADE,
+          CONSTRAINT `fk_embedding_anuncio` FOREIGN KEY (`anuncio_id`) REFERENCES `anuncios` (`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    out("");
+
+    // ── 19. anuncio_matches ──────────────────────────────────────────────
+    out("[" . (++$passo) . "/$totalPassos] Tabela anuncio_matches");
+    ensureTable($db, 'anuncio_matches', "
+        CREATE TABLE `anuncio_matches` (
+          `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+          `anuncio_perdido_id` int(11) NOT NULL,
+          `anuncio_achado_id` int(11) NOT NULL,
+          `score_total` decimal(5,2) NOT NULL,
+          `score_visual` decimal(5,2) DEFAULT NULL,
+          `score_geo` decimal(5,2) DEFAULT NULL,
+          `score_atributos` decimal(5,2) DEFAULT NULL,
+          `score_tempo` decimal(5,2) DEFAULT NULL,
+          `distancia_km` decimal(8,2) DEFAULT NULL,
+          `dias_diferenca` int(11) DEFAULT NULL,
+          `status` enum('pendente','notificado','confirmado','rejeitado','expirado') NOT NULL DEFAULT 'pendente',
+          `conversa_id` int(10) unsigned DEFAULT NULL,
+          `confirmado_por_usuario_id` int(11) DEFAULT NULL,
+          `notificado_em` datetime DEFAULT NULL,
+          `resolvido_em` datetime DEFAULT NULL,
+          `criado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `atualizado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uq_par` (`anuncio_perdido_id`,`anuncio_achado_id`),
+          KEY `idx_status` (`status`),
+          KEY `idx_perdido` (`anuncio_perdido_id`),
+          KEY `idx_achado` (`anuncio_achado_id`),
+          CONSTRAINT `fk_match_perdido` FOREIGN KEY (`anuncio_perdido_id`) REFERENCES `anuncios` (`id`) ON DELETE CASCADE,
+          CONSTRAINT `fk_match_achado` FOREIGN KEY (`anuncio_achado_id`) REFERENCES `anuncios` (`id`) ON DELETE CASCADE,
+          CONSTRAINT `fk_match_conversa` FOREIGN KEY (`conversa_id`) REFERENCES `conversas` (`id`) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    out("");
+
+    // ── 20. anuncios.matching_processado_em + índice ────────────────────
+    out("[" . (++$passo) . "/$totalPassos] Coluna anuncios.matching_processado_em");
+    if (columnExists($db, 'anuncios', 'matching_processado_em')) {
+        out("  anuncios.matching_processado_em já existe.");
+    } else {
+        $db->query("ALTER TABLE `anuncios` ADD COLUMN `matching_processado_em` DATETIME NULL DEFAULT NULL AFTER `moderacao_status`");
+        out("  anuncios.matching_processado_em adicionada.");
+    }
+    $idxExiste = $db->fetchOne(
+        "SELECT COUNT(*) AS n FROM information_schema.statistics
+         WHERE table_schema = DATABASE() AND table_name = 'anuncios' AND index_name = 'idx_anuncios_matching'",
+        []
+    );
+    if ((int)($idxExiste['n'] ?? 0) > 0) {
+        out("  índice idx_anuncios_matching já existe.");
+    } else {
+        $db->query("CREATE INDEX `idx_anuncios_matching` ON `anuncios` (`tipo`, `status`, `matching_processado_em`)");
+        out("  índice idx_anuncios_matching criado.");
+    }
+    out("");
+
+    // ── 21. conversas.tipo precisa aceitar 'match' ───────────────────────
+    out("[" . (++$passo) . "/$totalPassos] conversas.tipo aceita 'match'");
+    $db->query("ALTER TABLE `conversas` MODIFY COLUMN `tipo` enum('anuncio','petlove','triagem','match') NOT NULL DEFAULT 'anuncio'");
+    out("  conversas.tipo atualizado.");
+    out("");
+
+    // ── 22. api_consumidores ─────────────────────────────────────────────
+    out("[" . (++$passo) . "/$totalPassos] Tabela api_consumidores");
+    ensureTable($db, 'api_consumidores', "
+        CREATE TABLE `api_consumidores` (
+          `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+          `nome` varchar(150) NOT NULL,
+          `email_contato` varchar(150) DEFAULT NULL,
+          `descricao` varchar(500) DEFAULT NULL,
+          `ativo` tinyint(1) NOT NULL DEFAULT 1,
+          `criado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    out("");
+
+    // ── 23. api_keys ─────────────────────────────────────────────────────
+    out("[" . (++$passo) . "/$totalPassos] Tabela api_keys");
+    ensureTable($db, 'api_keys', "
+        CREATE TABLE `api_keys` (
+          `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+          `consumidor_id` int(10) unsigned NOT NULL,
+          `chave_hash` char(64) NOT NULL,
+          `prefixo` varchar(12) NOT NULL,
+          `escopos` set('anuncios_leitura','parceiros_leitura','ingestao_denuncias','ingestao_animais') NOT NULL DEFAULT 'anuncios_leitura,parceiros_leitura',
+          `rate_limit_por_minuto` int(10) unsigned NOT NULL DEFAULT 60,
+          `ativo` tinyint(1) NOT NULL DEFAULT 1,
+          `ultimo_uso_em` datetime DEFAULT NULL,
+          `expira_em` datetime DEFAULT NULL,
+          `criado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `revogada_em` datetime DEFAULT NULL,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uq_hash` (`chave_hash`),
+          KEY `idx_prefixo` (`prefixo`),
+          CONSTRAINT `fk_apikey_consumidor` FOREIGN KEY (`consumidor_id`) REFERENCES `api_consumidores` (`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    out("");
+
+    // ── 24. api_rate_limit_janelas ───────────────────────────────────────
+    out("[" . (++$passo) . "/$totalPassos] Tabela api_rate_limit_janelas");
+    ensureTable($db, 'api_rate_limit_janelas', "
+        CREATE TABLE `api_rate_limit_janelas` (
+          `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+          `api_key_id` int(10) unsigned NOT NULL,
+          `janela_inicio` datetime NOT NULL,
+          `contador` int(10) unsigned NOT NULL DEFAULT 0,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `uq_key_janela` (`api_key_id`,`janela_inicio`),
+          CONSTRAINT `fk_ratelimit_apikey` FOREIGN KEY (`api_key_id`) REFERENCES `api_keys` (`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    out("");
+
+    // ── 25. api_requisicoes_log ──────────────────────────────────────────
+    out("[" . (++$passo) . "/$totalPassos] Tabela api_requisicoes_log");
+    ensureTable($db, 'api_requisicoes_log', "
+        CREATE TABLE `api_requisicoes_log` (
+          `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+          `api_key_id` int(10) unsigned DEFAULT NULL,
+          `endpoint` varchar(150) NOT NULL,
+          `metodo` varchar(10) NOT NULL,
+          `status_http` smallint(5) unsigned NOT NULL,
+          `ip` varchar(45) DEFAULT NULL,
+          `tempo_ms` int(10) unsigned DEFAULT NULL,
+          `criado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `idx_key_data` (`api_key_id`,`criado_em`),
+          KEY `idx_data` (`criado_em`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    out("");
+
+    // ── 26. api_ingestao_animais ─────────────────────────────────────────
+    out("[" . (++$passo) . "/$totalPassos] Tabela api_ingestao_animais");
+    ensureTable($db, 'api_ingestao_animais', "
+        CREATE TABLE `api_ingestao_animais` (
+          `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+          `api_key_id` int(10) unsigned NOT NULL,
+          `payload_json` longtext NOT NULL,
+          `status` enum('pendente_revisao','aprovado','rejeitado') NOT NULL DEFAULT 'pendente_revisao',
+          `anuncio_id` int(11) DEFAULT NULL,
+          `revisado_por` int(11) DEFAULT NULL,
+          `criado_em` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`),
+          KEY `idx_status` (`status`),
+          CONSTRAINT `fk_ingestao_apikey` FOREIGN KEY (`api_key_id`) REFERENCES `api_keys` (`id`) ON DELETE CASCADE,
+          CONSTRAINT `fk_ingestao_anuncio` FOREIGN KEY (`anuncio_id`) REFERENCES `anuncios` (`id`) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    ");
+    out("");
+
+    // ── 27. Feature flag do endpoint de ingestão (desabilitado por padrão) ─
+    out("[" . (++$passo) . "/$totalPassos] Config api_ingestao_animais_ativa");
+    $configExiste = $db->fetchOne("SELECT chave FROM configuracoes WHERE chave = ?", ['api_ingestao_animais_ativa']);
+    if ($configExiste) {
+        out("  já existe.");
+    } else {
+        $db->insert('configuracoes', [
+            'chave' => 'api_ingestao_animais_ativa',
+            'valor' => '0',
+            'descricao' => 'Habilita o endpoint POST /api/v1/ingestao/animais (ingestão de terceiros, ex. prefeitura/CCZ)',
+        ]);
+        out("  criada com valor padrão '0' (desabilitado).");
+    }
     out("");
 
     out("=== Migration concluída com sucesso. ===");
