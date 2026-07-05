@@ -24,6 +24,15 @@ if ($veterinario && $termoBusca !== '') {
     $petsEncontrados = $controller->buscarPetsPorTermo($termoBusca);
 }
 
+$termoBuscaTutor = trim($_GET['buscar_tutor'] ?? '');
+$tutoresEncontrados = [];
+if ($veterinario && $termoBuscaTutor !== '') {
+    $tutoresEncontrados = $controller->buscarTutoresPorTermo($termoBuscaTutor);
+}
+
+$tutorSelecionadoId = (int)($_GET['tutor_id'] ?? 0);
+$tutorSelecionado = $tutorSelecionadoId ? $controller->buscarTutorPorId($tutorSelecionadoId) : null;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
         $errors[] = 'Falha na validação do formulário. Atualize a página e tente novamente.';
@@ -31,17 +40,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $acao = $_POST['action'] ?? '';
 
         if ($acao === 'criar_pet_e_abrir') {
-            $rPet = $controller->criarPetDuranteAtendimento($usuarioId, (int)$_POST['tutor_usuario_id'], [
+            $tutorId = (int)($_POST['tutor_usuario_id'] ?? 0);
+            if (!$tutorId || !$controller->buscarTutorPorId($tutorId)) {
+                $errors[] = 'Selecione um tutor válido (use a busca por nome ou telefone).';
+            }
+            $rPet = empty($errors) ? $controller->criarPetDuranteAtendimento($usuarioId, $tutorId, [
                 'nome' => $_POST['pet_nome'] ?? '', 'especie' => $_POST['pet_especie'] ?? '',
                 'raca' => $_POST['pet_raca'] ?? '', 'sexo' => $_POST['pet_sexo'] ?? '',
-            ]);
+            ]) : ['success' => false];
             if (!empty($rPet['success'])) {
                 $rAtend = $controller->abrir($usuarioId, (int)$rPet['pet_id'], $_POST['motivo_consulta'] ?? '');
                 if (!empty($rAtend['success'])) {
                     redirect('/parceiro/atendimento?id=' . $rAtend['id']);
                 }
                 $errors = $rAtend['errors'] ?? ['Erro ao abrir atendimento.'];
-            } else {
+            } elseif (empty($errors)) {
                 $errors = $rPet['errors'] ?? ['Erro ao cadastrar pet.'];
             }
         } elseif ($acao === 'abrir_existente') {
@@ -84,7 +97,7 @@ include __DIR__ . '/../includes/header.php';
                 <h2 class="h5 fw-bold mb-3">Abrir novo atendimento</h2>
 
                 <form method="GET" class="mb-3">
-                    <label class="form-label fw-semibold">Buscar pet por nome ou telefone do tutor</label>
+                    <label class="form-label fw-semibold">Buscar pet já cadastrado (nome do pet, nome ou telefone do tutor)</label>
                     <div class="input-group">
                         <input type="text" class="form-control" name="buscar" value="<?php echo sanitize($termoBusca); ?>">
                         <button type="submit" class="btn btn-outline-primary">Buscar</button>
@@ -115,22 +128,49 @@ include __DIR__ . '/../includes/header.php';
                     <?php endif; ?>
                 <?php endif; ?>
 
-                <details class="mt-2">
+                <details class="mt-2" <?php echo $tutorSelecionado ? 'open' : ''; ?>>
                     <summary class="text-primary" style="cursor:pointer;">Pet não encontrado? Cadastrar novo pet (tutor já com conta)</summary>
-                    <form method="POST" class="mt-3">
+
+                    <?php if (!$tutorSelecionado): ?>
+                        <form method="GET" class="mt-3">
+                            <input type="hidden" name="buscar" value="<?php echo sanitize($termoBusca); ?>">
+                            <label class="form-label fw-semibold">1) Buscar o tutor (nome ou telefone)</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="buscar_tutor" value="<?php echo sanitize($termoBuscaTutor); ?>">
+                                <button type="submit" class="btn btn-outline-primary">Buscar tutor</button>
+                            </div>
+                        </form>
+
+                        <?php if ($termoBuscaTutor !== ''): ?>
+                            <?php if (empty($tutoresEncontrados)): ?>
+                                <div class="alert alert-info mt-2 mb-0">Nenhum tutor encontrado com esse nome/telefone. Ele precisa ter uma conta cadastrada na plataforma primeiro.</div>
+                            <?php else: ?>
+                                <div class="list-group mt-2">
+                                    <?php foreach ($tutoresEncontrados as $t): ?>
+                                        <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                                           href="?buscar=<?php echo urlencode($termoBusca); ?>&buscar_tutor=<?php echo urlencode($termoBuscaTutor); ?>&tutor_id=<?php echo (int)$t['id']; ?>#novo-pet">
+                                            <span><?php echo sanitize($t['nome']); ?> — <?php echo sanitize($t['telefone']); ?></span>
+                                            <span class="badge bg-primary">Selecionar</span>
+                                        </a>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    <?php else: ?>
+                    <form method="POST" class="mt-3" id="novo-pet">
                         <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                         <input type="hidden" name="action" value="criar_pet_e_abrir">
+                        <input type="hidden" name="tutor_usuario_id" value="<?php echo (int)$tutorSelecionado['id']; ?>">
+                        <div class="alert alert-secondary d-flex justify-content-between align-items-center">
+                            <span>Tutor selecionado: <strong><?php echo sanitize($tutorSelecionado['nome']); ?></strong> (<?php echo sanitize($tutorSelecionado['telefone']); ?>)</span>
+                            <a href="?buscar=<?php echo urlencode($termoBusca); ?>" class="btn btn-sm btn-outline-secondary">Trocar tutor</a>
+                        </div>
                         <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-semibold">ID do usuário tutor</label>
-                                <input type="number" class="form-control" name="tutor_usuario_id" required>
-                                <small class="text-muted">Use a busca acima para localizar o tutor pelo telefone primeiro.</small>
-                            </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label fw-semibold">Nome do pet</label>
                                 <input type="text" class="form-control" name="pet_nome" required>
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label fw-semibold">Espécie</label>
                                 <select class="form-select" name="pet_especie" required>
                                     <option value="cachorro">Cachorro</option>
@@ -146,6 +186,7 @@ include __DIR__ . '/../includes/header.php';
                         </div>
                         <button type="submit" class="btn btn-primary">Cadastrar pet e abrir atendimento</button>
                     </form>
+                    <?php endif; ?>
                 </details>
             </div>
         </div>

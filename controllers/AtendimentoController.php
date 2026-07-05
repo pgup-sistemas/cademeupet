@@ -40,6 +40,18 @@ class AtendimentoController
         return $this->petModel->buscarPorTutorTelefoneOuNome($termo);
     }
 
+    /** Busca tutores (usuários) por nome/telefone — usado para localizar quem cadastrar o pet novo. */
+    public function buscarTutoresPorTermo(string $termo): array
+    {
+        return $this->usuarioModel->buscarPorNomeOuTelefone($termo);
+    }
+
+    public function buscarTutorPorId(int $tutorUsuarioId): ?array
+    {
+        $tutor = $this->usuarioModel->findById($tutorUsuarioId);
+        return $tutor ?: null;
+    }
+
     public function criarPetDuranteAtendimento(int $veterinarioUsuarioId, int $tutorUsuarioId, array $dados): array
     {
         if (!$this->veterinarioModel->buscarAprovadoPorUsuarioId($veterinarioUsuarioId)) {

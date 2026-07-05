@@ -85,7 +85,7 @@ class Pet
         return $this->db->update('pets', ['ativo' => 0], 'id = ? AND tutor_usuario_id = ?', [$id, $tutorUsuarioId]) !== false;
     }
 
-    /** Busca por telefone/nome do tutor — usado pelo veterinário para localizar o pet na recepção. */
+    /** Busca por nome do pet, ou nome/telefone do tutor — usado pelo veterinário para localizar o pet na recepção. */
     public function buscarPorTutorTelefoneOuNome(string $termo): array
     {
         $termo = '%' . trim($termo) . '%';
@@ -93,10 +93,10 @@ class Pet
             "SELECT p.*, u.nome AS tutor_nome, u.telefone AS tutor_telefone
              FROM pets p
              JOIN usuarios u ON u.id = p.tutor_usuario_id
-             WHERE p.ativo = 1 AND (u.nome LIKE ? OR u.telefone LIKE ?)
+             WHERE p.ativo = 1 AND (p.nome LIKE ? OR u.nome LIKE ? OR u.telefone LIKE ?)
              ORDER BY p.nome
              LIMIT 20",
-            [$termo, $termo]
+            [$termo, $termo, $termo]
         ) ?: [];
     }
 }

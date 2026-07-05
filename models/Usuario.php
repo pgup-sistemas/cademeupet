@@ -117,6 +117,16 @@ class Usuario
         return $this->db->fetchOne('SELECT * FROM usuarios WHERE email = ?', [$email]);
     }
 
+    /** Busca por nome ou telefone — usado pelo veterinário para localizar o tutor antes de cadastrar um pet novo. */
+    public function buscarPorNomeOuTelefone(string $termo): array
+    {
+        $termo = '%' . trim($termo) . '%';
+        return $this->db->fetchAll(
+            'SELECT id, nome, telefone, email FROM usuarios WHERE ativo = 1 AND (nome LIKE ? OR telefone LIKE ?) ORDER BY nome LIMIT 20',
+            [$termo, $termo]
+        ) ?: [];
+    }
+
     /**
      * Obtém contador de anúncios ativos do usuário.
      */
