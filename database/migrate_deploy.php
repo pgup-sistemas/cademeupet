@@ -76,7 +76,7 @@ out("");
 try {
     $db = getDB();
     $passo = 0;
-    $totalPassos = 36;
+    $totalPassos = 37;
 
     // ── 1. cancelamentos_log ────────────────────────────────────────────
     out("[" . (++$passo) . "/$totalPassos] Tabela cancelamentos_log");
@@ -871,6 +871,12 @@ try {
         $db->query("ALTER TABLE `atendimentos` ADD COLUMN `exames_solicitados` text NULL DEFAULT NULL AFTER `medicamentos_prescritos`");
         out("  atendimentos.exames_solicitados adicionada.");
     }
+    out("");
+
+    // ── 37. documentos.tipo aceita 'pedido_exame' ───────────────────────
+    out("[" . (++$passo) . "/$totalPassos] documentos.tipo aceita 'pedido_exame'");
+    $db->query("ALTER TABLE `documentos` MODIFY COLUMN `tipo` enum('laudo','atestado','receituario','pedido_exame','termo_adocao','termo_responsabilidade') NOT NULL");
+    out("  documentos.tipo atualizado.");
     out("");
 
     out("=== Migration concluída com sucesso. ===");

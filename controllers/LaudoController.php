@@ -87,6 +87,49 @@ class LaudoController
         return ['success' => true, 'id' => $laudoId];
     }
 
+    /**
+     * Gera o pedido de exames a partir dos exames já cadastrados na aba
+     * "Exames" do atendimento. Diferente de laudo/atestado/receituário,
+     * NÃO exige o atendimento finalizado — na prática o pedido costuma
+     * ser impresso durante a própria consulta, antes de qualquer
+     * diagnóstico fechado.
+     */
+    public function gerarPedidoExame(int $atendimentoId, int $veterinarioUsuarioId): array
+    {
+        $veterinario = $this->veterinarioModel->buscarAprovadoPorUsuarioId($veterinarioUsuarioId);
+        if (!$veterinario) {
+            return ['success' => false, 'errors' => ['Você não está aprovado como veterinário.']];
+        }
+
+        $atendimento = $this->atendimentoModel->buscarPorId($atendimentoId);
+        if (!$atendimento || (int)$atendimento['veterinario_id'] !== (int)$veterinario['id']) {
+            return ['success' => false, 'errors' => ['Atendimento não encontrado ou não pertence a você.']];
+        }
+        if (!in_array($atendimento['status'], ['em_andamento', 'finalizado'], true)) {
+            return ['success' => false, 'errors' => ['Não é possível gerar pedido de exames para este atendimento.']];
+        }
+
+        $exames = Atendimento::decodificarExames($atendimento['exames_solicitados'] ?? null);
+        if (empty($exames)) {
+            return ['success' => false, 'errors' => ['Adicione ao menos um exame na aba "Exames" antes de gerar o pedido.']];
+        }
+
+        $conteudoHtml = $this->renderizarPedidoExame($atendimento, $veterinario, $exames);
+
+        $documentoId = $this->documentoModel->criar([
+            'tipo'                  => 'pedido_exame',
+            'referencia_tipo'       => 'atendimento',
+            'referencia_id'         => $atendimentoId,
+            'conteudo_html'         => $conteudoHtml,
+            'criado_por_usuario_id' => $veterinarioUsuarioId,
+        ]);
+
+        $laudoId = $this->laudoModel->vincular($atendimentoId, $documentoId);
+        auditLog('gerar_pedido_exame', 'laudos', $laudoId);
+
+        return ['success' => true, 'id' => $laudoId];
+    }
+
     public function buscarPorId(int $laudoId): ?array
     {
         return $this->laudoModel->buscarPorId($laudoId);
@@ -173,12 +216,20 @@ class LaudoController
         }
 
         $atendimento = $this->atendimentoModel->buscarPorId((int)$laudoAnterior['atendimento_id']);
-        $novoConteudoTexto = trim(sanitize($novoConteudoTexto));
-        if ($novoConteudoTexto === '') {
-            return ['success' => false, 'errors' => ['Preencha o novo conteúdo do documento.']];
-        }
 
-        $conteudoHtml = $this->renderizarConteudo($laudoAnterior['tipo'], $atendimento, $veterinario, $novoConteudoTexto, true, $laudoAnterior['codigo_verificacao']);
+        if ($laudoAnterior['tipo'] === 'pedido_exame') {
+            $exames = Atendimento::decodificarExames($atendimento['exames_solicitados'] ?? null);
+            if (empty($exames)) {
+                return ['success' => false, 'errors' => ['Nenhum exame cadastrado no atendimento para gerar a retificação.']];
+            }
+            $conteudoHtml = $this->renderizarPedidoExame($atendimento, $veterinario, $exames, true, $laudoAnterior['codigo_verificacao']);
+        } else {
+            $novoConteudoTexto = trim(sanitize($novoConteudoTexto));
+            if ($novoConteudoTexto === '') {
+                return ['success' => false, 'errors' => ['Preencha o novo conteúdo do documento.']];
+            }
+            $conteudoHtml = $this->renderizarConteudo($laudoAnterior['tipo'], $atendimento, $veterinario, $novoConteudoTexto, true, $laudoAnterior['codigo_verificacao']);
+        }
 
         $documentoId = $this->documentoModel->criar([
             'tipo'                  => $laudoAnterior['tipo'],
@@ -217,6 +268,49 @@ class LaudoController
 <p><strong>Veterinário responsável:</strong> ' . sanitize($veterinario['nome_completo']) . ' — CRMV ' . sanitize($veterinario['crmv_numero'] . '-' . $veterinario['crmv_uf']) . '</p>
 <hr>
 <div>' . nl2br(sanitize($conteudoTexto)) . '</div>
+<hr>
+<p class="small">Este documento é um registro eletrônico auditável (hash + data/hora + IP), sem validade de assinatura digital certificada (ICP-Brasil). A responsabilidade técnica pelo conteúdo é do veterinário identificado acima.</p>
+';
+    }
+
+    private function renderizarPedidoExame(
+        array $atendimento,
+        array $veterinario,
+        array $exames,
+        bool $ehRetificacao = false,
+        ?string $codigoOriginal = null
+    ): string {
+        $avisoRetificacao = $ehRetificacao
+            ? '<p style="color:#b02a37;"><strong>Este documento retifica e substitui o documento de código ' . sanitize((string)$codigoOriginal) . '.</strong></p>'
+            : '';
+
+        $linhas = '';
+        foreach ($exames as $indice => $exame) {
+            $linhas .= '<tr>'
+                . '<td style="border:1px solid #ccc;padding:6px;">' . ($indice + 1) . '</td>'
+                . '<td style="border:1px solid #ccc;padding:6px;">' . sanitize($exame['nome']) . '</td>'
+                . '<td style="border:1px solid #ccc;padding:6px;">' . sanitize($exame['observacao'] ?? '') . '</td>'
+                . '</tr>';
+        }
+
+        return '
+<h2 style="text-align:center;">Pedido de Exames</h2>
+' . $avisoRetificacao . '
+<p><strong>Clínica:</strong> ' . sanitize($atendimento['clinica_nome']) . (!empty($atendimento['clinica_cidade']) ? ' — ' . sanitize($atendimento['clinica_cidade']) : '') . '</p>
+<p><strong>Tutor:</strong> ' . sanitize($atendimento['tutor_nome']) . (!empty($atendimento['tutor_telefone']) ? ' — ' . sanitize($atendimento['tutor_telefone']) : '') . '</p>
+<p><strong>Pet:</strong> ' . sanitize($atendimento['pet_nome']) . ' (' . sanitize(ucfirst($atendimento['pet_especie'])) . (!empty($atendimento['pet_raca']) ? ', ' . sanitize($atendimento['pet_raca']) : '') . ')</p>
+<p><strong>Veterinário solicitante:</strong> ' . sanitize($veterinario['nome_completo']) . ' — CRMV ' . sanitize($veterinario['crmv_numero'] . '-' . $veterinario['crmv_uf']) . '</p>
+<hr>
+<table style="width:100%; border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th style="border:1px solid #ccc;padding:6px;">#</th>
+      <th style="border:1px solid #ccc;padding:6px;">Exame</th>
+      <th style="border:1px solid #ccc;padding:6px;">Observação</th>
+    </tr>
+  </thead>
+  <tbody>' . $linhas . '</tbody>
+</table>
 <hr>
 <p class="small">Este documento é um registro eletrônico auditável (hash + data/hora + IP), sem validade de assinatura digital certificada (ICP-Brasil). A responsabilidade técnica pelo conteúdo é do veterinário identificado acima.</p>
 ';

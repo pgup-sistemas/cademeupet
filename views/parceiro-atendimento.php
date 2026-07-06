@@ -42,6 +42,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $errors = $resultado['errors'] ?? ['Erro ao gerar documento.'];
             }
+        } elseif ($acao === 'gerar_pedido_exame') {
+            // Salva os exames digitados antes de gerar o pedido, pra não perder o que acabou de ser preenchido.
+            $controller->atualizarCampos($atendimentoId, $usuarioId, $_POST);
+            $resultado = $laudoController->gerarPedidoExame($atendimentoId, $usuarioId);
+            if (!empty($resultado['success'])) {
+                setFlashMessage('Pedido de exames gerado. Revise e assine para torná-lo definitivo.', MSG_SUCCESS);
+                redirect('/laudo?id=' . $resultado['id']);
+            } else {
+                $errors = $resultado['errors'] ?? ['Erro ao gerar pedido de exames.'];
+                redirect('/parceiro/atendimento?id=' . $atendimentoId . '&aba=exames');
+            }
         }
     }
 }
@@ -53,6 +64,9 @@ if (!$atendimento) {
 }
 
 $somenteLeitura = $atendimento['status'] !== 'em_andamento';
+
+$laudos = $laudoController->buscarPorAtendimento($atendimentoId);
+$mostrarAbaDocumentos = $atendimento['status'] === 'finalizado' || !empty($laudos);
 
 $vacinasExistentes = Atendimento::decodificarVacinas($atendimento['vacinas_aplicadas'] ?? null);
 if (empty($vacinasExistentes)) {
@@ -126,7 +140,7 @@ include __DIR__ . '/../includes/header.php';
         <li class="nav-item" role="presentation">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-historico" data-aba="historico" type="button">Histórico do Pet</button>
         </li>
-        <?php if ($atendimento['status'] === 'finalizado'): ?>
+        <?php if ($mostrarAbaDocumentos): ?>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-documentos" data-aba="documentos" type="button">Documentos</button>
             </li>
@@ -240,8 +254,14 @@ include __DIR__ . '/../includes/header.php';
                             </div>
                             <?php if (!$somenteLeitura): ?>
                                 <button type="button" class="btn btn-sm btn-outline-primary mt-2 btn-adicionar-linha" data-alvo="examesContainer" data-modelo="exame">+ Adicionar exame</button>
+                                <hr>
+                                <button type="submit" name="action" value="gerar_pedido_exame" class="btn btn-sm btn-primary">
+                                    <i class="fa-solid fa-print me-1"></i>Salvar e gerar pedido de exames (assinável/imprimível)
+                                </button>
+                                <p class="text-muted small mt-2 mb-0">Salva os exames preenchidos acima e cria um documento pronto para assinar, imprimir e compartilhar com o tutor.</p>
+                            <?php else: ?>
+                                <p class="text-muted small mt-2 mb-0">Registro da solicitação — anexar resultado fica para uma fase futura.</p>
                             <?php endif; ?>
-                            <p class="text-muted small mt-2 mb-0">Registro da solicitação — anexar resultado fica para uma fase futura.</p>
                         </div>
                     </div>
                 </div>
@@ -346,9 +366,8 @@ include __DIR__ . '/../includes/header.php';
             </div>
         </div>
 
-        <?php if ($atendimento['status'] === 'finalizado'): ?>
+        <?php if ($mostrarAbaDocumentos): ?>
             <div class="tab-pane fade" id="tab-documentos" role="tabpanel">
-                <?php $laudos = $laudoController->buscarPorAtendimento($atendimentoId); ?>
                 <div class="card shadow-sm border-0 mb-3">
                     <div class="card-body p-4">
                         <h2 class="h6 fw-bold mb-3">Documentos (laudo/atestado/receituário)</h2>
@@ -356,7 +375,7 @@ include __DIR__ . '/../includes/header.php';
                         <?php if (!empty($laudos)): ?>
                             <div class="list-group mb-3">
                                 <?php
-                                $tipoLabel = ['laudo' => 'Laudo', 'atestado' => 'Atestado', 'receituario' => 'Receituário'];
+                                $tipoLabel = ['laudo' => 'Laudo', 'atestado' => 'Atestado', 'receituario' => 'Receituário', 'pedido_exame' => 'Pedido de Exames'];
                                 $statusBadgeDoc = ['rascunho' => 'secondary', 'aguardando_assinaturas' => 'warning text-dark', 'assinado' => 'success', 'revogado' => 'secondary'];
                                 ?>
                                 <?php foreach ($laudos as $l): ?>

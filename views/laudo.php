@@ -50,7 +50,7 @@ if (!$laudo) {
 $souOAutor = (int)$laudo['criado_por_usuario_id'] === $usuarioId;
 $retificacoes = (new Documento())->buscarRetificacoes((int)$laudo['documento_id']);
 
-$tipoLabel = ['laudo' => 'Laudo', 'atestado' => 'Atestado', 'receituario' => 'Receituário'];
+$tipoLabel = ['laudo' => 'Laudo', 'atestado' => 'Atestado', 'receituario' => 'Receituário', 'pedido_exame' => 'Pedido de Exames'];
 
 $breadcrumbs = [
     ['label' => 'Início', 'url' => BASE_URL],

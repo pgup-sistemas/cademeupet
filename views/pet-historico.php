@@ -18,7 +18,7 @@ $atendimentoController = new AtendimentoController();
 $historico = $atendimentoController->historicoDoPet($petId);
 $laudoController = new LaudoController();
 $laudos = $laudoController->historicoDoPet($petId);
-$tipoLabel = ['laudo' => 'Laudo', 'atestado' => 'Atestado', 'receituario' => 'Receituário'];
+$tipoLabel = ['laudo' => 'Laudo', 'atestado' => 'Atestado', 'receituario' => 'Receituário', 'pedido_exame' => 'Pedido de Exames'];
 $carteiraVacinacao = $atendimentoController->carteiraDeVacinacao($petId);
 
 $breadcrumbs = [

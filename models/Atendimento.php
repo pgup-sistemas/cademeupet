@@ -35,11 +35,15 @@ class Atendimento
     public function buscarPorId(int $id): ?array
     {
         $row = $this->db->fetchOne(
-            'SELECT a.*, p.nome AS pet_nome, p.especie AS pet_especie, p.tutor_usuario_id,
-                    v.nome_completo AS veterinario_nome, v.crmv_numero, v.crmv_uf
+            'SELECT a.*, p.nome AS pet_nome, p.especie AS pet_especie, p.raca AS pet_raca, p.tutor_usuario_id,
+                    u.nome AS tutor_nome, u.telefone AS tutor_telefone,
+                    v.nome_completo AS veterinario_nome, v.crmv_numero, v.crmv_uf,
+                    pp.nome_fantasia AS clinica_nome, pp.endereco AS clinica_endereco, pp.cidade AS clinica_cidade
              FROM atendimentos a
              JOIN pets p ON p.id = a.pet_id
+             JOIN usuarios u ON u.id = p.tutor_usuario_id
              JOIN parceiro_veterinarios v ON v.id = a.veterinario_id
+             JOIN parceiro_perfis pp ON pp.id = a.parceiro_perfil_id
              WHERE a.id = ?',
             [$id]
         );
