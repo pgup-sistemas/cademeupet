@@ -46,13 +46,78 @@ class ParceiroVeterinario
         return $row ?: null;
     }
 
-    public function crmvJaExiste(string $numero, string $uf): bool
+    public function crmvJaExiste(string $numero, string $uf, ?int $ignorarId = null): bool
+    {
+        $sql = 'SELECT id FROM parceiro_veterinarios WHERE crmv_numero = ? AND crmv_uf = ?';
+        $params = [$numero, strtoupper($uf)];
+        if ($ignorarId !== null) {
+            $sql .= ' AND id != ?';
+            $params[] = $ignorarId;
+        }
+        $row = $this->db->fetchOne($sql, $params);
+        return (bool)$row;
+    }
+
+    public function pertenceAClinica(int $veterinarioId, int $parceiroPerfilId): bool
     {
         $row = $this->db->fetchOne(
-            'SELECT id FROM parceiro_veterinarios WHERE crmv_numero = ? AND crmv_uf = ?',
-            [$numero, strtoupper($uf)]
+            'SELECT id FROM parceiro_veterinarios WHERE id = ? AND parceiro_perfil_id = ?',
+            [$veterinarioId, $parceiroPerfilId]
         );
         return (bool)$row;
+    }
+
+    /**
+     * Atualiza dados cadastrais. Se o CRMV (número ou UF) mudar, o registro
+     * volta para 'pendente_validacao' — a validação anterior era sobre o
+     * CRMV antigo, então uma mudança exige nova conferência manual.
+     */
+    public function atualizar(int $id, array $dados): bool
+    {
+        $atual = $this->buscarPorId($id);
+        if (!$atual) {
+            return false;
+        }
+
+        $novoNumero = $dados['crmv_numero'];
+        $novaUf = strtoupper($dados['crmv_uf']);
+        $crmvMudou = $novoNumero !== $atual['crmv_numero'] || $novaUf !== $atual['crmv_uf'];
+
+        $campos = [
+            'nome_completo' => $dados['nome_completo'],
+            'crmv_numero'   => $novoNumero,
+            'crmv_uf'       => $novaUf,
+        ];
+
+        if ($crmvMudou && $atual['status'] !== 'pendente_validacao') {
+            $campos['status'] = 'pendente_validacao';
+            $campos['validado_por'] = null;
+            $campos['validado_em'] = null;
+            $campos['motivo_rejeicao'] = null;
+        }
+
+        return $this->db->update('parceiro_veterinarios', $campos, 'id = ?', [$id]) !== false;
+    }
+
+    public function temAtendimentos(int $id): bool
+    {
+        $row = $this->db->fetchOne('SELECT id FROM atendimentos WHERE veterinario_id = ? LIMIT 1', [$id]);
+        return (bool)$row;
+    }
+
+    /** Exclusão definitiva — só deve ser chamada quando não há atendimentos vinculados (ver temAtendimentos). */
+    public function remover(int $id): bool
+    {
+        return $this->db->delete('parceiro_veterinarios', 'id = ?', [$id]) !== false;
+    }
+
+    /** Remoção "suave": mantém o histórico de atendimentos intacto, apenas revoga o acesso. */
+    public function desativarPelaClinica(int $id): bool
+    {
+        return $this->db->update('parceiro_veterinarios', [
+            'status'          => 'suspenso',
+            'motivo_rejeicao' => 'Removido da equipe pela clínica.',
+        ], 'id = ?', [$id]) !== false;
     }
 
     public function listarPorParceiro(int $parceiroPerfilId): array

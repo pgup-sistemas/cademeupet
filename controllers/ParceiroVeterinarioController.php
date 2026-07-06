@@ -57,6 +57,71 @@ class ParceiroVeterinarioController
         return $this->veterinarioModel->listarPorParceiro((int)$perfil['id']);
     }
 
+    public function buscarSeForDaClinica(int $parceiroUsuarioId, int $veterinarioId): ?array
+    {
+        $perfil = $this->parceiroPerfilModel->findByUserId($parceiroUsuarioId);
+        if (!$perfil || !$this->veterinarioModel->pertenceAClinica($veterinarioId, (int)$perfil['id'])) {
+            return null;
+        }
+        return $this->veterinarioModel->buscarPorId($veterinarioId);
+    }
+
+    public function atualizar(int $parceiroUsuarioId, int $veterinarioId, array $dados): array
+    {
+        $veterinario = $this->buscarSeForDaClinica($parceiroUsuarioId, $veterinarioId);
+        if (!$veterinario) {
+            return ['success' => false, 'errors' => ['Veterinário não encontrado nesta clínica.']];
+        }
+
+        $dados = sanitize($dados);
+        $erros = $this->validar($dados);
+        if (!empty($erros)) {
+            return ['success' => false, 'errors' => $erros];
+        }
+
+        if ($this->veterinarioModel->crmvJaExiste($dados['crmv_numero'], $dados['crmv_uf'], $veterinarioId)) {
+            return ['success' => false, 'errors' => ['Este CRMV já está cadastrado no sistema (possivelmente em outra clínica).']];
+        }
+
+        $crmvMudou = $dados['crmv_numero'] !== $veterinario['crmv_numero'] || strtoupper($dados['crmv_uf']) !== $veterinario['crmv_uf'];
+
+        $this->veterinarioModel->atualizar($veterinarioId, [
+            'nome_completo' => $dados['nome_completo'],
+            'crmv_numero'   => $dados['crmv_numero'],
+            'crmv_uf'       => $dados['crmv_uf'],
+        ]);
+
+        auditLog('atualizar_veterinario', 'parceiro_veterinarios', $veterinarioId);
+
+        return [
+            'success' => true,
+            'voltou_para_validacao' => $crmvMudou && $veterinario['status'] !== 'pendente_validacao',
+        ];
+    }
+
+    /**
+     * Remove o veterinário da clínica. Se ele já tem atendimentos
+     * registrados, o histórico precisa ser preservado — nesse caso o
+     * registro é apenas desativado (status='suspenso'), nunca apagado.
+     */
+    public function remover(int $parceiroUsuarioId, int $veterinarioId): array
+    {
+        $veterinario = $this->buscarSeForDaClinica($parceiroUsuarioId, $veterinarioId);
+        if (!$veterinario) {
+            return ['success' => false, 'error' => 'Veterinário não encontrado nesta clínica.'];
+        }
+
+        if ($this->veterinarioModel->temAtendimentos($veterinarioId)) {
+            $this->veterinarioModel->desativarPelaClinica($veterinarioId);
+            auditLog('desativar_veterinario', 'parceiro_veterinarios', $veterinarioId);
+            return ['success' => true, 'modo' => 'desativado'];
+        }
+
+        $this->veterinarioModel->remover($veterinarioId);
+        auditLog('remover_veterinario', 'parceiro_veterinarios', $veterinarioId);
+        return ['success' => true, 'modo' => 'removido'];
+    }
+
     public function meuCadastro(int $usuarioId): ?array
     {
         return $this->veterinarioModel->buscarPorUsuarioId($usuarioId);
