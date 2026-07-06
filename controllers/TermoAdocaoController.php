@@ -49,6 +49,19 @@ class TermoAdocaoController
         return $this->termoModel->buscarComoDoador($usuarioId);
     }
 
+    /** Anúncios de doação já resolvidos do usuário que ainda não têm termo iniciado — usado para oferecer "criar termo" direto na tela de histórico. */
+    public function anunciosElegiveisParaTermo(int $usuarioId): array
+    {
+        return $this->db->fetchAll(
+            "SELECT a.id, a.nome_pet, a.especie
+             FROM anuncios a
+             LEFT JOIN termos_adocao t ON t.anuncio_id = a.id
+             WHERE a.usuario_id = ? AND a.tipo = 'doacao' AND a.status = 'resolvido' AND t.id IS NULL
+             ORDER BY a.data_atualizacao DESC",
+            [$usuarioId]
+        ) ?: [];
+    }
+
     public function comoAdotante(int $usuarioId): array
     {
         return $this->termoModel->buscarComoAdotante($usuarioId);

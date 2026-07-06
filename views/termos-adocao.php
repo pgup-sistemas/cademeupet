@@ -9,6 +9,7 @@ $controller = new TermoAdocaoController();
 
 $comoDoador = $controller->comoDoador($usuarioId);
 $comoAdotante = $controller->comoAdotante($usuarioId);
+$anunciosElegiveis = $controller->anunciosElegiveisParaTermo($usuarioId);
 
 $statusLabel = [
     'aguardando_adotante' => 'Aguardando assinatura',
@@ -32,6 +33,29 @@ include __DIR__ . '/../includes/header.php';
 
 <div class="container py-5">
     <h1 class="h3 fw-bold mb-4">Termos de Adoção</h1>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+            <h2 class="h5 fw-bold mb-3">Criar novo termo</h2>
+            <?php if (empty($anunciosElegiveis)): ?>
+                <div class="alert alert-info mb-0">
+                    Você ainda não tem nenhum anúncio de <strong>doação já marcado como resolvido</strong> sem termo criado.
+                    O termo só pode ser gerado depois que o anúncio de doação for marcado como "Reunido!"/resolvido em
+                    <a href="<?php echo BASE_URL; ?>/meus-anuncios">Meus Anúncios</a>.
+                </div>
+            <?php else: ?>
+                <p class="text-muted small">Anúncios de doação resolvidos aguardando termo:</p>
+                <div class="list-group">
+                    <?php foreach ($anunciosElegiveis as $a): ?>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><?php echo sanitize($a['nome_pet'] ?: ucfirst($a['especie'])); ?></span>
+                            <a href="<?php echo BASE_URL; ?>/termo-adocao?anuncio_id=<?php echo (int)$a['id']; ?>" class="btn btn-sm btn-primary">Criar termo</a>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
 
     <h2 class="h5 fw-bold mb-2">Como adotante</h2>
     <?php if (empty($comoAdotante)): ?>
