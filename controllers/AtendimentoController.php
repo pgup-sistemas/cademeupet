@@ -132,6 +132,12 @@ class AtendimentoController
         if (isset($dados['vacina_nome']) && is_array($dados['vacina_nome'])) {
             $dados['vacinas_aplicadas'] = json_encode($this->normalizarVacinas($dados), JSON_UNESCAPED_UNICODE);
         }
+        if (isset($dados['exame_nome']) && is_array($dados['exame_nome'])) {
+            $dados['exames_solicitados'] = json_encode($this->normalizarExames($dados), JSON_UNESCAPED_UNICODE);
+        }
+        if (isset($dados['medicamento_nome']) && is_array($dados['medicamento_nome'])) {
+            $dados['medicamentos_prescritos'] = json_encode($this->normalizarMedicamentos($dados), JSON_UNESCAPED_UNICODE);
+        }
         $this->atendimentoModel->atualizarCampos($atendimentoId, $dados);
 
         return ['success' => true];
@@ -157,6 +163,52 @@ class AtendimentoController
             ];
         }
         return $vacinas;
+    }
+
+    /** Monta o array estruturado de exames solicitados a partir dos campos repetidos do formulário. */
+    private function normalizarExames(array $dados): array
+    {
+        $nomes = (array)($dados['exame_nome'] ?? []);
+        $observacoes = (array)($dados['exame_observacao'] ?? []);
+
+        $exames = [];
+        foreach ($nomes as $indice => $nome) {
+            $nome = trim((string)$nome);
+            if ($nome === '') {
+                continue;
+            }
+            $exames[] = [
+                'nome' => $nome,
+                'observacao' => !empty($observacoes[$indice]) ? $observacoes[$indice] : null,
+            ];
+        }
+        return $exames;
+    }
+
+    /** Monta o array estruturado de medicamentos prescritos a partir dos campos repetidos do formulário. */
+    private function normalizarMedicamentos(array $dados): array
+    {
+        $nomes = (array)($dados['medicamento_nome'] ?? []);
+        $dosagens = (array)($dados['medicamento_dosagem'] ?? []);
+        $vias = (array)($dados['medicamento_via'] ?? []);
+        $frequencias = (array)($dados['medicamento_frequencia'] ?? []);
+        $duracoes = (array)($dados['medicamento_duracao'] ?? []);
+
+        $medicamentos = [];
+        foreach ($nomes as $indice => $nome) {
+            $nome = trim((string)$nome);
+            if ($nome === '') {
+                continue;
+            }
+            $medicamentos[] = [
+                'nome'       => $nome,
+                'dosagem'    => !empty($dosagens[$indice]) ? $dosagens[$indice] : null,
+                'via'        => !empty($vias[$indice]) ? $vias[$indice] : null,
+                'frequencia' => !empty($frequencias[$indice]) ? $frequencias[$indice] : null,
+                'duracao'    => !empty($duracoes[$indice]) ? $duracoes[$indice] : null,
+            ];
+        }
+        return $medicamentos;
     }
 
     public function carteiraDeVacinacao(int $petId): array

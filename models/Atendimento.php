@@ -12,7 +12,7 @@ class Atendimento
         'frequencia_cardiaca_bpm', 'frequencia_respiratoria_mpm',
         'mucosas', 'grau_hidratacao', 'exame_fisico', 'diagnostico',
         'conduta', 'vacinas_aplicadas', 'medicamentos_prescritos',
-        'proxima_consulta_recomendada',
+        'exames_solicitados', 'proxima_consulta_recomendada',
     ];
 
     public function __construct($db = null)
@@ -114,14 +114,32 @@ class Atendimento
         ) ?: [];
     }
 
-    /** Decodifica o JSON de vacinas_aplicadas ([{nome, data, lote}]) com segurança. */
-    public static function decodificarVacinas(?string $json): array
+    /** Decodifica com segurança um campo JSON estruturado (vacinas, exames, medicamentos). */
+    public static function decodificarListaJson(?string $json): array
     {
         if (empty($json)) {
             return [];
         }
         $arr = json_decode($json, true);
         return is_array($arr) ? $arr : [];
+    }
+
+    /** Decodifica o JSON de vacinas_aplicadas ([{nome, data, lote}]) com segurança. */
+    public static function decodificarVacinas(?string $json): array
+    {
+        return self::decodificarListaJson($json);
+    }
+
+    /** Decodifica o JSON de exames_solicitados ([{nome, observacao}]) com segurança. */
+    public static function decodificarExames(?string $json): array
+    {
+        return self::decodificarListaJson($json);
+    }
+
+    /** Decodifica o JSON de medicamentos_prescritos ([{nome, dosagem, via, frequencia, duracao}]) com segurança. */
+    public static function decodificarMedicamentos(?string $json): array
+    {
+        return self::decodificarListaJson($json);
     }
 
     /** Carteira de vacinação consolidada do pet — agrega vacinas de todos os atendimentos finalizados. */

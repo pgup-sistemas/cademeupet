@@ -76,7 +76,7 @@ out("");
 try {
     $db = getDB();
     $passo = 0;
-    $totalPassos = 35;
+    $totalPassos = 36;
 
     // ── 1. cancelamentos_log ────────────────────────────────────────────
     out("[" . (++$passo) . "/$totalPassos] Tabela cancelamentos_log");
@@ -860,6 +860,16 @@ try {
     } else {
         $db->query("ALTER TABLE `documentos` ADD CONSTRAINT `fk_documento_retifica` FOREIGN KEY (`retifica_documento_id`) REFERENCES `documentos` (`id`) ON DELETE SET NULL");
         out("  fk_documento_retifica criada.");
+    }
+    out("");
+
+    // ── 36. atendimentos.exames_solicitados (solicitação de exames) ─────
+    out("[" . (++$passo) . "/$totalPassos] Coluna atendimentos.exames_solicitados");
+    if (columnExists($db, 'atendimentos', 'exames_solicitados')) {
+        out("  atendimentos.exames_solicitados já existe.");
+    } else {
+        $db->query("ALTER TABLE `atendimentos` ADD COLUMN `exames_solicitados` text NULL DEFAULT NULL AFTER `medicamentos_prescritos`");
+        out("  atendimentos.exames_solicitados adicionada.");
     }
     out("");
 
