@@ -92,10 +92,15 @@ $breadcrumbs = [
     ['label' => 'Painel', 'url' => BASE_URL . '/parceiro/painel'],
     ['label' => 'Veterinários'],
 ];
+$suppressBreadcrumbBar = true;
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="container py-5">
+<div class="admin-layout">
+    <?php include __DIR__ . '/../includes/parceiro-sidebar.php'; ?>
+
+    <main class="admin-content p-4">
+
     <h1 class="h3 fw-bold mb-4">Veterinários da clínica</h1>
 
     <?php if (!empty($errors)): ?>
@@ -250,6 +255,8 @@ include __DIR__ . '/../includes/header.php';
             <?php endif; ?>
         </div>
     </div>
+
+    </main>
 </div>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

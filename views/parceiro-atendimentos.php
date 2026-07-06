@@ -76,10 +76,16 @@ $breadcrumbs = [
     ['label' => 'Painel', 'url' => BASE_URL . '/parceiro/painel'],
     ['label' => 'Atendimentos'],
 ];
+$suppressBreadcrumbBar = true;
+$parceiroPerfilAtual = $perfilDono;
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="container py-5">
+<div class="admin-layout">
+    <?php include __DIR__ . '/../includes/parceiro-sidebar.php'; ?>
+
+    <main class="admin-content p-4">
+
     <h1 class="h3 fw-bold mb-4">Atendimentos</h1>
 
     <?php if (!empty($errors)): ?>
@@ -237,6 +243,8 @@ include __DIR__ . '/../includes/header.php';
             </div>
         </div>
     <?php endif; ?>
+
+    </main>
 </div>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

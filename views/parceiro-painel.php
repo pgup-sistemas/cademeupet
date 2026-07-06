@@ -31,10 +31,15 @@ $breadcrumbs = [
     ['label' => 'Parceiros', 'url' => BASE_URL . '/parceiros'],
     ['label' => 'Painel'],
 ];
+$suppressBreadcrumbBar = true;
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="container py-5">
+<div class="admin-layout">
+    <?php include __DIR__ . '/../includes/parceiro-sidebar.php'; ?>
+
+    <main class="admin-content p-4">
+
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1">Painel do Parceiro</h1>
@@ -185,7 +190,6 @@ include __DIR__ . '/../includes/header.php';
             </div>
         </div>
     <?php endif; ?>
-</div>
 
 <!-- Modal de Cancelamento de Assinatura -->
 <div class="modal fade" id="modalCancelarAssinatura" tabindex="-1" aria-labelledby="modalCancelarAssinaturaLabel" aria-hidden="true">
@@ -220,6 +224,9 @@ include __DIR__ . '/../includes/header.php';
             </div>
         </div>
     </div>
+</div>
+
+    </main>
 </div>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

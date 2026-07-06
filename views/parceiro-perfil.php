@@ -121,10 +121,15 @@ $breadcrumbs = [
     ['label' => 'Parceiros', 'url' => BASE_URL . '/parceiros'],
     ['label' => 'Meu Perfil'],
 ];
+$suppressBreadcrumbBar = true;
+$parceiroPerfilAtual = $perfil;
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="container py-5">
+<div class="admin-layout">
+    <?php include __DIR__ . '/../includes/parceiro-sidebar.php'; ?>
+
+    <main class="admin-content p-4">
 
     <?php if (!empty($assinaturaInativa)): ?>
     <div class="alert alert-warning d-flex align-items-center gap-2 mb-4" role="alert">
@@ -252,6 +257,8 @@ include __DIR__ . '/../includes/header.php';
             </div>
         </div>
     </div>
+
+    </main>
 </div>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

@@ -181,6 +181,7 @@ $breadcrumbs = [
     ['label' => 'Parceiros', 'url' => BASE_URL . '/parceiros'],
     ['label' => 'Pagamento'],
 ];
+$suppressBreadcrumbBar = true;
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -191,7 +192,11 @@ if (!in_array($metodoPagamentoAtual, ['pix', 'cartao_avista', 'cartao_recorrente
 }
 ?>
 
-<div class="container py-5">
+<div class="admin-layout">
+    <?php include __DIR__ . '/../includes/parceiro-sidebar.php'; ?>
+
+    <main class="admin-content p-4">
+
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1">Pagamento do Parceiro</h1>
@@ -304,7 +309,6 @@ if (!in_array($metodoPagamentoAtual, ['pix', 'cartao_avista', 'cartao_recorrente
             </div>
         </div>
     </div>
-</div>
 
 <script>
     (function () {
@@ -347,5 +351,8 @@ if (!in_array($metodoPagamentoAtual, ['pix', 'cartao_avista', 'cartao_recorrente
         applyRules();
     })();
 </script>
+
+    </main>
+</div>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>

@@ -60,10 +60,15 @@ $breadcrumbs = [
     ['label' => 'Atendimentos', 'url' => BASE_URL . '/parceiro/atendimentos'],
     ['label' => 'Atendimento #' . $atendimentoId],
 ];
+$suppressBreadcrumbBar = true;
 include __DIR__ . '/../includes/header.php';
 ?>
 
-<div class="container py-5">
+<div class="admin-layout">
+    <?php include __DIR__ . '/../includes/parceiro-sidebar.php'; ?>
+
+    <main class="admin-content p-4">
+
     <div class="d-flex justify-content-between align-items-start mb-3">
         <div>
             <h1 class="h4 fw-bold mb-1"><?php echo sanitize($atendimento['pet_nome']); ?> (<?php echo sanitize(ucfirst($atendimento['pet_especie'])); ?>)</h1>
@@ -279,6 +284,8 @@ include __DIR__ . '/../includes/header.php';
             </div>
         </div>
     <?php endif; ?>
+
+    </main>
 </div>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
