@@ -52,6 +52,69 @@ class AtendimentoController
         return $tutor ?: null;
     }
 
+    /**
+     * Cadastra um tutor novo (primeira vez na clínica, sem conta ainda) e o
+     * pet vinculado a ele, tudo em uma única ação. Evita duplicidade: se já
+     * existir uma conta com o mesmo telefone (ou e-mail, quando informado),
+     * retorna erro orientando a buscar o tutor existente em vez de duplicar.
+     *
+     * Se o tutor não informar e-mail, gera um e-mail interno único (o tutor
+     * não conseguirá logar até atualizar o e-mail depois) — a conta serve
+     * para guardar a ficha do pet e o histórico clínico desde já.
+     */
+    public function criarTutorEPet(int $veterinarioUsuarioId, array $dadosTutor, array $dadosPet): array
+    {
+        $veterinario = $this->veterinarioModel->buscarAprovadoPorUsuarioId($veterinarioUsuarioId);
+        if (!$veterinario) {
+            return ['success' => false, 'errors' => ['Veterinário não aprovado.']];
+        }
+
+        $dadosTutor = sanitize($dadosTutor);
+        $nomeTutor = trim($dadosTutor['nome'] ?? '');
+        $telefoneTutor = preg_replace('/\D/', '', (string)($dadosTutor['telefone'] ?? ''));
+        $emailTutor = trim($dadosTutor['email'] ?? '');
+
+        if ($nomeTutor === '' || strlen($nomeTutor) < 3) {
+            return ['success' => false, 'errors' => ['Informe o nome completo do tutor.']];
+        }
+        if (strlen($telefoneTutor) < 10) {
+            return ['success' => false, 'errors' => ['Informe um telefone válido do tutor (com DDD).']];
+        }
+
+        if ($this->usuarioModel->findByTelefone($telefoneTutor)) {
+            return ['success' => false, 'errors' => ['Já existe um tutor cadastrado com esse telefone. Use a busca por tutor para localizá-lo, em vez de cadastrar de novo.']];
+        }
+        if ($emailTutor !== '' && $this->usuarioModel->findByEmail($emailTutor)) {
+            return ['success' => false, 'errors' => ['Já existe uma conta cadastrada com esse e-mail. Use a busca por tutor para localizá-lo.']];
+        }
+        if ($emailTutor !== '' && !isValidEmail($emailTutor)) {
+            return ['success' => false, 'errors' => ['E-mail do tutor inválido.']];
+        }
+
+        if ($emailTutor === '') {
+            $emailTutor = 'tutor.' . $telefoneTutor . '@sememail.cademeupet.local';
+        }
+
+        $tutorId = $this->usuarioModel->create([
+            'nome'               => $nomeTutor,
+            'email'              => $emailTutor,
+            'telefone'           => $telefoneTutor,
+            'senha'              => hashPassword(bin2hex(random_bytes(16))),
+            'tipo_usuario'       => 'comum',
+            'email_confirmado'   => 0,
+            'ativo'              => 1,
+            'notificacoes_email' => 0,
+        ]);
+        auditLog('criar_tutor_pelo_veterinario', 'usuarios', (int)$tutorId);
+
+        $resultadoPet = $this->criarPetDuranteAtendimento($veterinarioUsuarioId, (int)$tutorId, $dadosPet);
+        if (empty($resultadoPet['success'])) {
+            return $resultadoPet;
+        }
+
+        return ['success' => true, 'tutor_id' => (int)$tutorId, 'pet_id' => $resultadoPet['pet_id']];
+    }
+
     public function criarPetDuranteAtendimento(int $veterinarioUsuarioId, int $tutorUsuarioId, array $dados): array
     {
         if (!$this->veterinarioModel->buscarAprovadoPorUsuarioId($veterinarioUsuarioId)) {

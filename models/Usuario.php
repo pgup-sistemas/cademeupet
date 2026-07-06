@@ -117,6 +117,12 @@ class Usuario
         return $this->db->fetchOne('SELECT * FROM usuarios WHERE email = ?', [$email]);
     }
 
+    /** Obtém registro por telefone — usado para evitar cadastro duplicado de tutor pelo veterinário. */
+    public function findByTelefone(string $telefone)
+    {
+        return $this->db->fetchOne('SELECT * FROM usuarios WHERE telefone = ?', [$telefone]);
+    }
+
     /** Busca por nome ou telefone — usado pelo veterinário para localizar o tutor antes de cadastrar um pet novo. */
     public function buscarPorNomeOuTelefone(string $termo): array
     {

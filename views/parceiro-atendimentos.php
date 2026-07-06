@@ -63,6 +63,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 redirect('/parceiro/atendimento?id=' . $rAtend['id']);
             }
             $errors = $rAtend['errors'] ?? ['Erro ao abrir atendimento.'];
+        } elseif ($acao === 'criar_tutor_pet_e_abrir') {
+            $rTutorPet = $controller->criarTutorEPet(
+                $usuarioId,
+                [
+                    'nome' => $_POST['tutor_nome'] ?? '',
+                    'telefone' => $_POST['tutor_telefone'] ?? '',
+                    'email' => $_POST['tutor_email'] ?? '',
+                ],
+                [
+                    'nome' => $_POST['pet_nome'] ?? '', 'especie' => $_POST['pet_especie'] ?? '',
+                    'raca' => $_POST['pet_raca'] ?? '', 'sexo' => $_POST['pet_sexo'] ?? '',
+                ]
+            );
+            if (!empty($rTutorPet['success'])) {
+                $rAtend = $controller->abrir($usuarioId, (int)$rTutorPet['pet_id'], $_POST['motivo_consulta'] ?? '');
+                if (!empty($rAtend['success'])) {
+                    redirect('/parceiro/atendimento?id=' . $rAtend['id']);
+                }
+                $errors = $rAtend['errors'] ?? ['Erro ao abrir atendimento.'];
+            } else {
+                $errors = $rTutorPet['errors'] ?? ['Erro ao cadastrar tutor e pet.'];
+            }
+        } elseif ($acao === 'editar_pet') {
+            $petController = new PetController();
+            $rEditar = $petController->atualizarComoVeterinario((int)($_POST['pet_id'] ?? 0), $usuarioId, [
+                'nome' => $_POST['editar_pet_nome'] ?? '',
+                'especie' => $_POST['editar_pet_especie'] ?? '',
+                'raca' => $_POST['editar_pet_raca'] ?? '',
+                'sexo' => $_POST['editar_pet_sexo'] ?? '',
+                'cor' => $_POST['editar_pet_cor'] ?? '',
+                'data_nascimento' => $_POST['editar_pet_data_nascimento'] ?? '',
+            ]);
+            if (!empty($rEditar['success'])) {
+                setFlashMessage('Dados do pet atualizados.', MSG_SUCCESS);
+            } else {
+                $errors = $rEditar['errors'] ?? ['Erro ao atualizar o pet.'];
+            }
+            redirect('/parceiro/atendimentos?buscar=' . urlencode($termoBusca));
         }
     }
 }
@@ -112,27 +150,153 @@ include __DIR__ . '/../includes/header.php';
 
                 <?php if ($termoBusca !== ''): ?>
                     <?php if (empty($petsEncontrados)): ?>
-                        <div class="alert alert-info">Nenhum pet encontrado. Se o tutor já tem conta, cadastre o pet abaixo.</div>
+                        <div class="alert alert-info">Nenhum pet encontrado. Se for a primeira vez do tutor na clínica, cadastre-o abaixo.</div>
                     <?php else: ?>
                         <div class="list-group mb-3">
                             <?php foreach ($petsEncontrados as $p): ?>
-                                <div class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong><?php echo sanitize($p['nome']); ?></strong> (<?php echo sanitize(ucfirst($p['especie'])); ?>)
-                                        — Tutor: <?php echo sanitize($p['tutor_nome']); ?> (<?php echo sanitize($p['tutor_telefone']); ?>)
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div>
+                                            <strong><?php echo sanitize($p['nome']); ?></strong> (<?php echo sanitize(ucfirst($p['especie'])); ?>)
+                                            — Tutor: <?php echo sanitize($p['tutor_nome']); ?> (<?php echo sanitize($p['tutor_telefone']); ?>)
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalEditarPet<?php echo (int)$p['id']; ?>">Editar</button>
+                                            <form method="POST" class="d-flex gap-2">
+                                                <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                                                <input type="hidden" name="action" value="abrir_existente">
+                                                <input type="hidden" name="pet_id" value="<?php echo (int)$p['id']; ?>">
+                                                <input type="text" class="form-control form-control-sm" name="motivo_consulta" placeholder="Motivo da consulta" required>
+                                                <button type="submit" class="btn btn-sm btn-primary">Abrir atendimento</button>
+                                            </form>
+                                        </div>
                                     </div>
-                                    <form method="POST" class="d-flex gap-2">
-                                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
-                                        <input type="hidden" name="action" value="abrir_existente">
-                                        <input type="hidden" name="pet_id" value="<?php echo (int)$p['id']; ?>">
-                                        <input type="text" class="form-control form-control-sm" name="motivo_consulta" placeholder="Motivo da consulta" required>
-                                        <button type="submit" class="btn btn-sm btn-primary">Abrir atendimento</button>
-                                    </form>
+                                </div>
+
+                                <div class="modal fade" id="modalEditarPet<?php echo (int)$p['id']; ?>" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <form method="POST">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Editar dados de <?php echo sanitize($p['nome']); ?></h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                                                    <input type="hidden" name="action" value="editar_pet">
+                                                    <input type="hidden" name="pet_id" value="<?php echo (int)$p['id']; ?>">
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-semibold">Nome</label>
+                                                        <input type="text" class="form-control" name="editar_pet_nome" value="<?php echo sanitize($p['nome']); ?>" required>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-6 mb-3">
+                                                            <label class="form-label fw-semibold">Espécie</label>
+                                                            <select class="form-select" name="editar_pet_especie" required>
+                                                                <?php foreach (['cachorro' => 'Cachorro', 'gato' => 'Gato', 'ave' => 'Ave', 'outro' => 'Outro'] as $val => $label): ?>
+                                                                    <option value="<?php echo $val; ?>" <?php echo $p['especie'] === $val ? 'selected' : ''; ?>><?php echo $label; ?></option>
+                                                                <?php endforeach; ?>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-6 mb-3">
+                                                            <label class="form-label fw-semibold">Sexo</label>
+                                                            <select class="form-select" name="editar_pet_sexo">
+                                                                <option value="">Não informado</option>
+                                                                <option value="macho" <?php echo ($p['sexo'] ?? '') === 'macho' ? 'selected' : ''; ?>>Macho</option>
+                                                                <option value="femea" <?php echo ($p['sexo'] ?? '') === 'femea' ? 'selected' : ''; ?>>Fêmea</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-6 mb-3">
+                                                            <label class="form-label fw-semibold">Raça</label>
+                                                            <input type="text" class="form-control" name="editar_pet_raca" value="<?php echo sanitize($p['raca'] ?? ''); ?>">
+                                                        </div>
+                                                        <div class="col-6 mb-3">
+                                                            <label class="form-label fw-semibold">Cor</label>
+                                                            <input type="text" class="form-control" name="editar_pet_cor" value="<?php echo sanitize($p['cor'] ?? ''); ?>">
+                                                        </div>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-semibold">Data de nascimento</label>
+                                                        <input type="date" class="form-control" name="editar_pet_data_nascimento" value="<?php echo sanitize($p['data_nascimento'] ?? ''); ?>">
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                    <button type="submit" class="btn btn-primary">Salvar alterações</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
                                 </div>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
                 <?php endif; ?>
+
+                <details class="mt-2">
+                    <summary class="text-primary fw-semibold" style="cursor:pointer;">Primeira vez na clínica? Cadastrar tutor novo + pet</summary>
+                    <form method="POST" class="mt-3">
+                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                        <input type="hidden" name="action" value="criar_tutor_pet_e_abrir">
+
+                        <h3 class="h6 fw-bold">Dados do tutor</h3>
+                        <div class="row">
+                            <div class="col-md-5 mb-3">
+                                <label class="form-label fw-semibold">Nome completo</label>
+                                <input type="text" class="form-control" name="tutor_nome" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">Telefone (com DDD)</label>
+                                <input type="text" class="form-control" name="tutor_telefone" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-semibold">E-mail (opcional)</label>
+                                <input type="email" class="form-control" name="tutor_email">
+                            </div>
+                        </div>
+
+                        <h3 class="h6 fw-bold mt-3">Dados do pet</h3>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Nome do pet</label>
+                                <input type="text" class="form-control" name="pet_nome" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Espécie</label>
+                                <select class="form-select" name="pet_especie" required>
+                                    <option value="cachorro">Cachorro</option>
+                                    <option value="gato">Gato</option>
+                                    <option value="ave">Ave</option>
+                                    <option value="outro">Outro</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Raça</label>
+                                <input type="text" class="form-control" name="pet_raca">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Sexo</label>
+                                <select class="form-select" name="pet_sexo">
+                                    <option value="">Não informado</option>
+                                    <option value="macho">Macho</option>
+                                    <option value="femea">Fêmea</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Motivo da consulta</label>
+                            <input type="text" class="form-control" name="motivo_consulta" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Cadastrar tutor, pet e abrir atendimento</button>
+                        <p class="text-muted small mt-2 mb-0">Se o tutor já tiver conta na plataforma, prefira buscar pelo nome/telefone acima para não duplicar o cadastro.</p>
+                    </form>
+                </details>
 
                 <details class="mt-2" <?php echo $tutorSelecionado ? 'open' : ''; ?>>
                     <summary class="text-primary" style="cursor:pointer;">Pet não encontrado? Cadastrar novo pet (tutor já com conta)</summary>

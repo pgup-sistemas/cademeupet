@@ -87,6 +87,39 @@ class PetController
         return ['success' => true];
     }
 
+    /**
+     * Edição de dados cadastrais do pet feita por um veterinário aprovado
+     * (qualquer clínica) durante um atendimento — não exige que o pet
+     * "pertença" à clínica atual, consistente com o histórico clínico
+     * compartilhado entre clínicas (ver docs/modulo-atendimento-veterinario-laudo.md).
+     */
+    public function atualizarComoVeterinario(int $petId, int $veterinarioUsuarioId, array $dados): array
+    {
+        $veterinarioModel = new ParceiroVeterinario();
+        if (!$veterinarioModel->buscarAprovadoPorUsuarioId($veterinarioUsuarioId)) {
+            return ['success' => false, 'errors' => ['Você não está aprovado como veterinário.']];
+        }
+
+        $pet = $this->petModel->buscarPorId($petId);
+        if (!$pet) {
+            return ['success' => false, 'errors' => ['Pet não encontrado.']];
+        }
+
+        $dados = sanitize($dados);
+        $erros = $this->validar($dados, false);
+        if (!empty($erros)) {
+            return ['success' => false, 'errors' => $erros];
+        }
+        if (empty($dados['nome']) && array_key_exists('nome', $dados)) {
+            return ['success' => false, 'errors' => ['O nome do pet não pode ficar em branco.']];
+        }
+
+        $this->petModel->atualizarCampos($petId, $dados);
+        auditLog('atualizar_pet_pelo_veterinario', 'pets', $petId);
+
+        return ['success' => true];
+    }
+
     public function desativar(int $petId, int $tutorUsuarioId): bool
     {
         $ok = $this->petModel->desativar($petId, $tutorUsuarioId);

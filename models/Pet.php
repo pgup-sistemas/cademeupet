@@ -62,6 +62,33 @@ class Pet
         return $row ?: null;
     }
 
+    /**
+     * Atualiza campos cadastrais por ID, sem exigir posse do tutor — uso
+     * exclusivo de veterinário aprovado (checado na camada de controller),
+     * já que o pet pode estar sendo atendido numa clínica diferente da que
+     * ele "pertence".
+     */
+    public function atualizarCampos(int $id, array $dados): bool
+    {
+        $campos = [];
+        foreach (['nome', 'especie', 'raca', 'sexo', 'cor', 'microchip_numero'] as $campo) {
+            if (array_key_exists($campo, $dados)) {
+                $campos[$campo] = $dados[$campo] ?: null;
+            }
+        }
+        if (array_key_exists('data_nascimento', $dados)) {
+            $campos['data_nascimento'] = $dados['data_nascimento'] ?: null;
+        }
+        if (array_key_exists('idade_aproximada_meses', $dados)) {
+            $campos['idade_aproximada_meses'] = $dados['idade_aproximada_meses'] !== ''
+                ? (int)$dados['idade_aproximada_meses'] : null;
+        }
+        if (empty($campos)) {
+            return false;
+        }
+        return $this->db->update('pets', $campos, 'id = ?', [$id]) !== false;
+    }
+
     public function pertenceAoTutor(int $id, int $tutorUsuarioId): bool
     {
         $row = $this->db->fetchOne(
