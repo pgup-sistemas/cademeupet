@@ -152,7 +152,24 @@ define('EFI_WEBHOOK_TOKEN', envValue('EFI_WEBHOOK_TOKEN', ''));
 // por isso checamos explicitamente e aplicamos o default manual.
 $__efiCertPath = trim((string)envValue('EFI_CERTIFICATE_PATH', ''));
 if ($__efiCertPath === '') {
-    $__efiCertPath = __DIR__ . DIRECTORY_SEPARATOR . 'secrets' . DIRECTORY_SEPARATOR . 'producao-cademeupet.pem';
+    $__efiSecretsDir = __DIR__ . DIRECTORY_SEPARATOR . 'secrets' . DIRECTORY_SEPARATOR;
+    // Nomes possíveis do certificado, do mais novo para o mais antigo (o arquivo
+    // físico não é renomeado automaticamente quando o projeto muda de marca/nome).
+    $__efiCertCandidatos = ['producao-cademeupet.pem', 'producao-573055-petfinder.pem'];
+    $__efiCertPath = $__efiSecretsDir . $__efiCertCandidatos[0];
+    foreach ($__efiCertCandidatos as $__candidato) {
+        if (file_exists($__efiSecretsDir . $__candidato)) {
+            $__efiCertPath = $__efiSecretsDir . $__candidato;
+            break;
+        }
+    }
+    // Última tentativa: qualquer .pem presente em secrets/.
+    if (!file_exists($__efiCertPath)) {
+        $__efiPemsEncontrados = glob($__efiSecretsDir . '*.pem') ?: [];
+        if (!empty($__efiPemsEncontrados)) {
+            $__efiCertPath = $__efiPemsEncontrados[0];
+        }
+    }
 }
 
 // Normalizar caminho do certificado: se veio um path antigo/inválido, buscar na raiz do projeto.
