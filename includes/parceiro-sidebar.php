@@ -37,6 +37,8 @@ if (!function_exists('__adminNavActive')) {
 
     <nav class="nav flex-column px-2 gap-1 flex-grow-1">
 
+        <div class="nav-label px-2 small text-muted text-uppercase" style="font-size:.7rem;letter-spacing:.05em;">Empresa</div>
+
         <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/parceiro/painel', $__uriParceiro); ?>"
            href="<?php echo BASE_URL; ?>/parceiro/painel"
            title="Painel">
@@ -45,8 +47,8 @@ if (!function_exists('__adminNavActive')) {
 
         <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/parceiro/perfil', $__uriParceiro); ?>"
            href="<?php echo BASE_URL; ?>/parceiro/perfil"
-           title="Perfil">
-            <i class="fa-solid fa-building me-2"></i><span class="nav-label">Perfil</span>
+           title="Perfil da Empresa">
+            <i class="fa-solid fa-building me-2"></i><span class="nav-label">Perfil da Empresa</span>
         </a>
 
         <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/parceiro/pagamento', $__uriParceiro); ?>"
