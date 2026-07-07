@@ -31,6 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $categoria = (string)($_POST['categoria'] ?? ($perfil['categoria'] ?? $inscricao['categoria'] ?? ''));
     $nomeFantasia = trim((string)($_POST['nome_fantasia'] ?? ($perfil['nome_fantasia'] ?? $inscricao['nome_fantasia'] ?? '')));
+    $tipoDocumento = (string)($_POST['tipo_documento'] ?? '');
+    $numeroDocumento = preg_replace('/\D/', '', (string)($_POST['numero_documento'] ?? ''));
     $descricao = trim((string)($_POST['descricao'] ?? ''));
     if ($descricao === '' && !$perfil && !empty($inscricao['mensagem'])) {
         $descricao = trim((string)$inscricao['mensagem']);
@@ -62,6 +64,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($emailContato !== '' && !isValidEmail($emailContato)) {
         $errors[] = 'Email de contato inválido.';
     }
+    if ($tipoDocumento !== '' || $numeroDocumento !== '') {
+        if (!in_array($tipoDocumento, ['cpf', 'cnpj'], true)) {
+            $errors[] = 'Selecione o tipo de documento (CPF ou CNPJ).';
+        } elseif (!isValidCpfCnpj($tipoDocumento, $numeroDocumento)) {
+            $errors[] = 'O ' . strtoupper($tipoDocumento) . ' informado é inválido.';
+        } else {
+            $docExistente = getDB()->fetchOne(
+                'SELECT id FROM parceiro_perfis WHERE tipo_documento = ? AND numero_documento = ? AND usuario_id != ?',
+                [$tipoDocumento, $numeroDocumento, $usuarioId]
+            );
+            if ($docExistente) {
+                $errors[] = 'Este ' . strtoupper($tipoDocumento) . ' já está cadastrado em outro perfil de parceiro.';
+            }
+        }
+    }
 
     if (!empty($errors)) {
         setFlashMessage(implode(' ', $errors), MSG_ERROR);
@@ -75,6 +92,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'usuario_id' => $usuarioId,
                 'slug' => $slug,
                 'nome_fantasia' => $nomeFantasia,
+                'tipo_documento' => $tipoDocumento !== '' ? $tipoDocumento : null,
+                'numero_documento' => $numeroDocumento !== '' ? $numeroDocumento : null,
                 'categoria' => $categoria,
                 'descricao' => $descricao !== '' ? $descricao : null,
                 'telefone' => $telefone !== '' ? preg_replace('/[^0-9]/', '', $telefone) : null,
@@ -91,6 +110,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $perfilModel->update((int)$perfil['id'], [
                 'nome_fantasia' => $nomeFantasia,
+                'tipo_documento' => $tipoDocumento !== '' ? $tipoDocumento : null,
+                'numero_documento' => $numeroDocumento !== '' ? $numeroDocumento : null,
                 'categoria' => $categoria,
                 'descricao' => $descricao !== '' ? $descricao : null,
                 'telefone' => $telefone !== '' ? preg_replace('/[^0-9]/', '', $telefone) : null,
@@ -142,6 +163,16 @@ include __DIR__ . '/../includes/header.php';
     </div>
     <?php endif; ?>
 
+    <?php if ($perfil && empty($perfil['numero_documento'])): ?>
+    <div class="alert alert-warning d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div>
+            Falta completar o <strong>CNPJ ou CPF</strong> da empresa/profissional neste perfil — ainda não é bloqueante,
+            mas é necessário pra formalizar o cadastro de parceiro. Preencha no formulário abaixo.
+        </div>
+    </div>
+    <?php endif; ?>
+
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1">Meu Perfil Parceiro</h1>
@@ -175,6 +206,21 @@ include __DIR__ . '/../includes/header.php';
                             <div class="col-md-6">
                                 <label class="form-label">Nome fantasia</label>
                                 <input type="text" name="nome_fantasia" class="form-control" value="<?php echo sanitize((string)($perfil['nome_fantasia'] ?? $inscricao['nome_fantasia'] ?? '')); ?>" required>
+                            </div>
+
+                            <?php $docTipoAtual = (string)($perfil['tipo_documento'] ?? $inscricao['tipo_documento'] ?? ''); ?>
+                            <div class="col-md-3">
+                                <label class="form-label">Tipo de documento</label>
+                                <select name="tipo_documento" class="form-select">
+                                    <option value="">Não informado</option>
+                                    <option value="cnpj" <?php echo $docTipoAtual === 'cnpj' ? 'selected' : ''; ?>>CNPJ (empresa)</option>
+                                    <option value="cpf" <?php echo $docTipoAtual === 'cpf' ? 'selected' : ''; ?>>CPF (autônomo/MEI)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Número do documento</label>
+                                <input type="text" name="numero_documento" class="form-control" placeholder="Somente números"
+                                       value="<?php echo sanitize((string)($perfil['numero_documento'] ?? $inscricao['numero_documento'] ?? '')); ?>">
                             </div>
 
                             <div class="col-12">

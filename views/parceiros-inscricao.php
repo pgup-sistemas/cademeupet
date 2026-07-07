@@ -23,12 +23,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/parceiros/inscricao');
     }
 
-    $categoria    = (string)($_POST['categoria'] ?? '');
-    $nomeFantasia = trim((string)($_POST['nome_fantasia'] ?? ''));
-    $cidade       = trim((string)($_POST['cidade'] ?? ($usuario['cidade'] ?? '')));
-    $estado       = strtoupper(trim((string)($_POST['estado'] ?? ($usuario['estado'] ?? ''))));
-    $mensagem     = trim((string)($_POST['mensagem'] ?? ''));
-    $telefone     = preg_replace('/\D/', '', (string)($_POST['telefone'] ?? ''));
+    $categoria      = (string)($_POST['categoria'] ?? '');
+    $nomeFantasia   = trim((string)($_POST['nome_fantasia'] ?? ''));
+    $cidade         = trim((string)($_POST['cidade'] ?? ($usuario['cidade'] ?? '')));
+    $estado         = strtoupper(trim((string)($_POST['estado'] ?? ($usuario['estado'] ?? ''))));
+    $mensagem       = trim((string)($_POST['mensagem'] ?? ''));
+    $telefone       = preg_replace('/\D/', '', (string)($_POST['telefone'] ?? ''));
+    $tipoDocumento  = (string)($_POST['tipo_documento'] ?? '');
+    $numeroDocumento = preg_replace('/\D/', '', (string)($_POST['numero_documento'] ?? ''));
 
     $errors = [];
     $validCategorias = ['petshop', 'clinica', 'hotel', 'adestrador', 'outro'];
@@ -40,6 +42,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if ($nomeFantasia !== '' && mb_strlen($nomeFantasia) < 3) {
         $errors[] = 'O nome fantasia deve ter pelo menos 3 caracteres.';
+    }
+    if (!in_array($tipoDocumento, ['cpf', 'cnpj'], true)) {
+        $errors[] = 'Selecione o tipo de documento (CPF ou CNPJ).';
+    } elseif (!isValidCpfCnpj($tipoDocumento, $numeroDocumento)) {
+        $errors[] = 'O ' . strtoupper($tipoDocumento) . ' informado é inválido.';
+    } else {
+        $docExistente = getDB()->fetchOne(
+            'SELECT id FROM parceiro_perfis WHERE tipo_documento = ? AND numero_documento = ?
+             UNION SELECT id FROM parceiro_inscricoes WHERE tipo_documento = ? AND numero_documento = ? AND status != ?',
+            [$tipoDocumento, $numeroDocumento, $tipoDocumento, $numeroDocumento, 'recusada']
+        );
+        if ($docExistente) {
+            $errors[] = 'Este ' . strtoupper($tipoDocumento) . ' já está cadastrado em outra inscrição/perfil de parceiro.';
+        }
     }
     if ($cidade === '') {
         $errors[] = 'Informe a cidade.';
@@ -69,6 +85,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'usuario_id'   => $usuarioId,
             'categoria'    => $categoria,
             'nome_fantasia' => $nomeFantasia,
+            'tipo_documento' => $tipoDocumento,
+            'numero_documento' => $numeroDocumento,
             'cidade'       => $cidade,
             'estado'       => $estado,
             'telefone'     => $telefone,
@@ -186,6 +204,18 @@ include __DIR__ . '/../includes/header.php';
                                 <div class="col-md-6">
                                     <label class="form-label">Nome fantasia</label>
                                     <input type="text" name="nome_fantasia" class="form-control" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Tipo de documento</label>
+                                    <select name="tipo_documento" class="form-select" required>
+                                        <option value="" selected disabled>Selecione</option>
+                                        <option value="cnpj">CNPJ (empresa)</option>
+                                        <option value="cpf">CPF (autônomo/MEI)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Número do documento</label>
+                                    <input type="text" name="numero_documento" class="form-control" placeholder="Somente números" required>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Cidade</label>

@@ -26,6 +26,87 @@ function isValidEmail($email) {
 }
 
 /**
+ * Valida CPF (com dígitos verificadores reais, não só formato/tamanho).
+ */
+function isValidCpf(string $cpf): bool {
+    $cpf = preg_replace('/\D/', '', $cpf);
+    if (strlen($cpf) !== 11 || preg_match('/^(\d)\1{10}$/', $cpf)) {
+        return false; // tamanho errado ou todos os dígitos iguais (ex: 111.111.111-11)
+    }
+    for ($t = 9; $t <= 10; $t++) {
+        $soma = 0;
+        for ($i = 0; $i < $t; $i++) {
+            $soma += (int)$cpf[$i] * (($t + 1) - $i);
+        }
+        $digito = (10 * $soma) % 11;
+        if ($digito >= 10) {
+            $digito = 0;
+        }
+        if ((int)$cpf[$t] !== $digito) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Valida CNPJ (com dígitos verificadores reais, não só formato/tamanho).
+ */
+function isValidCnpj(string $cnpj): bool {
+    $cnpj = preg_replace('/\D/', '', $cnpj);
+    if (strlen($cnpj) !== 14 || preg_match('/^(\d)\1{13}$/', $cnpj)) {
+        return false;
+    }
+    $calcularDigito = function (string $base) : int {
+        $pesos = strlen($base) === 12
+            ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+            : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+        $soma = 0;
+        for ($i = 0; $i < strlen($base); $i++) {
+            $soma += (int)$base[$i] * $pesos[$i];
+        }
+        $resto = $soma % 11;
+        return $resto < 2 ? 0 : 11 - $resto;
+    };
+
+    $digito1 = $calcularDigito(substr($cnpj, 0, 12));
+    if ($digito1 !== (int)$cnpj[12]) {
+        return false;
+    }
+    $digito2 = $calcularDigito(substr($cnpj, 0, 12) . $digito1);
+    return $digito2 === (int)$cnpj[13];
+}
+
+/**
+ * Valida CPF ou CNPJ de acordo com o tipo informado. Usado no cadastro/
+ * edição de perfil de parceiro (empresa), onde o documento é a identidade
+ * jurídica real — nome fantasia sozinho não é suficiente.
+ */
+function isValidCpfCnpj(string $tipo, string $numero): bool {
+    if ($tipo === 'cpf') {
+        return isValidCpf($numero);
+    }
+    if ($tipo === 'cnpj') {
+        return isValidCnpj($numero);
+    }
+    return false;
+}
+
+/**
+ * Formata CPF ou CNPJ para exibição (000.000.000-00 / 00.000.000/0000-00).
+ */
+function formatCpfCnpj(?string $tipo, ?string $numero): string {
+    $numero = preg_replace('/\D/', '', (string)$numero);
+    if ($tipo === 'cpf' && strlen($numero) === 11) {
+        return substr($numero, 0, 3) . '.' . substr($numero, 3, 3) . '.' . substr($numero, 6, 3) . '-' . substr($numero, 9, 2);
+    }
+    if ($tipo === 'cnpj' && strlen($numero) === 14) {
+        return substr($numero, 0, 2) . '.' . substr($numero, 2, 3) . '.' . substr($numero, 5, 3) . '/' . substr($numero, 8, 4) . '-' . substr($numero, 12, 2);
+    }
+    return $numero;
+}
+
+/**
  * Valida telefone brasileiro
  */
 function isValidPhone($phone) {

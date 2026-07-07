@@ -24,6 +24,9 @@ $_telefone           = (preg_match('/^0+$/', $_telRaw) || strlen($_telRaw) < 10)
 $_cidade             = (string)($contrato_inscricao['cidade'] ?? $contrato_usuario['cidade'] ?? '');
 $_estado             = (string)($contrato_inscricao['estado'] ?? $contrato_usuario['estado'] ?? '');
 $_categoria          = (string)($contrato_inscricao['categoria'] ?? '');
+$_tipoDocumento      = (string)($contrato_inscricao['tipo_documento'] ?? '');
+$_numeroDocumento    = (string)($contrato_inscricao['numero_documento'] ?? '');
+$_documentoFormatado = $_numeroDocumento !== '' ? formatCpfCnpj($_tipoDocumento, $_numeroDocumento) : '';
 $_dataHoje           = date('d/m/Y');
 $_hojeFormatado      = date('d \d\e F \d\e Y');
 $_versao             = $contrato_versao ?? '1.0';
@@ -55,6 +58,9 @@ $_vigenteAte = $contrato_periodicidade === 'anual'
 <p><strong>CONTRATADO (Parceiro):</strong></p>
 <p class="ms-3">
     <strong>Nome / Razão Social:</strong> <?php echo htmlspecialchars($_nomeParceiro); ?><br>
+    <?php if ($_documentoFormatado !== ''): ?>
+    <strong><?php echo strtoupper($_tipoDocumento); ?>:</strong> <?php echo htmlspecialchars($_documentoFormatado); ?><br>
+    <?php endif; ?>
     <strong>Responsável:</strong> <?php echo htmlspecialchars($_responsavel); ?><br>
     <strong>E-mail:</strong> <?php echo htmlspecialchars($_email); ?><br>
     <?php if ($_telefone !== ''): ?>

@@ -47,6 +47,15 @@ function columnExists(Database $db, string $table, string $column): bool {
     return (int)($row['n'] ?? 0) > 0;
 }
 
+function indexExists(Database $db, string $table, string $indexName): bool {
+    $row = $db->fetchOne(
+        "SELECT COUNT(*) AS n FROM information_schema.statistics
+         WHERE table_schema = DATABASE() AND table_name = ? AND index_name = ?",
+        [$table, $indexName]
+    );
+    return (int)($row['n'] ?? 0) > 0;
+}
+
 function viewExists(Database $db, string $view): bool {
     $row = $db->fetchOne(
         "SELECT COUNT(*) AS n FROM information_schema.views
@@ -76,7 +85,7 @@ out("");
 try {
     $db = getDB();
     $passo = 0;
-    $totalPassos = 38;
+    $totalPassos = 40;
 
     // ── 1. cancelamentos_log ────────────────────────────────────────────
     out("[" . (++$passo) . "/$totalPassos] Tabela cancelamentos_log");
@@ -886,6 +895,36 @@ try {
     } else {
         $db->query("ALTER TABLE `atendimentos` ADD COLUMN `tipo_atendimento` enum('consulta','vacinacao','exame','retorno') NOT NULL DEFAULT 'consulta' AFTER `motivo_consulta`");
         out("  atendimentos.tipo_atendimento adicionada.");
+    }
+    out("");
+
+    // ── 39. parceiro_inscricoes: tipo_documento + numero_documento ──────
+    out("[" . (++$passo) . "/$totalPassos] Colunas de documento em parceiro_inscricoes");
+    foreach (['tipo_documento' => "enum('cpf','cnpj') NULL DEFAULT NULL", 'numero_documento' => "varchar(20) NULL DEFAULT NULL"] as $coluna => $definicao) {
+        if (columnExists($db, 'parceiro_inscricoes', $coluna)) {
+            out("  parceiro_inscricoes.$coluna já existe.");
+        } else {
+            $db->query("ALTER TABLE `parceiro_inscricoes` ADD COLUMN `$coluna` $definicao");
+            out("  parceiro_inscricoes.$coluna adicionada.");
+        }
+    }
+    out("");
+
+    // ── 40. parceiro_perfis: tipo_documento + numero_documento (+ unique) ─
+    out("[" . (++$passo) . "/$totalPassos] Colunas de documento em parceiro_perfis");
+    foreach (['tipo_documento' => "enum('cpf','cnpj') NULL DEFAULT NULL", 'numero_documento' => "varchar(20) NULL DEFAULT NULL"] as $coluna => $definicao) {
+        if (columnExists($db, 'parceiro_perfis', $coluna)) {
+            out("  parceiro_perfis.$coluna já existe.");
+        } else {
+            $db->query("ALTER TABLE `parceiro_perfis` ADD COLUMN `$coluna` $definicao");
+            out("  parceiro_perfis.$coluna adicionada.");
+        }
+    }
+    if (indexExists($db, 'parceiro_perfis', 'uq_documento')) {
+        out("  índice uq_documento já existe.");
+    } else {
+        $db->query("ALTER TABLE `parceiro_perfis` ADD UNIQUE KEY `uq_documento` (`tipo_documento`, `numero_documento`)");
+        out("  índice uq_documento criado.");
     }
     out("");
 
