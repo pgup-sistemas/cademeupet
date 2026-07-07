@@ -321,13 +321,15 @@ include __DIR__ . '/../includes/header.php';
                     </div>
 
                     <div class="list-group list-group-flush">
-                        <div class="list-group-item px-0 d-flex align-items-center justify-content-between">
-                            <div>
-                                <strong>WhatsApp</strong>
-                                <p class="mb-0 text-muted"><?php echo formatPhone($anuncio['whatsapp']); ?></p>
+                        <?php if (!empty($anuncio['whatsapp'])): ?>
+                            <div class="list-group-item px-0 d-flex align-items-center justify-content-between">
+                                <div>
+                                    <strong>WhatsApp</strong>
+                                    <p class="mb-0 text-muted"><?php echo formatPhone($anuncio['whatsapp']); ?></p>
+                                </div>
+                                <a class="btn btn-success" href="https://wa.me/55<?php echo preg_replace('/[^0-9]/', '', $anuncio['whatsapp']); ?>" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
                             </div>
-                            <a class="btn btn-success" href="https://wa.me/55<?php echo preg_replace('/[^0-9]/', '', $anuncio['whatsapp']); ?>" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
-                        </div>
+                        <?php endif; ?>
                         <?php if (!empty($anuncio['telefone_contato'])): ?>
                             <div class="list-group-item px-0">
                                 <strong>Telefone</strong>

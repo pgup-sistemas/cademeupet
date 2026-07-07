@@ -29,7 +29,7 @@ function isValidEmail($email) {
  * Valida telefone brasileiro
  */
 function isValidPhone($phone) {
-    $phone = preg_replace('/[^0-9]/', '', $phone);
+    $phone = preg_replace('/[^0-9]/', '', (string)$phone);
     return strlen($phone) >= 10 && strlen($phone) <= 11;
 }
 
@@ -37,7 +37,7 @@ function isValidPhone($phone) {
  * Formata telefone brasileiro
  */
 function formatPhone($phone) {
-    $phone = preg_replace('/[^0-9]/', '', $phone);
+    $phone = preg_replace('/[^0-9]/', '', (string)$phone);
     if (strlen($phone) == 11) {
         return '(' . substr($phone, 0, 2) . ') ' . substr($phone, 2, 5) . '-' . substr($phone, 7);
     }
