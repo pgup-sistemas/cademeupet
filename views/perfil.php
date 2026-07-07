@@ -43,6 +43,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors = array_merge($errors, (array)$result['errors']);
             }
         }
+
+        if (isset($_POST['alterar_senha'])) {
+            $result = $usuarioController->alterarSenha(
+                $usuarioId,
+                (string)($_POST['senha_atual'] ?? ''),
+                (string)($_POST['nova_senha'] ?? ''),
+                (string)($_POST['confirma_nova_senha'] ?? '')
+            );
+            if (!empty($result['success'])) {
+                setFlashMessage($result['message'] ?? 'Senha alterada com sucesso.', MSG_SUCCESS);
+                redirect('/perfil.php');
+            }
+            if (!empty($result['errors'])) {
+                $errors = array_merge($errors, (array)$result['errors']);
+            }
+        }
     }
 }
 
@@ -142,6 +158,40 @@ include __DIR__ . '/../includes/header.php';
                             </form>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="card shadow border-0 mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h5 fw-bold mb-3">Alterar Senha</h2>
+                    <form method="POST" action="">
+                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">Senha atual</label>
+                                <input type="password" class="form-control form-control-lg" name="senha_atual" autocomplete="current-password" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Nova senha</label>
+                                <input type="password" class="form-control form-control-lg" name="nova_senha" autocomplete="new-password" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Confirmar nova senha</label>
+                                <input type="password" class="form-control form-control-lg" name="confirma_nova_senha" autocomplete="new-password" required>
+                            </div>
+                        </div>
+
+                        <div class="form-text mt-2">Mínimo de <?php echo PASSWORD_MIN_LENGTH; ?> caracteres, com letras e números.</div>
+
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" name="alterar_senha" value="1" class="btn btn-outline-primary btn-lg">
+                                Alterar senha
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
 

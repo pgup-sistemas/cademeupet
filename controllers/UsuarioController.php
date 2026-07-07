@@ -156,6 +156,32 @@ class UsuarioController
     }
 
     /**
+     * Altera a senha do usuário logado, exigindo confirmação da senha atual.
+     */
+    public function alterarSenha(int $usuarioId, string $senhaAtual, string $novaSenha, string $confirmaSenha): array
+    {
+        $usuario = $this->usuarioModel->findById($usuarioId);
+        if (!$usuario || !verifyPassword($senhaAtual, $usuario['senha'])) {
+            return ['success' => false, 'errors' => ['Senha atual incorreta.']];
+        }
+
+        if (!isStrongPassword($novaSenha)) {
+            return ['success' => false, 'errors' => ['A nova senha não atende aos requisitos mínimos de segurança.']];
+        }
+
+        if ($novaSenha !== $confirmaSenha) {
+            return ['success' => false, 'errors' => ['A nova senha e a confirmação não conferem.']];
+        }
+
+        if (verifyPassword($novaSenha, $usuario['senha'])) {
+            return ['success' => false, 'errors' => ['A nova senha deve ser diferente da senha atual.']];
+        }
+
+        $this->usuarioModel->update($usuarioId, ['senha' => hashPassword($novaSenha)]);
+        return ['success' => true, 'message' => 'Senha alterada com sucesso.'];
+    }
+
+    /**
      * Processa upload de foto de perfil respeitando regras de segurança.
      */
     public function atualizarFotoPerfil(int $usuarioId, array $arquivo)
