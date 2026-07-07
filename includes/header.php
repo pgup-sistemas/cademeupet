@@ -188,6 +188,13 @@ $includeMapAssets = $includeMapAssets ?? false;
                                 <span class="d-none d-lg-inline">Olá, <?php echo sanitize($userFirstName); ?></span>
                                 <span class="d-lg-none">Conta</span>
                             </a>
+                            <?php
+                                $_parcInscricao = getDB()->fetchOne(
+                                    'SELECT id FROM parceiro_inscricoes WHERE usuario_id = ? LIMIT 1',
+                                    [getUserId()]
+                                );
+                                $_isParceiro = !empty($_parcInscricao);
+                            ?>
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/perfil">
                                     <i class="fa-solid fa-user me-2 text-secondary"></i>Meu Perfil</a>
@@ -197,6 +204,7 @@ $includeMapAssets = $includeMapAssets ?? false;
                                     <?php if ($_naoLidasMsgs > 0): ?><span class="badge bg-danger rounded-pill ms-1"><?php echo $_naoLidasMsgs; ?></span><?php endif; ?>
                                     </a>
                                 </li>
+                                <?php if (!$_isParceiro): ?>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/meus-anuncios">
                                     <i class="fa-solid fa-list me-2 text-secondary"></i>Meus Anúncios</a>
                                 </li>
@@ -206,6 +214,7 @@ $includeMapAssets = $includeMapAssets ?? false;
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/termos-adocao">
                                     <i class="fa-solid fa-file-signature me-2 text-secondary"></i>Termos de Adoção</a>
                                 </li>
+                                <?php endif; ?>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/favoritos">
                                     <i class="fa-solid fa-heart me-2 text-secondary"></i>Meus Favoritos</a>
                                 </li>
@@ -218,13 +227,6 @@ $includeMapAssets = $includeMapAssets ?? false;
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/triagem/historico">
                                     <i class="fa-solid fa-kit-medical me-2 text-secondary"></i>Minhas Triagens</a>
                                 </li>
-                                <?php
-                                    $_parcInscricao = getDB()->fetchOne(
-                                        'SELECT id FROM parceiro_inscricoes WHERE usuario_id = ? LIMIT 1',
-                                        [getUserId()]
-                                    );
-                                    $_isParceiro = !empty($_parcInscricao);
-                                ?>
                                 <?php if ($_isParceiro || isAdmin()): ?>
                                     <li><hr class="dropdown-divider"></li>
                                     <?php if ($_isParceiro): ?>

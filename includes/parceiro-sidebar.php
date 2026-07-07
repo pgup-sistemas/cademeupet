@@ -105,30 +105,6 @@ if (!function_exists('__adminNavActive')) {
             <i class="fa-solid fa-file-signature me-2"></i><span class="nav-label">Termos de Adoção</span>
         </a>
 
-        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/favoritos', $__uriParceiro); ?>"
-           href="<?php echo BASE_URL; ?>/favoritos"
-           title="Meus Favoritos">
-            <i class="fa-solid fa-heart me-2"></i><span class="nav-label">Meus Favoritos</span>
-        </a>
-
-        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/alertas', $__uriParceiro); ?>"
-           href="<?php echo BASE_URL; ?>/alertas"
-           title="Meus Alertas">
-            <i class="fa-solid fa-bell me-2"></i><span class="nav-label">Meus Alertas</span>
-        </a>
-
-        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/matches', $__uriParceiro); ?>"
-           href="<?php echo BASE_URL; ?>/matches"
-           title="Matches Sugeridos">
-            <i class="fa-solid fa-magnifying-glass me-2"></i><span class="nav-label">Matches Sugeridos</span>
-        </a>
-
-        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/triagem/historico', $__uriParceiro); ?>"
-           href="<?php echo BASE_URL; ?>/triagem/historico"
-           title="Minhas Triagens">
-            <i class="fa-solid fa-kit-medical me-2"></i><span class="nav-label">Minhas Triagens</span>
-        </a>
-
         <hr>
 
         <a class="nav-link" href="<?php echo BASE_URL; ?>" title="Ir para o site">
