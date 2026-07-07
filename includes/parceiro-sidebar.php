@@ -71,6 +71,64 @@ if (!function_exists('__adminNavActive')) {
 
         <hr>
 
+        <div class="nav-label px-2 small text-muted text-uppercase" style="font-size:.7rem;letter-spacing:.05em;">Minha conta</div>
+
+        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/perfil', $__uriParceiro); ?>"
+           href="<?php echo BASE_URL; ?>/perfil"
+           title="Meu Perfil">
+            <i class="fa-solid fa-user me-2"></i><span class="nav-label">Meu Perfil</span>
+        </a>
+
+        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/mensagens', $__uriParceiro); ?>"
+           href="<?php echo BASE_URL; ?>/mensagens"
+           title="Mensagens">
+            <i class="fa-solid fa-comments me-2"></i><span class="nav-label">Mensagens</span>
+        </a>
+
+        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/meus-anuncios', $__uriParceiro); ?>"
+           href="<?php echo BASE_URL; ?>/meus-anuncios"
+           title="Meus Anúncios">
+            <i class="fa-solid fa-list me-2"></i><span class="nav-label">Meus Anúncios</span>
+        </a>
+
+        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/meus-pets', $__uriParceiro); ?>"
+           href="<?php echo BASE_URL; ?>/meus-pets"
+           title="Meus Pets">
+            <i class="fa-solid fa-paw me-2"></i><span class="nav-label">Meus Pets</span>
+        </a>
+
+        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/termos-adocao', $__uriParceiro); ?>"
+           href="<?php echo BASE_URL; ?>/termos-adocao"
+           title="Termos de Adoção">
+            <i class="fa-solid fa-file-signature me-2"></i><span class="nav-label">Termos de Adoção</span>
+        </a>
+
+        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/favoritos', $__uriParceiro); ?>"
+           href="<?php echo BASE_URL; ?>/favoritos"
+           title="Meus Favoritos">
+            <i class="fa-solid fa-heart me-2"></i><span class="nav-label">Meus Favoritos</span>
+        </a>
+
+        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/alertas', $__uriParceiro); ?>"
+           href="<?php echo BASE_URL; ?>/alertas"
+           title="Meus Alertas">
+            <i class="fa-solid fa-bell me-2"></i><span class="nav-label">Meus Alertas</span>
+        </a>
+
+        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/matches', $__uriParceiro); ?>"
+           href="<?php echo BASE_URL; ?>/matches"
+           title="Matches Sugeridos">
+            <i class="fa-solid fa-magnifying-glass me-2"></i><span class="nav-label">Matches Sugeridos</span>
+        </a>
+
+        <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/triagem/historico', $__uriParceiro); ?>"
+           href="<?php echo BASE_URL; ?>/triagem/historico"
+           title="Minhas Triagens">
+            <i class="fa-solid fa-kit-medical me-2"></i><span class="nav-label">Minhas Triagens</span>
+        </a>
+
+        <hr>
+
         <a class="nav-link" href="<?php echo BASE_URL; ?>" title="Ir para o site">
             <i class="fa-solid fa-arrow-left me-2"></i><span class="nav-label">Ir para o site</span>
         </a>
