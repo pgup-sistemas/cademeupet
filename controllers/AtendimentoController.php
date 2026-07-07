@@ -191,6 +191,35 @@ class AtendimentoController
         return $this->atendimentoModel->buscarPorId($atendimentoId);
     }
 
+    /**
+     * Acesso de leitura ao atendimento: o veterinário responsável pode editar;
+     * qualquer outro veterinário ou o dono da mesma clínica pode só visualizar.
+     */
+    public function buscarParaVisualizacao(int $atendimentoId, int $usuarioId): array
+    {
+        $atendimento = $this->atendimentoModel->buscarPorId($atendimentoId);
+        if (!$atendimento) {
+            return ['atendimento' => null, 'souOTratante' => false];
+        }
+
+        $veterinario = $this->veterinarioModel->buscarPorUsuarioId($usuarioId);
+        $souOTratante = $veterinario && $this->atendimentoModel->pertenceAoVeterinario($atendimentoId, (int)$veterinario['id']);
+        if ($souOTratante) {
+            return ['atendimento' => $atendimento, 'souOTratante' => true];
+        }
+
+        $souDaClinica = $veterinario && (int)$veterinario['parceiro_perfil_id'] === (int)$atendimento['parceiro_perfil_id'];
+        if (!$souDaClinica) {
+            $perfil = $this->parceiroPerfilModel->findByUserId($usuarioId);
+            $souDaClinica = $perfil && (int)$perfil['id'] === (int)$atendimento['parceiro_perfil_id'];
+        }
+        if ($souDaClinica) {
+            return ['atendimento' => $atendimento, 'souOTratante' => false];
+        }
+
+        return ['atendimento' => null, 'souOTratante' => false];
+    }
+
     public function atualizarCampos(int $atendimentoId, int $veterinarioUsuarioId, array $dados): array
     {
         $atendimento = $this->buscarSeForDoVeterinario($atendimentoId, $veterinarioUsuarioId);

@@ -57,13 +57,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$atendimento = $controller->buscarSeForDoVeterinario($atendimentoId, $usuarioId);
+$acesso = $controller->buscarParaVisualizacao($atendimentoId, $usuarioId);
+$atendimento = $acesso['atendimento'];
+$souOTratante = $acesso['souOTratante'];
 if (!$atendimento) {
     setFlashMessage('Atendimento não encontrado ou você não tem acesso a ele.', MSG_ERROR);
     redirect('/parceiro/atendimentos');
 }
 
-$somenteLeitura = $atendimento['status'] !== 'em_andamento';
+$somenteLeitura = $atendimento['status'] !== 'em_andamento' || !$souOTratante;
 
 $laudos = $laudoController->buscarPorAtendimento($atendimentoId);
 $mostrarAbaDocumentos = $atendimento['status'] === 'finalizado' || !empty($laudos);
@@ -122,6 +124,12 @@ include __DIR__ . '/../includes/header.php';
 
     <?php if (!empty($errors)): ?>
         <div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errors as $e): ?><li><?php echo sanitize($e); ?></li><?php endforeach; ?></ul></div>
+    <?php endif; ?>
+
+    <?php if (!$souOTratante): ?>
+        <div class="alert alert-secondary small">
+            <i class="fa-solid fa-eye me-1"></i>Modo visualização — este atendimento é de outro veterinário da clínica. Apenas <?php echo sanitize($atendimento['veterinario_nome']); ?> pode editá-lo.
+        </div>
     <?php endif; ?>
 
     <?php if (!$somenteLeitura): ?>
