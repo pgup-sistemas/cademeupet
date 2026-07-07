@@ -63,7 +63,8 @@ include __DIR__ . '/../includes/header.php';
                 <div class="list-group-item">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <div class="fw-semibold"><?php echo sanitize($a['motivo_consulta']); ?></div>
+                            <span class="badge bg-secondary me-1"><?php echo Atendimento::labelTipoAtendimento($a['tipo_atendimento'] ?? 'consulta'); ?></span>
+                            <span class="fw-semibold"><?php echo sanitize($a['motivo_consulta']); ?></span>
                             <div class="small text-muted">
                                 <?php echo sanitize($a['clinica_nome']); ?> — <?php echo sanitize($a['veterinario_nome']); ?>
                             </div>

@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'raca' => $_POST['pet_raca'] ?? '', 'sexo' => $_POST['pet_sexo'] ?? '',
             ]) : ['success' => false];
             if (!empty($rPet['success'])) {
-                $rAtend = $controller->abrir($usuarioId, (int)$rPet['pet_id'], $_POST['motivo_consulta'] ?? '');
+                $rAtend = $controller->abrir($usuarioId, (int)$rPet['pet_id'], $_POST['motivo_consulta'] ?? '', null, $_POST['tipo_atendimento'] ?? 'consulta');
                 if (!empty($rAtend['success'])) {
                     redirect('/parceiro/atendimento?id=' . $rAtend['id']);
                 }
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors = $rPet['errors'] ?? ['Erro ao cadastrar pet.'];
             }
         } elseif ($acao === 'abrir_existente') {
-            $rAtend = $controller->abrir($usuarioId, (int)$_POST['pet_id'], $_POST['motivo_consulta'] ?? '');
+            $rAtend = $controller->abrir($usuarioId, (int)$_POST['pet_id'], $_POST['motivo_consulta'] ?? '', null, $_POST['tipo_atendimento'] ?? 'consulta');
             if (!empty($rAtend['success'])) {
                 redirect('/parceiro/atendimento?id=' . $rAtend['id']);
             }
@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]
             );
             if (!empty($rTutorPet['success'])) {
-                $rAtend = $controller->abrir($usuarioId, (int)$rTutorPet['pet_id'], $_POST['motivo_consulta'] ?? '');
+                $rAtend = $controller->abrir($usuarioId, (int)$rTutorPet['pet_id'], $_POST['motivo_consulta'] ?? '', null, $_POST['tipo_atendimento'] ?? 'consulta');
                 if (!empty($rAtend['success'])) {
                     redirect('/parceiro/atendimento?id=' . $rAtend['id']);
                 }
@@ -166,6 +166,12 @@ include __DIR__ . '/../includes/header.php';
                                                 <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
                                                 <input type="hidden" name="action" value="abrir_existente">
                                                 <input type="hidden" name="pet_id" value="<?php echo (int)$p['id']; ?>">
+                                                <select class="form-select form-select-sm" name="tipo_atendimento" style="max-width:140px;">
+                                                    <option value="consulta">Consulta</option>
+                                                    <option value="vacinacao">Vacinação</option>
+                                                    <option value="exame">Exame</option>
+                                                    <option value="retorno">Retorno</option>
+                                                </select>
                                                 <input type="text" class="form-control form-control-sm" name="motivo_consulta" placeholder="Motivo da consulta" required>
                                                 <button type="submit" class="btn btn-sm btn-primary">Abrir atendimento</button>
                                             </form>
@@ -288,9 +294,20 @@ include __DIR__ . '/../includes/header.php';
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Motivo da consulta</label>
-                            <input type="text" class="form-control" name="motivo_consulta" required>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">Tipo de atendimento</label>
+                                <select class="form-select" name="tipo_atendimento">
+                                    <option value="consulta">Consulta</option>
+                                    <option value="vacinacao">Vacinação</option>
+                                    <option value="exame">Exame</option>
+                                    <option value="retorno">Retorno</option>
+                                </select>
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label fw-semibold">Motivo da consulta</label>
+                                <input type="text" class="form-control" name="motivo_consulta" required>
+                            </div>
                         </div>
 
                         <button type="submit" class="btn btn-primary">Cadastrar tutor, pet e abrir atendimento</button>
@@ -350,9 +367,20 @@ include __DIR__ . '/../includes/header.php';
                                 </select>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Motivo da consulta</label>
-                            <input type="text" class="form-control" name="motivo_consulta" required>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">Tipo de atendimento</label>
+                                <select class="form-select" name="tipo_atendimento">
+                                    <option value="consulta">Consulta</option>
+                                    <option value="vacinacao">Vacinação</option>
+                                    <option value="exame">Exame</option>
+                                    <option value="retorno">Retorno</option>
+                                </select>
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label fw-semibold">Motivo da consulta</label>
+                                <input type="text" class="form-control" name="motivo_consulta" required>
+                            </div>
                         </div>
                         <button type="submit" class="btn btn-primary">Cadastrar pet e abrir atendimento</button>
                     </form>
@@ -370,6 +398,7 @@ include __DIR__ . '/../includes/header.php';
                     <div class="list-group">
                         <?php foreach ($emAndamento as $a): ?>
                             <a class="list-group-item list-group-item-action" href="<?php echo BASE_URL; ?>/parceiro/atendimento?id=<?php echo (int)$a['id']; ?>">
+                                <span class="badge bg-secondary me-1"><?php echo Atendimento::labelTipoAtendimento($a['tipo_atendimento'] ?? 'consulta'); ?></span>
                                 <?php echo sanitize($a['pet_nome']); ?> — <?php echo sanitize($a['motivo_consulta']); ?>
                                 <span class="small text-muted d-block"><?php echo formatDateTimeBR($a['criado_em']); ?></span>
                             </a>
@@ -389,10 +418,11 @@ include __DIR__ . '/../includes/header.php';
                 <?php else: ?>
                     <div class="table-responsive">
                         <table class="table table-sm">
-                            <thead><tr><th>Pet</th><th>Veterinário</th><th>Motivo</th><th>Status</th><th>Data</th></tr></thead>
+                            <thead><tr><th>Tipo</th><th>Pet</th><th>Veterinário</th><th>Motivo</th><th>Status</th><th>Data</th></tr></thead>
                             <tbody>
                                 <?php foreach ($daClinica as $a): ?>
                                     <tr>
+                                        <td><span class="badge bg-secondary"><?php echo Atendimento::labelTipoAtendimento($a['tipo_atendimento'] ?? 'consulta'); ?></span></td>
                                         <td><?php echo sanitize($a['pet_nome']); ?></td>
                                         <td><?php echo sanitize($a['veterinario_nome']); ?></td>
                                         <td><?php echo sanitize($a['motivo_consulta']); ?></td>

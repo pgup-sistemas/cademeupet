@@ -20,16 +20,34 @@ class Atendimento
         $this->db = $db ?: getDB();
     }
 
+    public const TIPOS_ATENDIMENTO = ['consulta', 'vacinacao', 'exame', 'retorno'];
+
     public function abrir(array $dados): int
     {
+        $tipo = $dados['tipo_atendimento'] ?? 'consulta';
+        if (!in_array($tipo, self::TIPOS_ATENDIMENTO, true)) {
+            $tipo = 'consulta';
+        }
+
         return (int)$this->db->insert('atendimentos', [
             'pet_id'                 => $dados['pet_id'],
             'parceiro_perfil_id'     => $dados['parceiro_perfil_id'],
             'veterinario_id'         => $dados['veterinario_id'],
             'triagem_solicitacao_id' => $dados['triagem_solicitacao_id'] ?? null,
             'motivo_consulta'        => $dados['motivo_consulta'],
+            'tipo_atendimento'       => $tipo,
             'status'                 => 'em_andamento',
         ]);
+    }
+
+    public static function labelTipoAtendimento(string $tipo): string
+    {
+        return [
+            'consulta'  => 'Consulta',
+            'vacinacao' => 'Vacinação',
+            'exame'     => 'Exame',
+            'retorno'   => 'Retorno',
+        ][$tipo] ?? ucfirst($tipo);
     }
 
     public function buscarPorId(int $id): ?array

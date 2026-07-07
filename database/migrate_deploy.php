@@ -76,7 +76,7 @@ out("");
 try {
     $db = getDB();
     $passo = 0;
-    $totalPassos = 37;
+    $totalPassos = 38;
 
     // ── 1. cancelamentos_log ────────────────────────────────────────────
     out("[" . (++$passo) . "/$totalPassos] Tabela cancelamentos_log");
@@ -877,6 +877,16 @@ try {
     out("[" . (++$passo) . "/$totalPassos] documentos.tipo aceita 'pedido_exame'");
     $db->query("ALTER TABLE `documentos` MODIFY COLUMN `tipo` enum('laudo','atestado','receituario','pedido_exame','termo_adocao','termo_responsabilidade') NOT NULL");
     out("  documentos.tipo atualizado.");
+    out("");
+
+    // ── 38. atendimentos.tipo_atendimento (consulta/vacinacao/exame/retorno) ─
+    out("[" . (++$passo) . "/$totalPassos] Coluna atendimentos.tipo_atendimento");
+    if (columnExists($db, 'atendimentos', 'tipo_atendimento')) {
+        out("  atendimentos.tipo_atendimento já existe.");
+    } else {
+        $db->query("ALTER TABLE `atendimentos` ADD COLUMN `tipo_atendimento` enum('consulta','vacinacao','exame','retorno') NOT NULL DEFAULT 'consulta' AFTER `motivo_consulta`");
+        out("  atendimentos.tipo_atendimento adicionada.");
+    }
     out("");
 
     out("=== Migration concluída com sucesso. ===");

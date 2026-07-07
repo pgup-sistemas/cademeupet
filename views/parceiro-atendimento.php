@@ -109,7 +109,10 @@ include __DIR__ . '/../includes/header.php';
 
     <div class="d-flex justify-content-between align-items-start mb-3">
         <div>
-            <h1 class="h4 fw-bold mb-1"><?php echo sanitize($atendimento['pet_nome']); ?> (<?php echo sanitize(ucfirst($atendimento['pet_especie'])); ?>)</h1>
+            <h1 class="h4 fw-bold mb-1">
+                <?php echo sanitize($atendimento['pet_nome']); ?> (<?php echo sanitize(ucfirst($atendimento['pet_especie'])); ?>)
+                <span class="badge bg-info text-dark align-middle"><?php echo Atendimento::labelTipoAtendimento($atendimento['tipo_atendimento'] ?? 'consulta'); ?></span>
+            </h1>
             <p class="text-muted mb-0">Veterinário: <?php echo sanitize($atendimento['veterinario_nome']); ?> — CRMV <?php echo sanitize($atendimento['crmv_numero'] . '-' . $atendimento['crmv_uf']); ?></p>
         </div>
         <span class="badge bg-<?php echo $atendimento['status'] === 'finalizado' ? 'success' : ($atendimento['status'] === 'cancelado' ? 'secondary' : 'warning text-dark'); ?>">
@@ -119,6 +122,20 @@ include __DIR__ . '/../includes/header.php';
 
     <?php if (!empty($errors)): ?>
         <div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errors as $e): ?><li><?php echo sanitize($e); ?></li><?php endforeach; ?></ul></div>
+    <?php endif; ?>
+
+    <?php if (!$somenteLeitura): ?>
+        <?php $faltantes = $controller->requisitosFaltantes($atendimento); ?>
+        <?php if (!empty($faltantes)): ?>
+            <div class="alert alert-warning small">
+                <strong>Para finalizar este atendimento (<?php echo Atendimento::labelTipoAtendimento($atendimento['tipo_atendimento'] ?? 'consulta'); ?>):</strong>
+                <ul class="mb-0">
+                    <?php foreach ($faltantes as $f): ?><li><?php echo sanitize($f); ?></li><?php endforeach; ?>
+                </ul>
+            </div>
+        <?php else: ?>
+            <div class="alert alert-success small">Requisitos mínimos preenchidos — já pode finalizar quando quiser.</div>
+        <?php endif; ?>
     <?php endif; ?>
 
     <ul class="nav nav-tabs mb-3" id="atendimentoTabs" role="tablist">

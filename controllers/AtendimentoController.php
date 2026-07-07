@@ -142,8 +142,13 @@ class AtendimentoController
         return ['success' => true, 'pet_id' => $petId];
     }
 
-    public function abrir(int $veterinarioUsuarioId, int $petId, string $motivoConsulta, ?int $triagemSolicitacaoId = null): array
-    {
+    public function abrir(
+        int $veterinarioUsuarioId,
+        int $petId,
+        string $motivoConsulta,
+        ?int $triagemSolicitacaoId = null,
+        string $tipoAtendimento = 'consulta'
+    ): array {
         $veterinario = $this->veterinarioModel->buscarAprovadoPorUsuarioId($veterinarioUsuarioId);
         if (!$veterinario) {
             return ['success' => false, 'errors' => ['Você ainda não está aprovado como veterinário nesta plataforma.']];
@@ -152,6 +157,10 @@ class AtendimentoController
         $pet = $this->petModel->buscarPorId($petId);
         if (!$pet) {
             return ['success' => false, 'errors' => ['Pet não encontrado.']];
+        }
+
+        if (!in_array($tipoAtendimento, Atendimento::TIPOS_ATENDIMENTO, true)) {
+            return ['success' => false, 'errors' => ['Tipo de atendimento inválido.']];
         }
 
         $motivoConsulta = trim(sanitize($motivoConsulta));
@@ -165,6 +174,7 @@ class AtendimentoController
             'veterinario_id'         => $veterinario['id'],
             'triagem_solicitacao_id' => $triagemSolicitacaoId,
             'motivo_consulta'        => $motivoConsulta,
+            'tipo_atendimento'       => $tipoAtendimento,
         ]);
 
         auditLog('abrir_atendimento', 'atendimentos', $atendimentoId);
@@ -285,14 +295,60 @@ class AtendimentoController
         if (!$atendimento) {
             return ['success' => false, 'errors' => ['Atendimento não encontrado.']];
         }
-        if (empty($atendimento['diagnostico']) && empty($atendimento['conduta'])) {
-            return ['success' => false, 'errors' => ['Preencha ao menos diagnóstico ou conduta antes de finalizar.']];
+
+        $faltantes = $this->requisitosFaltantes($atendimento);
+        if (!empty($faltantes)) {
+            return ['success' => false, 'errors' => $faltantes];
         }
 
         $this->atendimentoModel->finalizar($atendimentoId);
         auditLog('finalizar_atendimento', 'atendimentos', $atendimentoId);
 
         return ['success' => true];
+    }
+
+    /**
+     * Retorna o que falta preencher para poder finalizar, de acordo com o
+     * tipo de atendimento — cada tipo tem seu próprio critério mínimo,
+     * evitando forçar o formato de consulta completa em procedimentos
+     * rápidos (ex.: vacinação isolada não tem diagnóstico).
+     */
+    public function requisitosFaltantes(array $atendimento): array
+    {
+        $tipo = $atendimento['tipo_atendimento'] ?? 'consulta';
+        $faltantes = [];
+
+        switch ($tipo) {
+            case 'vacinacao':
+                if (empty($atendimento['peso_kg'])) {
+                    $faltantes[] = 'Registre o peso do pet (aba Exame Físico).';
+                }
+                if (empty(Atendimento::decodificarVacinas($atendimento['vacinas_aplicadas'] ?? null))) {
+                    $faltantes[] = 'Registre ao menos uma vacina aplicada (aba Exame Físico).';
+                }
+                break;
+
+            case 'exame':
+                if (empty(Atendimento::decodificarExames($atendimento['exames_solicitados'] ?? null))) {
+                    $faltantes[] = 'Registre ao menos um exame solicitado (aba Exames).';
+                }
+                break;
+
+            case 'retorno':
+                if (empty($atendimento['conduta']) && empty($atendimento['anamnese'])) {
+                    $faltantes[] = 'Registre uma breve nota de acompanhamento (aba Anamnese ou Diagnóstico e Conduta).';
+                }
+                break;
+
+            case 'consulta':
+            default:
+                if (empty($atendimento['diagnostico']) && empty($atendimento['conduta'])) {
+                    $faltantes[] = 'Preencha ao menos diagnóstico ou conduta antes de finalizar (aba Diagnóstico e Conduta).';
+                }
+                break;
+        }
+
+        return $faltantes;
     }
 
     public function historicoDoPet(int $petId): array
