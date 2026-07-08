@@ -229,7 +229,18 @@ include __DIR__ . '/../includes/header.php';
                                             </span>
                                         </div>
                                         <div class="card-body">
-                                            <h5 class="card-title fw-bold mb-2"><?php echo sanitize($anuncio['nome_pet'] ?: 'Pet ' . ucfirst($anuncio['especie'])); ?></h5>
+                                            <h5 class="card-title fw-bold mb-1"><?php echo sanitize($anuncio['nome_pet'] ?: 'Pet ' . ucfirst($anuncio['especie'])); ?></h5>
+                                            <?php if (!empty($anuncio['parceiro_nome_fantasia'])): ?>
+                                                <div class="small text-primary fw-semibold mb-2" onclick="event.stopPropagation();">
+                                                    <i class="fa-solid fa-building me-1"></i>
+                                                    <a href="<?php echo BASE_URL; ?>/parceiro/<?php echo sanitize($anuncio['parceiro_slug']); ?>" class="text-primary text-decoration-none">
+                                                        <?php echo sanitize($anuncio['parceiro_nome_fantasia']); ?>
+                                                    </a>
+                                                    <?php if (!empty($anuncio['parceiro_verificado'])): ?>
+                                                        <i class="fa-solid fa-circle-check text-success" title="Parceiro verificado"></i>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endif; ?>
                                             <div class="d-flex flex-wrap gap-2 mb-2">
                                                 <span class="badge bg-light text-dark"><i class="bi bi-geo-alt me-1"></i><?php echo sanitize($anuncio['bairro']); ?></span>
                                                 <span class="badge bg-light text-dark"><?php echo ucfirst($anuncio['especie']); ?></span>

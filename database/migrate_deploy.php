@@ -85,7 +85,7 @@ out("");
 try {
     $db = getDB();
     $passo = 0;
-    $totalPassos = 40;
+    $totalPassos = 41;
 
     // ── 1. cancelamentos_log ────────────────────────────────────────────
     out("[" . (++$passo) . "/$totalPassos] Tabela cancelamentos_log");
@@ -925,6 +925,32 @@ try {
     } else {
         $db->query("ALTER TABLE `parceiro_perfis` ADD UNIQUE KEY `uq_documento` (`tipo_documento`, `numero_documento`)");
         out("  índice uq_documento criado.");
+    }
+    out("");
+
+    // ── 41. anuncios.parceiro_perfil_id (publicar anúncio como empresa) ─
+    out("[" . (++$passo) . "/$totalPassos] Coluna anuncios.parceiro_perfil_id");
+    if (columnExists($db, 'anuncios', 'parceiro_perfil_id')) {
+        out("  anuncios.parceiro_perfil_id já existe.");
+    } else {
+        $db->query("ALTER TABLE `anuncios` ADD COLUMN `parceiro_perfil_id` int(11) NULL DEFAULT NULL AFTER `usuario_id`");
+        out("  anuncios.parceiro_perfil_id adicionada.");
+    }
+    if (indexExists($db, 'anuncios', 'idx_anuncio_parceiro')) {
+        out("  índice idx_anuncio_parceiro já existe.");
+    } else {
+        $db->query("ALTER TABLE `anuncios` ADD KEY `idx_anuncio_parceiro` (`parceiro_perfil_id`)");
+        out("  índice idx_anuncio_parceiro criado.");
+    }
+    $fkExisteAnuncioParceiro = $db->fetchOne(
+        "SELECT COUNT(*) AS n FROM information_schema.table_constraints
+         WHERE table_schema = DATABASE() AND table_name = 'anuncios' AND constraint_name = 'fk_anuncio_parceiro'"
+    );
+    if ((int)($fkExisteAnuncioParceiro['n'] ?? 0) > 0) {
+        out("  fk_anuncio_parceiro já existe.");
+    } else {
+        $db->query("ALTER TABLE `anuncios` ADD CONSTRAINT `fk_anuncio_parceiro` FOREIGN KEY (`parceiro_perfil_id`) REFERENCES `parceiro_perfis` (`id`) ON DELETE SET NULL");
+        out("  fk_anuncio_parceiro criada.");
     }
     out("");
 

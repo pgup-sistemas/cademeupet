@@ -117,7 +117,18 @@ include __DIR__ . '/../includes/header.php';
 
             <div class="card shadow-sm border-0 mt-4">
                 <div class="card-body p-4">
-                    <h2 class="h4 fw-bold mb-3"><?php echo sanitize($anuncio['nome_pet'] ?: 'Pet ' . ucfirst($anuncio['especie'])); ?></h2>
+                    <h2 class="h4 fw-bold mb-1"><?php echo sanitize($anuncio['nome_pet'] ?: 'Pet ' . ucfirst($anuncio['especie'])); ?></h2>
+                    <?php if (!empty($anuncio['parceiro_nome_fantasia'])): ?>
+                        <p class="mb-2">
+                            <a href="<?php echo BASE_URL; ?>/parceiro/<?php echo sanitize($anuncio['parceiro_slug']); ?>" class="text-decoration-none">
+                                <i class="fa-solid fa-building me-1"></i>
+                                <span class="fw-semibold"><?php echo sanitize($anuncio['parceiro_nome_fantasia']); ?></span>
+                            </a>
+                            <?php if (!empty($anuncio['parceiro_verificado'])): ?>
+                                <span class="badge bg-success-subtle text-success ms-1"><i class="fa-solid fa-circle-check me-1"></i>Parceiro verificado</span>
+                            <?php endif; ?>
+                        </p>
+                    <?php endif; ?>
                     <div class="d-flex flex-wrap gap-2 mb-3">
                         <span class="badge bg-<?php echo $anuncio['tipo'] === 'perdido' ? 'danger' : ($anuncio['tipo'] === 'doacao' ? 'primary' : 'success'); ?>">
                             <?php echo $anuncio['tipo'] === 'perdido' ? '<i class="fa-solid fa-circle text-danger"></i> Perdido' : ($anuncio['tipo'] === 'doacao' ? '<i class="fa-solid fa-circle text-primary"></i> Adoção' : '<i class="fa-solid fa-circle text-success"></i> Encontrado'); ?>

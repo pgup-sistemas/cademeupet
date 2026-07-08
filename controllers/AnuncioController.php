@@ -9,14 +9,16 @@ class AnuncioController
 {
     private $anuncioModel;
     private $usuarioModel;
+    private $parceiroPerfilModel;
     private $db;
     private $userIdResolver;
     private $isAdminResolver;
 
-    public function __construct($anuncioModel = null, $usuarioModel = null, $db = null, callable $userIdResolver = null, callable $isAdminResolver = null)
+    public function __construct($anuncioModel = null, $usuarioModel = null, $db = null, callable $userIdResolver = null, callable $isAdminResolver = null, $parceiroPerfilModel = null)
     {
         $this->anuncioModel = $anuncioModel ?: new Anuncio();
         $this->usuarioModel = $usuarioModel ?: new Usuario();
+        $this->parceiroPerfilModel = $parceiroPerfilModel ?: new ParceiroPerfil();
         $this->db = $db ?: getDB();
         $this->userIdResolver = $userIdResolver ?: function () {
             return getUserId();
@@ -48,13 +50,22 @@ class AnuncioController
         }
 
         $data = sanitize($data);
+
+        $parceiroPerfilId = null;
+        if (!empty($data['publicar_como_empresa'])) {
+            $perfil = $this->parceiroPerfilModel->findByUserId($userId);
+            if ($perfil && !empty($perfil['publicado'])) {
+                $parceiroPerfilId = (int)$perfil['id'];
+            }
+        }
+
         $errors = $this->validateCreateData($data, $files, $userId);
 
         if (!empty($errors)) {
             return ['success' => false, 'errors' => $errors];
         }
 
-        $payload = $this->buildInsertPayload($data, $userId);
+        $payload = $this->buildInsertPayload($data, $userId, $parceiroPerfilId);
 
         try {
             $this->db->beginTransaction();
@@ -544,7 +555,7 @@ class AnuncioController
         return array_unique($errors);
     }
 
-    private function buildInsertPayload(array $data, int $userId): array
+    private function buildInsertPayload(array $data, int $userId, ?int $parceiroPerfilId = null): array
     {
         $latitude = null;
         if (array_key_exists('latitude', $data)) {
@@ -560,6 +571,7 @@ class AnuncioController
 
         return [
             'usuario_id' => $userId,
+            'parceiro_perfil_id' => $parceiroPerfilId,
             'tipo' => $data['tipo'],
             'nome_pet' => $data['nome_pet'] ?? null,
             'especie' => $data['especie'],

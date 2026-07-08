@@ -88,6 +88,11 @@ include __DIR__ . '/../includes/header.php';
                                     <h5 class="card-title mb-1">
                                         <?php echo sanitize($anuncio['nome_pet'] ?: ('Pet ' . ucfirst($anuncio['especie']))); ?>
                                     </h5>
+                                    <?php if (!empty($anuncio['parceiro_nome_fantasia'])): ?>
+                                        <div class="small text-primary fw-semibold mb-1">
+                                            <i class="fa-solid fa-building me-1"></i><?php echo sanitize($anuncio['parceiro_nome_fantasia']); ?>
+                                        </div>
+                                    <?php endif; ?>
                                     <div class="text-muted small">
                                         <?php echo sanitize($anuncio['cidade']); ?> - <?php echo sanitize($anuncio['estado']); ?>
                                     </div>

@@ -11,6 +11,10 @@ $formData = [];
 $step = (int)($_GET['step'] ?? 1);
 $controller = new AnuncioController();
 
+$parceiroPerfilModel = new ParceiroPerfil();
+$parceiroPerfilUsuario = $parceiroPerfilModel->findByUserId((int)getUserId());
+$podePublicarComoEmpresa = $parceiroPerfilUsuario && !empty($parceiroPerfilUsuario['publicado']);
+
 $cacheTmpDir = UPLOAD_PATH . '/tmp/anuncios';
 
 // Processa o formulário
@@ -698,14 +702,28 @@ include __DIR__ . '/../includes/header.php';
                                 <!-- Recompensa (só para 'perdido') -->
                                 <div class="mb-4" id="recompensaWrapper">
                                     <label for="recompensa" class="form-label">Oferece Recompensa?</label>
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="recompensa" 
+                                    <input type="text"
+                                           class="form-control"
+                                           id="recompensa"
                                            name="recompensa"
                                            placeholder="Ex: R$ 100,00"
                                            value="<?php echo sanitize($formData['recompensa'] ?? ''); ?>">
                                 </div>
-                                
+
+                                <?php if ($podePublicarComoEmpresa): ?>
+                                <div class="mb-4 p-3" style="background:var(--cmp-primary-lt,#FDF0EB);border-radius:10px;">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="1" id="publicar_como_empresa" name="publicar_como_empresa"
+                                               <?php echo !empty($formData['publicar_como_empresa']) ? 'checked' : ''; ?>>
+                                        <label class="form-check-label fw-semibold" for="publicar_como_empresa">
+                                            <i class="fa-solid fa-building me-1"></i>
+                                            Publicar como <?php echo sanitize($parceiroPerfilUsuario['nome_fantasia']); ?>
+                                        </label>
+                                    </div>
+                                    <div class="form-text mb-0">O anúncio vai exibir o nome e o selo da sua empresa parceira, com link pro seu perfil público.</div>
+                                </div>
+                                <?php endif; ?>
+
                                 <div class="mt-4 d-flex justify-content-between align-items-center">
                                     <button type="submit" name="next_step" value="2" class="btn btn-secondary">
                                         <i class="fa-solid fa-arrow-left"></i> Voltar

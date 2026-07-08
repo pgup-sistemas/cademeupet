@@ -150,12 +150,20 @@ class Anuncio
     /**
      * Busca anúncio por ID (inclui usuário).
      */
+    /** Colunas do parceiro reaproveitadas em todas as consultas que exibem anúncio. */
+    private const SELECT_PARCEIRO = "pp.nome_fantasia AS parceiro_nome_fantasia,
+                    pp.slug AS parceiro_slug,
+                    pp.logo AS parceiro_logo,
+                    pp.verificado AS parceiro_verificado";
+    private const JOIN_PARCEIRO = 'LEFT JOIN parceiro_perfis pp ON a.parceiro_perfil_id = pp.id';
+
     public function findById(int $id)
     {
         return $this->db->fetchOne(
-            'SELECT a.*, u.nome as usuario_nome, u.telefone, u.email
+            'SELECT a.*, u.nome as usuario_nome, u.telefone, u.email, ' . self::SELECT_PARCEIRO . '
              FROM anuncios a
              JOIN usuarios u ON a.usuario_id = u.id
+             ' . self::JOIN_PARCEIRO . '
              WHERE a.id = ? AND a.status IN (?, ?)',
             [$id, STATUS_ATIVO, STATUS_RESOLVIDO]
         );
@@ -167,9 +175,10 @@ class Anuncio
     public function findByIdAnyStatus(int $id)
     {
         return $this->db->fetchOne(
-            'SELECT a.*, u.nome as usuario_nome, u.telefone, u.email
+            'SELECT a.*, u.nome as usuario_nome, u.telefone, u.email, ' . self::SELECT_PARCEIRO . '
              FROM anuncios a
              JOIN usuarios u ON a.usuario_id = u.id
+             ' . self::JOIN_PARCEIRO . '
              WHERE a.id = ?',
             [$id]
         );
@@ -190,8 +199,10 @@ class Anuncio
 
         return $this->db->fetchAll(
             "SELECT a.*,
-                    (SELECT nome_arquivo FROM fotos_anuncios f WHERE f.anuncio_id = a.id ORDER BY ordem LIMIT 1) AS foto
+                    (SELECT nome_arquivo FROM fotos_anuncios f WHERE f.anuncio_id = a.id ORDER BY ordem LIMIT 1) AS foto,
+                    " . self::SELECT_PARCEIRO . "
              FROM anuncios a
+             " . self::JOIN_PARCEIRO . "
              WHERE " . implode(' AND ', $where) . "
              ORDER BY a.data_publicacao DESC
              LIMIT ? OFFSET ?",
@@ -276,9 +287,11 @@ class Anuncio
 
         $query = [
             'SELECT a.*, u.nome AS usuario_nome,',
-            '       (SELECT nome_arquivo FROM fotos_anuncios f WHERE f.anuncio_id = a.id ORDER BY ordem LIMIT 1) AS foto',
+            '       (SELECT nome_arquivo FROM fotos_anuncios f WHERE f.anuncio_id = a.id ORDER BY ordem LIMIT 1) AS foto,',
+            '       ' . self::SELECT_PARCEIRO,
             'FROM anuncios a',
-            'JOIN usuarios u ON a.usuario_id = u.id'
+            'JOIN usuarios u ON a.usuario_id = u.id',
+            self::JOIN_PARCEIRO
         ];
 
         $where = ['1=1'];
@@ -439,15 +452,33 @@ class Anuncio
     }
 
     /**
+     * Lista anúncios ativos publicados em nome de uma empresa parceira.
+     */
+    public function findByParceiroPerfil(int $parceiroPerfilId, int $limit = 12)
+    {
+        return $this->db->fetchAll(
+            "SELECT a.*,
+                    (SELECT nome_arquivo FROM fotos_anuncios f WHERE f.anuncio_id = a.id ORDER BY ordem LIMIT 1) AS foto
+             FROM anuncios a
+             WHERE a.parceiro_perfil_id = ? AND a.status = ?
+             ORDER BY a.data_publicacao DESC
+             LIMIT ?",
+            [$parceiroPerfilId, STATUS_ATIVO, $limit]
+        );
+    }
+
+    /**
      * Retorna anúncios compatíveis com um alerta de busca.
      */
     public function findByAlert(array $alerta, int $limit = 10)
     {
         $query = [
             'SELECT a.*, u.nome AS usuario_nome,',
-            '       (SELECT nome_arquivo FROM fotos_anuncios f WHERE f.anuncio_id = a.id ORDER BY ordem LIMIT 1) AS foto',
+            '       (SELECT nome_arquivo FROM fotos_anuncios f WHERE f.anuncio_id = a.id ORDER BY ordem LIMIT 1) AS foto,',
+            '       ' . self::SELECT_PARCEIRO,
             'FROM anuncios a',
-            'JOIN usuarios u ON a.usuario_id = u.id'
+            'JOIN usuarios u ON a.usuario_id = u.id',
+            self::JOIN_PARCEIRO
         ];
 
         $where = ['a.status = ?'];

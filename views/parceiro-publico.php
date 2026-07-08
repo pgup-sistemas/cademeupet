@@ -37,6 +37,12 @@ $breadcrumbs = [
     ['label' => sanitize($perfil['nome_fantasia'])],
 ];
 
+$anuncioModel = new Anuncio();
+$anunciosEmpresa = $anuncioModel->findByParceiroPerfil((int)$perfil['id'], 6);
+
+$tipoLabelAnuncio = ['perdido' => 'Perdido', 'encontrado' => 'Encontrado', 'doacao' => 'Adoção'];
+$tipoCorAnuncio = ['perdido' => 'danger', 'encontrado' => 'success', 'doacao' => 'primary'];
+
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -103,6 +109,36 @@ include __DIR__ . '/../includes/header.php';
             </div>
         </div>
     </div>
+
+    <?php if (!empty($anunciosEmpresa)): ?>
+        <div class="row g-3 mt-1">
+            <div class="col-12">
+                <h2 class="h5 fw-bold mb-3">Anúncios de <?php echo sanitize($perfil['nome_fantasia']); ?></h2>
+            </div>
+            <?php foreach ($anunciosEmpresa as $anuncio): ?>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card anuncio-card h-100" onclick="window.location='<?php echo BASE_URL; ?>/anuncio/<?php echo (int)$anuncio['id']; ?>/'">
+                        <div class="position-relative">
+                            <?php if (!empty($anuncio['foto'])): ?>
+                                <img src="<?php echo BASE_URL; ?>/uploads/anuncios/<?php echo sanitize($anuncio['foto']); ?>" class="card-img-top" alt="Foto do pet">
+                            <?php else: ?>
+                                <div class="card-img-top d-flex align-items-center justify-content-center bg-light text-muted" style="height: 200px;">
+                                    <i class="bi bi-camera" style="font-size: 2.5rem;"></i>
+                                </div>
+                            <?php endif; ?>
+                            <span class="badge tipo-badge bg-<?php echo $tipoCorAnuncio[$anuncio['tipo']] ?? 'secondary'; ?>">
+                                <?php echo sanitize($tipoLabelAnuncio[$anuncio['tipo']] ?? $anuncio['tipo']); ?>
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold mb-2"><?php echo sanitize($anuncio['nome_pet'] ?: 'Pet ' . ucfirst($anuncio['especie'])); ?></h5>
+                            <span class="badge bg-light text-dark"><i class="bi bi-geo-alt me-1"></i><?php echo sanitize($anuncio['bairro']); ?></span>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
 </div>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
