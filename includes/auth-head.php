@@ -13,7 +13,7 @@ $pageTitle = $pageTitle ?? 'Cadê Meu Pet?';
     <meta name="robots" content="noindex, nofollow">
     <link rel="icon" type="image/svg+xml" href="<?php echo ASSETS_URL; ?>/img/favicon.svg">
     <meta name="theme-color" content="#E85D2B">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="<?php echo ASSETS_URL; ?>/css/vendors/bootstrap.min.css" rel="stylesheet">
     <link href="<?php echo ASSETS_URL; ?>/css/vendors/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?php echo ASSETS_URL; ?>/css/vendors/fontawesome.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/cademeupet.css">
