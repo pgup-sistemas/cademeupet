@@ -95,8 +95,8 @@ if (!function_exists('__adminNavActive')) {
 
         <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/meus-pets', $__uriParceiro); ?>"
            href="<?php echo BASE_URL; ?>/meus-pets"
-           title="Meus Pets">
-            <i class="fa-solid fa-paw me-2"></i><span class="nav-label">Meus Pets</span>
+           title="Ficha de Saúde dos Pets">
+            <i class="fa-solid fa-paw me-2"></i><span class="nav-label">Ficha de Saúde dos Pets</span>
         </a>
 
         <a class="nav-link <?php echo __adminNavActive(parse_url(BASE_URL, PHP_URL_PATH).'/termos-adocao', $__uriParceiro); ?>"

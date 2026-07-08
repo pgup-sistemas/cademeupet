@@ -3,7 +3,7 @@ require_once __DIR__ . '/../config.php';
 
 requireLogin();
 
-$pageTitle = 'Meus Pets | Cadê Meu Pet?';
+$pageTitle = 'Ficha de Saúde dos Pets | Cadê Meu Pet?';
 $usuarioId = (int)getUserId();
 $controller = new PetController();
 $errors = [];
@@ -45,12 +45,19 @@ $opcoesEspecie = [
 
 $breadcrumbs = [
     ['label' => 'Início', 'url' => BASE_URL],
-    ['label' => 'Meus Pets'],
+    ['label' => 'Ficha de Saúde dos Pets'],
 ];
 include __DIR__ . '/../includes/header.php';
 ?>
 
 <div class="container py-5">
+    <div class="d-flex align-items-center gap-2 mb-1">
+        <h1 class="h3 fw-bold mb-0">Ficha de Saúde dos Pets</h1>
+    </div>
+    <p class="text-muted mb-4">
+        Cadastro particular do seu pet — não é um anúncio público. Para publicar uma doação, pet perdido ou encontrado, use
+        <a href="<?php echo BASE_URL; ?>/novo-anuncio">Publicar Anúncio</a>.
+    </p>
     <div class="row">
         <div class="col-lg-5 mb-4">
             <div class="card shadow-sm border-0">

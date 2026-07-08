@@ -23,7 +23,7 @@ $carteiraVacinacao = $atendimentoController->carteiraDeVacinacao($petId);
 
 $breadcrumbs = [
     ['label' => 'Início', 'url' => BASE_URL],
-    ['label' => 'Meus Pets', 'url' => BASE_URL . '/meus-pets'],
+    ['label' => 'Ficha de Saúde dos Pets', 'url' => BASE_URL . '/meus-pets'],
     ['label' => sanitize($pet['nome'])],
 ];
 include __DIR__ . '/../includes/header.php';
