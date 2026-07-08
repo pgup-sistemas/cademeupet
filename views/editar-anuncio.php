@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
         $errors[] = 'Erro de validação do formulário. Atualize a página e tente novamente.';
     } else {
-        $result = $controller->update($id, $_POST);
+        $result = $controller->update($id, $_POST, $_FILES);
 
         if (!empty($result['success'])) {
             if (!empty($result['em_moderacao'])) {
@@ -83,7 +83,7 @@ include __DIR__ . '/../includes/header.php';
                         </div>
                     <?php endif; ?>
 
-                    <form method="POST" action="">
+                    <form method="POST" action="" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
 
                         <div class="row g-3">
@@ -92,6 +92,7 @@ include __DIR__ . '/../includes/header.php';
                                 <select class="form-select form-select-lg" name="tipo" required>
                                     <option value="perdido" <?php echo ($anuncio['tipo'] ?? '') === 'perdido' ? 'selected' : ''; ?>>Perdido</option>
                                     <option value="encontrado" <?php echo ($anuncio['tipo'] ?? '') === 'encontrado' ? 'selected' : ''; ?>>Encontrado</option>
+                                    <option value="doacao" <?php echo ($anuncio['tipo'] ?? '') === 'doacao' ? 'selected' : ''; ?>>Adoção</option>
                                 </select>
                             </div>
 
@@ -160,6 +161,28 @@ include __DIR__ . '/../includes/header.php';
                             </div>
 
                             <div class="col-12">
+                                <label class="form-label fw-bold">Fotos</label>
+                                <?php if (!empty($anuncio['fotos'])): ?>
+                                    <div class="row g-2 mb-2">
+                                        <?php foreach ($anuncio['fotos'] as $foto): ?>
+                                            <div class="col-4 col-md-3">
+                                                <div class="position-relative">
+                                                    <img src="<?php echo BASE_URL; ?>/uploads/anuncios/<?php echo sanitize($foto['nome_arquivo']); ?>"
+                                                         class="img-fluid rounded" style="aspect-ratio:1;object-fit:cover;width:100%;">
+                                                    <div class="form-check position-absolute top-0 end-0 m-1 bg-white rounded px-1">
+                                                        <input class="form-check-input" type="checkbox" name="remover_fotos[]" value="<?php echo (int)$foto['id']; ?>" id="remover_foto_<?php echo (int)$foto['id']; ?>">
+                                                        <label class="form-check-label small" for="remover_foto_<?php echo (int)$foto['id']; ?>">Remover</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                                <label for="fotos" class="form-label small text-muted">Adicionar novas fotos (máx. <?php echo MAX_PHOTOS_PER_AD; ?> no total)</label>
+                                <input type="file" class="form-control" id="fotos" name="fotos[]" accept="image/jpeg,image/png,image/webp" multiple>
+                            </div>
+
+                            <div class="col-12">
                                 <label class="form-label fw-bold">Marque no mapa</label>
                                 <div id="mapPickerEditar" class="cmp-map"></div>
                                 <div class="form-text">Clique no mapa para ajustar a posição (ou arraste o marcador).</div>
@@ -219,8 +242,8 @@ include __DIR__ . '/../includes/header.php';
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    if (document.getElementById('mapPickerEditar') && window.Cadê Meu Pet?Map) {
-        const instance = window.Cadê Meu Pet?Map.init({
+    if (document.getElementById('mapPickerEditar') && window.CadeMeuPetMap) {
+        const instance = window.CadeMeuPetMap.init({
             containerId: 'mapPickerEditar',
             latInputId: 'latitude',
             lngInputId: 'longitude'

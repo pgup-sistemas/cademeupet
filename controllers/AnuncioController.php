@@ -300,7 +300,7 @@ class AnuncioController
     /**
      * Atualiza anúncio existente (somente dono ou admin).
      */
-    public function update(int $id, array $data)
+    public function update(int $id, array $data, array $files = [])
     {
         $userId = call_user_func($this->userIdResolver);
         if (!$userId) {
@@ -407,6 +407,15 @@ class AnuncioController
 
         if (!empty($errors)) {
             return ['success' => false, 'errors' => array_values(array_unique($errors))];
+        }
+
+        $removerFotoIds = [];
+        if (!empty($data['remover_fotos']) && is_array($data['remover_fotos'])) {
+            $removerFotoIds = array_map('intval', $data['remover_fotos']);
+        }
+        $fotoErrors = $this->updatePhotos($id, $removerFotoIds, $files);
+        if (!empty($fotoErrors)) {
+            return ['success' => false, 'errors' => $fotoErrors];
         }
 
         // Se moderação ativa, anúncio editado volta para fila de revisão
@@ -633,6 +642,96 @@ class AnuncioController
 
             $ordem++;
         }
+    }
+
+    /**
+     * Remove fotos selecionadas e adiciona novas, validando tudo antes de
+     * mexer em disco/banco (evita ficar com o anúncio sem nenhuma foto).
+     *
+     * @return string[] Lista de erros (vazia se tudo certo).
+     */
+    private function updatePhotos(int $anuncioId, array $removerFotoIds, array $files): array
+    {
+        $fotosAtuais = $this->db->fetchAll(
+            'SELECT id, nome_arquivo FROM fotos_anuncios WHERE anuncio_id = ? ORDER BY ordem, id',
+            [$anuncioId]
+        );
+
+        $manterFotos = array_values(array_filter($fotosAtuais, function ($f) use ($removerFotoIds) {
+            return !in_array((int)$f['id'], $removerFotoIds, true);
+        }));
+
+        $novosArquivos = [];
+        if (!empty($files['fotos']) && is_array($files['fotos']) && is_array($files['fotos']['name'] ?? null)) {
+            foreach ($this->iterateFiles($files['fotos']) as $file) {
+                if ($file['error'] === UPLOAD_ERR_NO_FILE) {
+                    continue;
+                }
+                $novosArquivos[] = $file;
+            }
+        }
+
+        $totalFinal = count($manterFotos) + count($novosArquivos);
+        if ($totalFinal === 0) {
+            return ['O anúncio precisa ter pelo menos uma foto.'];
+        }
+        if ($totalFinal > MAX_PHOTOS_PER_AD) {
+            return ['Envie no máximo ' . MAX_PHOTOS_PER_AD . ' fotos no total.'];
+        }
+
+        $errors = [];
+        foreach ($novosArquivos as $file) {
+            $validation = validateImageUpload($file);
+            if (!$validation['valid']) {
+                $errors = array_merge($errors, $validation['errors']);
+            }
+        }
+        if (!empty($errors)) {
+            return array_values(array_unique($errors));
+        }
+
+        // Validado - agora aplica as mudanças de fato.
+        foreach ($fotosAtuais as $f) {
+            if (!in_array((int)$f['id'], $removerFotoIds, true)) {
+                continue;
+            }
+            $path = UPLOAD_PATH . '/anuncios/' . $f['nome_arquivo'];
+            if (file_exists($path)) {
+                @unlink($path);
+            }
+            $this->db->query('DELETE FROM fotos_anuncios WHERE id = ?', [(int)$f['id']]);
+        }
+
+        $ordem = 1;
+        foreach ($manterFotos as $f) {
+            $this->db->update('fotos_anuncios', ['ordem' => $ordem], 'id = ?', [(int)$f['id']]);
+            $ordem++;
+        }
+
+        if (!empty($novosArquivos)) {
+            $uploadDir = UPLOAD_PATH . '/anuncios';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            foreach ($novosArquivos as $file) {
+                $result = uploadImage($file, $uploadDir);
+                if (!$result['success']) {
+                    $errors = array_merge($errors, $result['errors']);
+                    continue;
+                }
+
+                $this->db->insert('fotos_anuncios', [
+                    'anuncio_id' => $anuncioId,
+                    'nome_arquivo' => $result['filename'],
+                    'ordem' => $ordem,
+                    'data_upload' => date('Y-m-d H:i:s'),
+                ]);
+                $ordem++;
+            }
+        }
+
+        return $errors;
     }
 
     private function normalizeSearchFilters(array $params): array
