@@ -19,6 +19,13 @@ $tituloPorTipo = [
 $tituloBusca = $tituloPorTipo[$filters['tipo'] ?? ''] ?? 'Buscar Pets';
 $pageTitle   = $tituloBusca . ' - Cadê Meu Pet?';
 
+$filtrosAtivosCount = 0;
+foreach (['q', 'tipo', 'especie', 'estado', 'cidade', 'bairro', 'tamanho', 'ordenacao', 'has_photo', 'raio'] as $chaveFiltro) {
+    if (!empty($params[$chaveFiltro])) {
+        $filtrosAtivosCount++;
+    }
+}
+
 $includeMapAssets = true;
 
 $mapPoints = [];
@@ -45,104 +52,120 @@ include __DIR__ . '/../includes/header.php';
 <div class="container py-5">
     <div class="row g-4">
         <div class="col-lg-3">
-            <div class="card shadow-sm border-0 sticky-top" style="top: 100px;">
-                <div class="card-body">
-                    <h5 class="fw-bold mb-3"><i class="bi bi-funnel me-2"></i>Filtros Rápidos</h5>
-                    <form method="GET" action="" id="filtrosBusca">
-                        <div class="mb-3">
-                            <label for="busca-q" class="form-label">Palavra-chave</label>
-                            <input type="text" id="busca-q" name="q" class="form-control" placeholder="Ex: labrador preto" value="<?php echo sanitize($params['q'] ?? ''); ?>">
-                        </div>
+            <div class="offcanvas-lg offcanvas-start busca-filtros-offcanvas" tabindex="-1" id="offcanvasFiltros" aria-labelledby="offcanvasFiltrosLabel">
+                <div class="offcanvas-header d-lg-none border-bottom">
+                    <h5 class="offcanvas-title fw-bold" id="offcanvasFiltrosLabel"><i class="bi bi-funnel me-2"></i>Filtros</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#offcanvasFiltros" aria-label="Fechar"></button>
+                </div>
+                <div class="offcanvas-body d-block p-lg-0">
+                    <div class="card shadow-sm border-0 sticky-lg-top busca-filtros-sticky">
+                        <div class="card-body busca-filtros-body">
+                            <h5 class="fw-bold mb-3 d-none d-lg-block"><i class="bi bi-funnel me-2"></i>Filtros Rápidos</h5>
+                            <form method="GET" action="" id="filtrosBusca">
+                                <div class="mb-2">
+                                    <label for="busca-q" class="form-label">Palavra-chave</label>
+                                    <input type="text" id="busca-q" name="q" class="form-control" placeholder="Ex: labrador preto" value="<?php echo sanitize($params['q'] ?? ''); ?>">
+                                </div>
 
-                        <div class="mb-3">
-                            <label for="busca-tipo" class="form-label">Tipo</label>
-                            <select id="busca-tipo" name="tipo" class="form-select">
-                                <option value="">Todos</option>
-                                <option value="perdido" <?php echo (($filters['tipo'] ?? '') === 'perdido') ? 'selected' : ''; ?>>Perdidos</option>
-                                <option value="encontrado" <?php echo (($filters['tipo'] ?? '') === 'encontrado') ? 'selected' : ''; ?>>Encontrados</option>
-                                <option value="doacao" <?php echo (($filters['tipo'] ?? '') === 'doacao') ? 'selected' : ''; ?>>Adoção</option>
-                            </select>
-                        </div>
+                                <div class="mb-2">
+                                    <label for="busca-tipo" class="form-label">Tipo</label>
+                                    <select id="busca-tipo" name="tipo" class="form-select">
+                                        <option value="">Todos</option>
+                                        <option value="perdido" <?php echo (($filters['tipo'] ?? '') === 'perdido') ? 'selected' : ''; ?>>Perdidos</option>
+                                        <option value="encontrado" <?php echo (($filters['tipo'] ?? '') === 'encontrado') ? 'selected' : ''; ?>>Encontrados</option>
+                                        <option value="doacao" <?php echo (($filters['tipo'] ?? '') === 'doacao') ? 'selected' : ''; ?>>Adoção</option>
+                                    </select>
+                                </div>
 
-                        <div class="mb-3">
-                            <label for="busca-especie" class="form-label">Espécie</label>
-                            <select id="busca-especie" name="especie" class="form-select">
-                                <option value="">Todas</option>
-                                <option value="cachorro" <?php echo (($filters['especie'] ?? '') === 'cachorro') ? 'selected' : ''; ?>>Cachorro</option>
-                                <option value="gato" <?php echo (($filters['especie'] ?? '') === 'gato') ? 'selected' : ''; ?>>Gato</option>
-                                <option value="ave" <?php echo (($filters['especie'] ?? '') === 'ave') ? 'selected' : ''; ?>>Ave</option>
-                                <option value="outro" <?php echo (($filters['especie'] ?? '') === 'outro') ? 'selected' : ''; ?>>Outro</option>
-                            </select>
-                        </div>
+                                <div class="mb-2">
+                                    <label for="busca-especie" class="form-label">Espécie</label>
+                                    <select id="busca-especie" name="especie" class="form-select">
+                                        <option value="">Todas</option>
+                                        <option value="cachorro" <?php echo (($filters['especie'] ?? '') === 'cachorro') ? 'selected' : ''; ?>>Cachorro</option>
+                                        <option value="gato" <?php echo (($filters['especie'] ?? '') === 'gato') ? 'selected' : ''; ?>>Gato</option>
+                                        <option value="ave" <?php echo (($filters['especie'] ?? '') === 'ave') ? 'selected' : ''; ?>>Ave</option>
+                                        <option value="outro" <?php echo (($filters['especie'] ?? '') === 'outro') ? 'selected' : ''; ?>>Outro</option>
+                                    </select>
+                                </div>
 
-                        <div class="mb-3">
-                            <label for="busca-estado" class="form-label">Estado (UF)</label>
-                            <input type="text" id="busca-estado" name="estado" maxlength="2" class="form-control text-uppercase" value="<?php echo sanitize($params['estado'] ?? ''); ?>">
-                        </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-4">
+                                        <label for="busca-estado" class="form-label">UF</label>
+                                        <input type="text" id="busca-estado" name="estado" maxlength="2" class="form-control text-uppercase" value="<?php echo sanitize($params['estado'] ?? ''); ?>">
+                                    </div>
+                                    <div class="col-8">
+                                        <label for="busca-cidade" class="form-label">Cidade</label>
+                                        <input type="text" id="busca-cidade" name="cidade" class="form-control" value="<?php echo sanitize($params['cidade'] ?? ''); ?>">
+                                    </div>
+                                </div>
 
-                        <div class="mb-3">
-                            <label for="busca-cidade" class="form-label">Cidade</label>
-                            <input type="text" id="busca-cidade" name="cidade" class="form-control" value="<?php echo sanitize($params['cidade'] ?? ''); ?>">
-                        </div>
+                                <div class="mb-2">
+                                    <label for="busca-bairro" class="form-label">Bairro</label>
+                                    <input type="text" id="busca-bairro" name="bairro" class="form-control" value="<?php echo sanitize($params['bairro'] ?? ''); ?>">
+                                </div>
 
-                        <div class="mb-3">
-                            <label for="busca-bairro" class="form-label">Bairro</label>
-                            <input type="text" id="busca-bairro" name="bairro" class="form-control" value="<?php echo sanitize($params['bairro'] ?? ''); ?>">
-                        </div>
+                                <div class="mb-2">
+                                    <label for="busca-tamanho" class="form-label">Porte</label>
+                                    <select id="busca-tamanho" name="tamanho" class="form-select">
+                                        <option value="">Todos</option>
+                                        <option value="pequeno" <?php echo (($filters['tamanho'] ?? '') === 'pequeno') ? 'selected' : ''; ?>>Pequeno</option>
+                                        <option value="medio" <?php echo (($filters['tamanho'] ?? '') === 'medio') ? 'selected' : ''; ?>>Médio</option>
+                                        <option value="grande" <?php echo (($filters['tamanho'] ?? '') === 'grande') ? 'selected' : ''; ?>>Grande</option>
+                                        <option value="gigante" <?php echo (($filters['tamanho'] ?? '') === 'gigante') ? 'selected' : ''; ?>>Gigante</option>
+                                    </select>
+                                </div>
 
-                        <div class="mb-3">
-                            <label for="busca-tamanho" class="form-label">Porte</label>
-                            <select id="busca-tamanho" name="tamanho" class="form-select">
-                                <option value="">Todos</option>
-                                <option value="pequeno" <?php echo (($filters['tamanho'] ?? '') === 'pequeno') ? 'selected' : ''; ?>>Pequeno</option>
-                                <option value="medio" <?php echo (($filters['tamanho'] ?? '') === 'medio') ? 'selected' : ''; ?>>Médio</option>
-                                <option value="grande" <?php echo (($filters['tamanho'] ?? '') === 'grande') ? 'selected' : ''; ?>>Grande</option>
-                                <option value="gigante" <?php echo (($filters['tamanho'] ?? '') === 'gigante') ? 'selected' : ''; ?>>Gigante</option>
-                            </select>
-                        </div>
+                                <div class="mb-2">
+                                    <label for="busca-ordenacao" class="form-label">Ordenar por</label>
+                                    <select id="busca-ordenacao" name="ordenacao" class="form-select">
+                                        <option value="">Mais recentes</option>
+                                        <option value="antigo" <?php echo (($filters['ordenacao'] ?? '') === 'antigo') ? 'selected' : ''; ?>>Mais antigos</option>
+                                        <option value="popular" <?php echo (($filters['ordenacao'] ?? '') === 'popular') ? 'selected' : ''; ?>>Mais populares</option>
+                                        <option value="proximo" <?php echo (($filters['ordenacao'] ?? '') === 'proximo') ? 'selected' : ''; ?>>Mais próximos</option>
+                                    </select>
+                                </div>
 
-                        <div class="mb-3">
-                            <label for="busca-ordenacao" class="form-label">Ordenar por</label>
-                            <select id="busca-ordenacao" name="ordenacao" class="form-select">
-                                <option value="">Mais recentes</option>
-                                <option value="antigo" <?php echo (($filters['ordenacao'] ?? '') === 'antigo') ? 'selected' : ''; ?>>Mais antigos</option>
-                                <option value="popular" <?php echo (($filters['ordenacao'] ?? '') === 'popular') ? 'selected' : ''; ?>>Mais populares</option>
-                                <option value="proximo" <?php echo (($filters['ordenacao'] ?? '') === 'proximo') ? 'selected' : ''; ?>>Mais próximos</option>
-                            </select>
-                        </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" value="1" id="comFoto" name="has_photo" <?php echo isset($filters['has_photo']) ? 'checked' : ''; ?>>
+                                    <label class="form-check-label" for="comFoto">
+                                        Apenas anúncios com foto
+                                    </label>
+                                </div>
 
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" value="1" id="comFoto" name="has_photo" <?php echo isset($filters['has_photo']) ? 'checked' : ''; ?>>
-                            <label class="form-check-label" for="comFoto">
-                                Apenas anúncios com foto
-                            </label>
-                        </div>
+                                <div class="mb-2">
+                                    <label class="form-label d-flex justify-content-between align-items-center">
+                                        <span>Raio de busca</span>
+                                        <button class="btn btn-link btn-sm p-0" type="button" onclick="usarMinhaPosicao()"><i class="bi bi-crosshair me-1"></i>Perto de mim</button>
+                                    </label>
+                                    <input type="hidden" name="lat" id="lat" value="<?php echo sanitize($params['lat'] ?? ''); ?>">
+                                    <input type="hidden" name="lng" id="lng" value="<?php echo sanitize($params['lng'] ?? ''); ?>">
+                                    <select name="raio" class="form-select">
+                                        <option value="">Qualquer distância</option>
+                                        <?php foreach ([5,10,20,50] as $raio): ?>
+                                            <option value="<?php echo $raio; ?>" <?php echo (($filters['raio'] ?? '') == $raio) ? 'selected' : ''; ?>><?php echo $raio; ?> km</option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
 
-                        <div class="mb-3">
-                            <label class="form-label d-flex justify-content-between align-items-center">
-                                <span>Raio de busca</span>
-                                <button class="btn btn-link btn-sm p-0" type="button" onclick="usarMinhaPosicao()"><i class="bi bi-crosshair me-1"></i>Perto de mim</button>
-                            </label>
-                            <input type="hidden" name="lat" id="lat" value="<?php echo sanitize($params['lat'] ?? ''); ?>">
-                            <input type="hidden" name="lng" id="lng" value="<?php echo sanitize($params['lng'] ?? ''); ?>">
-                            <select name="raio" class="form-select">
-                                <option value="">Qualquer distância</option>
-                                <?php foreach ([5,10,20,50] as $raio): ?>
-                                    <option value="<?php echo $raio; ?>" <?php echo (($filters['raio'] ?? '') == $raio) ? 'selected' : ''; ?>><?php echo $raio; ?> km</option>
-                                <?php endforeach; ?>
-                            </select>
+                                <div class="d-grid gap-2 mt-3">
+                                    <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>Aplicar filtros</button>
+                                    <a href="<?php echo BASE_URL; ?>/busca/" class="btn btn-outline-secondary">Limpar filtros</a>
+                                </div>
+                            </form>
                         </div>
-
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>Aplicar filtros</button>
-                            <a href="<?php echo BASE_URL; ?>/busca/" class="btn btn-outline-secondary">Limpar filtros</a>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="col-lg-9">
+            <button type="button" class="btn btn-outline-primary d-lg-none mb-3 w-100" data-bs-toggle="offcanvas" data-bs-target="#offcanvasFiltros" aria-controls="offcanvasFiltros">
+                <i class="bi bi-funnel me-1"></i>Filtros
+                <?php if ($filtrosAtivosCount > 0): ?>
+                    <span class="badge bg-primary ms-1"><?php echo $filtrosAtivosCount; ?></span>
+                <?php endif; ?>
+            </button>
+
             <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3">
                 <div>
                     <h1 class="h3 fw-bold mb-0"><?php echo sanitize($tituloBusca); ?></h1>
