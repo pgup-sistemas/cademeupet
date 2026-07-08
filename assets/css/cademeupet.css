@@ -558,6 +558,7 @@ a:hover { color: var(--cmp-primary-dk); }
 .partner-card {
   background: var(--cmp-surface);
   border: 1px solid var(--cmp-border);
+  border-top: 4px solid var(--cmp-primary);
   border-radius: var(--cmp-radius-lg);
   overflow: hidden;
   box-shadow: var(--cmp-shadow-sm);
@@ -565,33 +566,63 @@ a:hover { color: var(--cmp-primary-dk); }
   position: relative;
   transition: transform var(--cmp-transition), box-shadow var(--cmp-transition), border-color var(--cmp-transition);
 }
-.partner-card:hover { transform: translateY(-4px); box-shadow: var(--cmp-shadow-lg); border-color: rgba(232,93,43,.2); }
-.partner-card-highlight { border: 2px solid rgba(232,93,43,.35); box-shadow: 0 8px 24px rgba(232,93,43,.12); }
-.partner-card-ribbon {
-  position: absolute; top: 12px; left: -36px;
-  background: linear-gradient(135deg, var(--cmp-primary), #f97316);
-  color: #fff; padding: 5px 38px;
-  font-weight: 700; font-size: .7rem; text-transform: uppercase;
-  transform: rotate(-45deg); box-shadow: var(--cmp-shadow-sm);
-  pointer-events: none; letter-spacing: .04em;
+.partner-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(232,93,43,.18), var(--cmp-shadow-lg); border-color: rgba(232,93,43,.3); }
+.partner-card-highlight {
+  border: 2px solid transparent;
+  border-top: 4px solid var(--cmp-primary);
+  background:
+    linear-gradient(var(--cmp-surface), var(--cmp-surface)) padding-box,
+    linear-gradient(135deg, var(--cmp-primary), #f97316, #fbbf24) border-box;
+  box-shadow: 0 12px 32px rgba(232,93,43,.18);
 }
-.partner-card-header { padding: 16px 16px 8px; display: flex; justify-content: space-between; gap: 10px; }
+.partner-card-ribbon {
+  position: absolute; top: 14px; left: -38px;
+  background: linear-gradient(135deg, var(--cmp-primary), #f97316);
+  color: #fff; padding: 5px 40px;
+  font-weight: 800; font-size: .7rem; text-transform: uppercase;
+  transform: rotate(-45deg); box-shadow: 0 4px 10px rgba(232,93,43,.35);
+  pointer-events: none; letter-spacing: .06em;
+}
+.partner-card-header { padding: 18px 16px 8px; display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.partner-card-avatar {
+  width: 44px; height: 44px; border-radius: 14px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--cmp-primary), #fb923c);
+  color: #fff; font-size: 1.15rem; flex-shrink: 0;
+  box-shadow: 0 6px 14px rgba(232,93,43,.3);
+}
+.partner-card-title-group { display: flex; gap: 12px; align-items: flex-start; }
 .partner-card-title  { font-weight: 800; font-size: 1rem; display: flex; align-items: center; gap: 6px; }
 .partner-card-subtitle { color: var(--cmp-muted); font-size: .85rem; }
 .partner-card-title-icon { color: var(--cmp-warning); font-size: 1rem; }
 .partner-badge {
-  background: var(--cmp-primary-lt); color: var(--cmp-primary);
-  border: 1px solid rgba(232,93,43,.2); font-size: .72rem; height: fit-content;
+  font-size: .72rem; font-weight: 700; height: fit-content;
+  padding: 5px 10px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--cmp-success-lt); color: var(--cmp-success);
+  border: 1px solid rgba(5,150,105,.25);
 }
 .partner-badge-highlight {
-  background: #FFF7ED; color: #92400E;
-  border: 1px solid rgba(217,119,6,.2);
+  background: linear-gradient(135deg, #fb923c, #f59e0b);
+  color: #fff; border: none;
+  box-shadow: 0 4px 10px rgba(217,119,6,.3);
 }
 .partner-card-body   { padding: 0 16px 14px; flex: 1; }
-.partner-contact     { display: grid; gap: 7px; }
-.partner-contact-item{ display: flex; gap: 9px; align-items: center; color: var(--cmp-muted); font-size: .85rem; }
-.partner-contact-item i { color: var(--cmp-primary); width: 14px; }
+.partner-contact     { display: grid; gap: 8px; }
+.partner-contact-item{
+  display: flex; gap: 9px; align-items: center; color: var(--cmp-text-sm); font-size: .85rem;
+  font-weight: 500;
+}
+.partner-contact-item i {
+  width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--cmp-primary-lt); color: var(--cmp-primary); font-size: .8rem;
+}
+.partner-contact-item:has(.bi-whatsapp) i { background: var(--cmp-success-lt); color: var(--cmp-success); }
 .partner-card-footer { padding: 12px 16px 16px; }
+.partner-card-footer .btn {
+  font-weight: 700; letter-spacing: .01em;
+}
 .partners-cta {
   background: linear-gradient(135deg, var(--cmp-dark) 0%, var(--cmp-navy) 100%);
   color: #fff;

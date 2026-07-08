@@ -171,6 +171,13 @@ $categoriaLabels = [
     'adestrador' => 'Adestrador',
     'outro'      => 'Outro',
 ];
+$categoriaIcones = [
+    'petshop'    => 'bi-bag-heart',
+    'clinica'    => 'bi-heart-pulse',
+    'hotel'      => 'bi-house-heart',
+    'adestrador' => 'bi-stars',
+    'outro'      => 'bi-shop',
+];
 ?>
 <section class="partners-directory py-5" id="lista">
     <div class="container">
@@ -230,23 +237,32 @@ $categoriaLabels = [
                                 <div class="partner-card-ribbon"><i class="bi bi-star-fill"></i> Destaque</div>
                             <?php endif; ?>
                             <div class="partner-card-header">
-                                <div>
-                                    <div class="partner-card-title">
-                                        <?php if (!empty($p['destaque'])): ?>
-                                            <i class="bi bi-star-fill partner-card-title-icon"></i>
-                                        <?php endif; ?>
-                                        <?php echo sanitize($p['nome_fantasia']); ?>
+                                <div class="partner-card-title-group">
+                                    <div class="partner-card-avatar">
+                                        <i class="bi <?php echo sanitize($categoriaIcones[$p['categoria']] ?? 'bi-shop'); ?>"></i>
                                     </div>
-                                    <div class="partner-card-subtitle">
-                                        <?php echo sanitize($categoriaLabels[$p['categoria']] ?? $p['categoria']); ?>
-                                        &bull; <?php echo sanitize($p['cidade']); ?> - <?php echo sanitize($p['estado']); ?>
+                                    <div>
+                                        <div class="partner-card-title">
+                                            <?php if (!empty($p['destaque'])): ?>
+                                                <i class="bi bi-star-fill partner-card-title-icon"></i>
+                                            <?php endif; ?>
+                                            <?php echo sanitize($p['nome_fantasia']); ?>
+                                        </div>
+                                        <div class="partner-card-subtitle">
+                                            <?php echo sanitize($categoriaLabels[$p['categoria']] ?? $p['categoria']); ?>
+                                            &bull; <?php echo sanitize($p['cidade']); ?> - <?php echo sanitize($p['estado']); ?>
+                                        </div>
                                     </div>
                                 </div>
                                 <span class="badge partner-badge <?php echo !empty($p['destaque']) ? 'partner-badge-highlight' : ''; ?>">
                                     <?php
-                                        if (!empty($p['destaque']))       echo 'Destaque';
-                                        elseif (!empty($p['verificado'])) echo 'Verificado';
-                                        else                               echo 'Parceiro';
+                                        if (!empty($p['destaque'])):
+                                    ?><i class="bi bi-star-fill"></i> Destaque<?php
+                                        elseif (!empty($p['verificado'])):
+                                    ?><i class="bi bi-patch-check-fill"></i> Verificado<?php
+                                        else:
+                                    ?><i class="bi bi-check-circle-fill"></i> Parceiro<?php
+                                        endif;
                                     ?>
                                 </span>
                             </div>
@@ -268,9 +284,9 @@ $categoriaLabels = [
                                 </div>
                             </div>
                             <div class="partner-card-footer">
-                                <a class="btn btn-outline-primary w-100"
+                                <a class="btn btn-partners-primary w-100"
                                    href="<?php echo BASE_URL; ?>/parceiro/<?php echo sanitize($p['slug']); ?>">
-                                    Ver perfil
+                                    Ver perfil <i class="bi bi-arrow-right ms-1"></i>
                                 </a>
                             </div>
                         </div>
