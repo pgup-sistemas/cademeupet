@@ -70,7 +70,7 @@ include __DIR__ . '/../includes/header.php';
             </div>
             
             <div class="col-lg-5 text-center">
-                <div class="cta-buttons">
+                <div class="cta-buttons mt-4 mt-lg-0">
                     <a href="<?php echo BASE_URL; ?>/novo-anuncio" class="btn btn-success btn-lg mb-3 w-100">
                         PUBLICAR ANÚNCIO
                     </a>
