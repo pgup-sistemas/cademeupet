@@ -380,8 +380,8 @@ if (searchInput) {
 }
 </script>
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/vendors/leaflet.markercluster/MarkerCluster.css">
+<link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/vendors/leaflet.markercluster/MarkerCluster.Default.css">
 <script>
 // Mapa geral carregado após todos os scripts (Leaflet incluído via footer)
 window.addEventListener('load', function () {

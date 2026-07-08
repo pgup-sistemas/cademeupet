@@ -105,14 +105,12 @@ $includeMapAssets = $includeMapAssets ?? false;
     <?php if (function_exists('envValue') && ($b = envValue('BING_SITE_VERIFICATION')) !== ''): ?>
         <meta name="msvalidate.01" content="<?php echo sanitize($b); ?>">
     <?php endif; ?>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="<?php echo ASSETS_URL; ?>/css/vendors/google-fonts.css" rel="stylesheet">
     <link href="<?php echo ASSETS_URL; ?>/css/vendors/bootstrap.min.css" rel="stylesheet">
     <link href="<?php echo ASSETS_URL; ?>/css/vendors/bootstrap-icons.min.css" rel="stylesheet">
     <link href="<?php echo ASSETS_URL; ?>/css/vendors/fontawesome.min.css" rel="stylesheet">
     <?php if (!empty($includeMapAssets)): ?>
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+        <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/vendors/leaflet/leaflet.css">
     <?php endif; ?>
     <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/style.css">
     <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>/css/cademeupet.css">

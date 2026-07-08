@@ -224,10 +224,10 @@
     <script src="<?php echo ASSETS_URL; ?>/js/vendors/bootstrap.bundle.min.js"></script>
     <script src="<?php echo ASSETS_URL; ?>/js/main.js"></script>
     <?php if (!empty($includeMapAssets)): ?>
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+        <script src="<?php echo ASSETS_URL; ?>/vendors/leaflet/leaflet.js"></script>
         <script src="<?php echo ASSETS_URL; ?>/js/map.js"></script>
         <?php if (!empty($includeMapCluster)): ?>
-            <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+            <script src="<?php echo ASSETS_URL; ?>/vendors/leaflet.markercluster/leaflet.markercluster.js"></script>
         <?php endif; ?>
     <?php endif; ?>
     <?php if (isLoggedIn()): ?>
