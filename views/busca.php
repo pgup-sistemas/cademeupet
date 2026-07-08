@@ -159,14 +159,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
 
         <div class="col-lg-9">
-            <button type="button" class="btn btn-outline-primary d-lg-none mb-3 w-100" data-bs-toggle="offcanvas" data-bs-target="#offcanvasFiltros" aria-controls="offcanvasFiltros">
-                <i class="bi bi-funnel me-1"></i>Filtros
-                <?php if ($filtrosAtivosCount > 0): ?>
-                    <span class="badge bg-primary ms-1"><?php echo $filtrosAtivosCount; ?></span>
-                <?php endif; ?>
-            </button>
-
-            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3">
+            <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
                 <div>
                     <h1 class="h3 fw-bold mb-0"><?php echo sanitize($tituloBusca); ?></h1>
                     <p class="text-muted mb-0">
@@ -177,12 +170,19 @@ include __DIR__ . '/../includes/header.php';
                         <?php endif; ?>
                     </p>
                 </div>
-                <div class="mt-3 mt-md-0">
-                    <div class="btn-group" role="group">
-                        <a href="?<?php echo http_build_query(array_merge($params, ['ordenacao' => ''])); ?>" class="btn btn-outline-primary <?php echo empty($filters['ordenacao']) ? 'active' : ''; ?>">Recentes</a>
-                        <a href="?<?php echo http_build_query(array_merge($params, ['ordenacao' => 'proximo'])); ?>" class="btn btn-outline-primary <?php echo (($filters['ordenacao'] ?? '') === 'proximo') ? 'active' : ''; ?>">Mais próximos</a>
-                        <a href="?<?php echo http_build_query(array_merge($params, ['ordenacao' => 'popular'])); ?>" class="btn btn-outline-primary <?php echo (($filters['ordenacao'] ?? '') === 'popular') ? 'active' : ''; ?>">Populares</a>
-                    </div>
+                <button type="button" class="btn btn-outline-primary btn-filtro-icon d-lg-none flex-shrink-0" data-bs-toggle="offcanvas" data-bs-target="#offcanvasFiltros" aria-controls="offcanvasFiltros" aria-label="Abrir filtros">
+                    <i class="bi bi-funnel"></i>
+                    <?php if ($filtrosAtivosCount > 0): ?>
+                        <span class="badge rounded-pill bg-primary btn-filtro-badge"><?php echo $filtrosAtivosCount; ?></span>
+                    <?php endif; ?>
+                </button>
+            </div>
+
+            <div class="mb-3">
+                <div class="btn-group" role="group">
+                    <a href="?<?php echo http_build_query(array_merge($params, ['ordenacao' => ''])); ?>" class="btn btn-outline-primary <?php echo empty($filters['ordenacao']) ? 'active' : ''; ?>">Recentes</a>
+                    <a href="?<?php echo http_build_query(array_merge($params, ['ordenacao' => 'proximo'])); ?>" class="btn btn-outline-primary <?php echo (($filters['ordenacao'] ?? '') === 'proximo') ? 'active' : ''; ?>">Mais próximos</a>
+                    <a href="?<?php echo http_build_query(array_merge($params, ['ordenacao' => 'popular'])); ?>" class="btn btn-outline-primary <?php echo (($filters['ordenacao'] ?? '') === 'popular') ? 'active' : ''; ?>">Populares</a>
                 </div>
             </div>
 
